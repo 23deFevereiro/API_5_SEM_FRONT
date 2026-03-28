@@ -5,13 +5,18 @@
         <ProjetoSelector />
         <CustoCard />
       </div>
+
+      <MateriaisTable />
     </div>
   </div>
 </template>
+
 <script lang="ts" setup>
 import ProjetoSelector from '@/components/ProjetoSelector.vue'
 import CustoCard from '@/components/CustoCard.vue'
+import MateriaisTable from '@/components/MateriaisTable.vue'
 </script>
+
 <style scoped>
 .page-bg {
   background: #F5F6F8;
@@ -21,6 +26,7 @@ import CustoCard from '@/components/CustoCard.vue'
   justify-content: center;
   padding: 32px 16px;
 }
+
 .main-card {
   background: #FFFFFF;
   border-radius: 16px;
@@ -29,10 +35,11 @@ import CustoCard from '@/components/CustoCard.vue'
   max-width: 1100px;
   width: 100%;
 }
+
 .main-card__inner {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 24px;
 }
-</style>
+</style>q
