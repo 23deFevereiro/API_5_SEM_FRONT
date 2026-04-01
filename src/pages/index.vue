@@ -42,4 +42,4 @@ import MateriaisTable from '@/components/MateriaisTable.vue'
   align-items: center;
   gap: 24px;
 }
-</style>q
+</style>
