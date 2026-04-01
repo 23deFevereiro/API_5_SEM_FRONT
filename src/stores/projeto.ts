@@ -28,14 +28,30 @@ type MateriaisPaginados = {
   results: Material[]
 }
 
+type Funcionario = {
+  usuario: string
+  total_horas: number
+  projetos: string[]
+}
+
+type FuncionariosPaginados = {
+  count: number
+  page: number
+  page_size: number
+  total_pages: number
+  results: Funcionario[]
+}
+
 export const useProjetoStore = defineStore('projeto', {
   state: () => ({
     projetos: [] as Projeto[],
     projetoSelecionado: null as Projeto | null,
     resumo: null as ResumoProjeto | null,
     materiais: null as MateriaisPaginados | null,
+    funcionarios: null as FuncionariosPaginados | null,
     carregando: false,
     carregandoMateriais: false,
+    carregandoFuncionarios: false,
   }),
 
   actions: {
@@ -49,11 +65,13 @@ export const useProjetoStore = defineStore('projeto', {
       this.carregando = true
       this.resumo = null
       this.materiais = null
+      this.funcionarios = null
 
       try {
         const [resumoRes] = await Promise.all([
           axios.get(apiUrl(`/projetos/${projeto.id}/resumo/`)),
           this.buscarMateriais(projeto.id, 1),
+          this.buscarFuncionarios(projeto.id, 1),
         ])
         this.resumo = resumoRes.data
       } finally {
@@ -73,10 +91,23 @@ export const useProjetoStore = defineStore('projeto', {
       }
     },
 
+    async buscarFuncionarios(projetoId: number, page: number = 1) {
+      this.carregandoFuncionarios = true
+      try {
+        const response = await axios.get(
+          apiUrl(`/projetos/${projetoId}/funcionarios/?page=${page}`)
+        )
+        this.funcionarios = response.data
+      } finally {
+        this.carregandoFuncionarios = false
+      }
+    },
+
     limpar() {
       this.projetoSelecionado = null
       this.resumo = null
       this.materiais = null
+      this.funcionarios = null
     },
   },
 })

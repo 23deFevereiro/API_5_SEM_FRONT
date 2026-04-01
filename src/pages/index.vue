@@ -7,6 +7,7 @@
       </div>
 
       <MateriaisTable />
+      <FuncionariosTable />
     </div>
   </div>
 </template>
@@ -15,6 +16,7 @@
 import ProjetoSelector from '@/components/ProjetoSelector.vue'
 import CustoCard from '@/components/CustoCard.vue'
 import MateriaisTable from '@/components/MateriaisTable.vue'
+import FuncionariosTable from '@/components/FuncionariosTable.vue'
 </script>
 
 <style scoped>
@@ -42,4 +44,4 @@ import MateriaisTable from '@/components/MateriaisTable.vue'
   align-items: center;
   gap: 24px;
 }
-</style>q
+</style>
