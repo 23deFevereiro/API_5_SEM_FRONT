@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
 import axios from 'axios'
+import { defineStore } from 'pinia'
 import { apiUrl } from '@/utils/api'
 
 type Projeto = {
@@ -55,12 +55,12 @@ export const useProjetoStore = defineStore('projeto', {
   }),
 
   actions: {
-    async buscarProjetos(search: string = '') {
+    async buscarProjetos (search = '') {
       const response = await axios.get(apiUrl(`/projetos/?search=${search}`))
       this.projetos = response.data
     },
 
-    async selecionarProjeto(projeto: Projeto) {
+    async selecionarProjeto (projeto: Projeto) {
       this.projetoSelecionado = projeto
       this.carregando = true
       this.resumo = null
@@ -79,11 +79,11 @@ export const useProjetoStore = defineStore('projeto', {
       }
     },
 
-    async buscarMateriais(projetoId: number, page: number = 1) {
+    async buscarMateriais (projetoId: number, page = 1) {
       this.carregandoMateriais = true
       try {
         const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/materiais/?page=${page}`)
+          apiUrl(`/projetos/${projetoId}/materiais/?page=${page}`),
         )
         this.materiais = response.data
       } finally {
@@ -91,11 +91,11 @@ export const useProjetoStore = defineStore('projeto', {
       }
     },
 
-    async buscarFuncionarios(projetoId: number, page: number = 1) {
+    async buscarFuncionarios (projetoId: number, page = 1) {
       this.carregandoFuncionarios = true
       try {
         const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/funcionarios/?page=${page}`)
+          apiUrl(`/projetos/${projetoId}/funcionarios/?page=${page}`),
         )
         this.funcionarios = response.data
       } finally {
@@ -103,7 +103,7 @@ export const useProjetoStore = defineStore('projeto', {
       }
     },
 
-    limpar() {
+    limpar () {
       this.projetoSelecionado = null
       this.resumo = null
       this.materiais = null

@@ -13,10 +13,10 @@
 </template>
 
 <script lang="ts" setup>
-import ProjetoSelector from '@/components/ProjetoSelector.vue'
-import CustoCard from '@/components/CustoCard.vue'
-import MateriaisTable from '@/components/MateriaisTable.vue'
-import FuncionariosTable from '@/components/FuncionariosTable.vue'
+  import CustoCard from '@/components/CustoCard.vue'
+  import FuncionariosTable from '@/components/FuncionariosTable.vue'
+  import MateriaisTable from '@/components/MateriaisTable.vue'
+  import ProjetoSelector from '@/components/ProjetoSelector.vue'
 </script>
 
 <style scoped>
