@@ -7,6 +7,7 @@
       </div>
 
       <MateriaisTable />
+      <HorasFuncionarioChart />
       <FuncionariosTable />
     </div>
   </div>
@@ -15,6 +16,7 @@
 <script lang="ts" setup>
   import CustoCard from '@/components/CustoCard.vue'
   import FuncionariosTable from '@/components/FuncionariosTable.vue'
+  import HorasFuncionarioChart from '@/components/HorasFuncionarioChart.vue'
   import MateriaisTable from '@/components/MateriaisTable.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
 </script>

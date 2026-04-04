@@ -28,6 +28,11 @@ type MateriaisPaginados = {
   results: Material[]
 }
 
+type HorasFuncionario = {
+  funcionario: string
+  total_horas: number
+}
+
 type Funcionario = {
   usuario: string
   total_horas: number
@@ -48,9 +53,11 @@ export const useProjetoStore = defineStore('projeto', {
     projetoSelecionado: null as Projeto | null,
     resumo: null as ResumoProjeto | null,
     materiais: null as MateriaisPaginados | null,
-    funcionarios: null as FuncionariosPaginados | null,
+    horasPorFuncionario: [] as HorasFuncionario[],
     carregando: false,
     carregandoMateriais: false,
+    carregandoHoras: false,
+    funcionarios: null as FuncionariosPaginados | null,
     carregandoFuncionarios: false,
   }),
 
@@ -65,12 +72,14 @@ export const useProjetoStore = defineStore('projeto', {
       this.carregando = true
       this.resumo = null
       this.materiais = null
+      this.horasPorFuncionario = []
       this.funcionarios = null
 
       try {
         const [resumoRes] = await Promise.all([
           axios.get(apiUrl(`/projetos/${projeto.id}/resumo/`)),
           this.buscarMateriais(projeto.id, 1),
+          this.buscarHorasPorFuncionario(projeto.id),
           this.buscarFuncionarios(projeto.id, 1),
         ])
         this.resumo = resumoRes.data
@@ -88,6 +97,18 @@ export const useProjetoStore = defineStore('projeto', {
         this.materiais = response.data
       } finally {
         this.carregandoMateriais = false
+      }
+    },
+
+    async buscarHorasPorFuncionario (projetoId: number) {
+      this.carregandoHoras = true
+      try {
+        const response = await axios.get(
+          apiUrl(`/projetos/${projetoId}/horas-por-funcionario/`),
+        )
+        this.horasPorFuncionario = response.data
+      } finally {
+        this.carregandoHoras = false
       }
     },
 
