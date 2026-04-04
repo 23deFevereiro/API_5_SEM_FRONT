@@ -47,8 +47,17 @@ type FuncionariosPaginados = {
   results: Funcionario[]
 }
 
+type CustoTempoChartData = {
+  codigo_projeto: string
+  nome_projeto: string
+  cost: number
+}
+
+type CustoTempoChartResponse = { date_str: string, values: CustoTempoChartData[] }[]
+
 export const useProjetoStore = defineStore('projeto', {
   state: () => ({
+    overviewData: null as CustoTempoChartResponse | null,
     projetos: [] as Projeto[],
     projetoSelecionado: null as Projeto | null,
     resumo: null as ResumoProjeto | null,
@@ -62,6 +71,14 @@ export const useProjetoStore = defineStore('projeto', {
   }),
 
   actions: {
+    init () {
+      this.buscarOverview()
+    },
+
+    async buscarOverview () {
+      const response = await axios.get(apiUrl(`/projetos-overview`))
+      this.overviewData = response.data
+    },
     async buscarProjetos (search = '') {
       const response = await axios.get(apiUrl(`/projetos/?search=${search}`))
       this.projetos = response.data
