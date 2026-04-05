@@ -28,14 +28,26 @@ type MateriaisPaginados = {
   results: Material[]
 }
 
+type ProjetoGrafico = {
+  nome: string
+  valores: number[]
+}
+
+type DadosGrafico = {
+  labels: string[]
+  projetos: ProjetoGrafico[]
+}
+
 export const useProjetoStore = defineStore('projeto', {
   state: () => ({
     projetos: [] as Projeto[],
     projetoSelecionado: null as Projeto | null,
     resumo: null as ResumoProjeto | null,
     materiais: null as MateriaisPaginados | null,
+    graficoBurnup: null as DadosGrafico | null,
     carregando: false,
     carregandoMateriais: false,
+    carregandoGrafico: false,
   }),
 
   actions: {
@@ -70,6 +82,18 @@ export const useProjetoStore = defineStore('projeto', {
         this.materiais = response.data
       } finally {
         this.carregandoMateriais = false
+      }
+    },
+
+    async buscarDadosGrafico() {
+      this.carregandoGrafico = true
+      try {
+        const response = await axios.get(apiUrl('/projetos/grafico-horas/'))
+        this.graficoBurnup = response.data
+      } catch (error) {
+        console.error('Erro ao buscar dados do gráfico:', error)
+      } finally {
+        this.carregandoGrafico = false
       }
     },
 
