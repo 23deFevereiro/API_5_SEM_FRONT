@@ -1,9 +1,9 @@
 <template>
   <div class="custo-cards">
-    <div class="custo-card" v-for="card in cards" :key="card.label">
+    <div v-for="card in cards" :key="card.label" class="custo-card">
       <div class="card-header">
         <div class="card-icon">
-          <v-icon size="16" :color="card.iconColor">{{ card.icon }}</v-icon>
+          <v-icon :color="card.iconColor" size="16">{{ card.icon }}</v-icon>
         </div>
         <span class="card-label">{{ card.label }}</span>
       </div>
@@ -15,35 +15,29 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue'
-import { useProjetoStore } from '@/stores/projeto'
+  import { computed } from 'vue'
+  import { useProjetoStore } from '@/stores/projeto'
 
-const store = useProjetoStore()
+  const store = useProjetoStore()
 
-function formatarMoeda(valor: number): string {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
+  function formatarMoeda (valor: number): string {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
 
-const cards = computed(() => [
-  {
-    label: 'Custo de Materiais',
-    icon: 'mdi-cash-multiple',
-    iconColor: '#F59E0B',
-    value: store.resumo ? formatarMoeda(store.resumo.custo_materiais) : '',
-  },
-  {
-    label: 'Custo de Compras',
-    icon: 'mdi-cart-outline',
-    iconColor: '#F59E0B',
-    value: store.resumo ? formatarMoeda(store.resumo.custo_compras) : '',
-  },
-  {
-    label: 'Tempo Total de Projeto',
-    icon: 'mdi-clock-outline',
-    iconColor: '#6B7280',
-    value: store.resumo ? store.resumo.tempo_total.toFixed(1) + 'h' : '',
-  },
-])
+  const cards = computed(() => [
+    {
+      label: 'Custo de Materiais',
+      icon: 'mdi-cash-multiple',
+      iconColor: '#F59E0B',
+      value: store.resumo ? formatarMoeda(store.resumo.custo_materiais) : '',
+    },
+    {
+      label: 'Tempo Total de Projeto',
+      icon: 'mdi-clock-outline',
+      iconColor: '#6B7280',
+      value: store.resumo ? store.resumo.tempo_total.toFixed(1) + 'h' : '',
+    },
+  ])
 </script>
 
 <style scoped>
