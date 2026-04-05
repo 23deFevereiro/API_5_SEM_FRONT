@@ -4,7 +4,7 @@
       <div class="card-icon">
         <v-icon size="16" color="#3B82F6">mdi-chart-line</v-icon>
       </div>
-      <span class="card-label">Visão Geral: Horas Investidas (Burnup)</span>
+      <span class="card-label">Gráfico de Burnup</span>
     </div>
     
     <div class="chart-container" v-if="chartData && !store.carregandoGrafico">
