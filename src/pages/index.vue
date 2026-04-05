@@ -1,11 +1,11 @@
 <template>
   <div class="page-bg">
     <div class="main-card">
+      <CustoTempoChart />
       <div class="main-card__inner">
         <ProjetoSelector />
         <CustoCard />
       </div>
-
       <MateriaisTable />
       <HorasFuncionarioChart />
       <FuncionariosTable />
@@ -14,11 +14,18 @@
 </template>
 
 <script lang="ts" setup>
+  import { onMounted } from 'vue'
   import CustoCard from '@/components/CustoCard.vue'
+  import CustoTempoChart from '@/components/CustoTempoChart.vue'
   import FuncionariosTable from '@/components/FuncionariosTable.vue'
   import HorasFuncionarioChart from '@/components/HorasFuncionarioChart.vue'
   import MateriaisTable from '@/components/MateriaisTable.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
+  import { useProjetoStore } from '@/stores/projeto'
+
+  onMounted(() => {
+    useProjetoStore().init()
+  })
 </script>
 
 <style scoped>
