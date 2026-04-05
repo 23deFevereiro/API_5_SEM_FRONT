@@ -6,6 +6,8 @@
         <CustoCard />
       </div>
 
+      <GraficoBurnupCard />
+
       <MateriaisTable />
     </div>
   </div>
@@ -14,6 +16,7 @@
 <script lang="ts" setup>
 import ProjetoSelector from '@/components/ProjetoSelector.vue'
 import CustoCard from '@/components/CustoCard.vue'
+import GraficoBurnupCard from '@/components/GraficoBurnupCard.vue'
 import MateriaisTable from '@/components/MateriaisTable.vue'
 </script>
 
