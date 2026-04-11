@@ -70,6 +70,12 @@ export const useProjetoStore = defineStore('projeto', {
     carregandoFuncionarios: false,
   }),
 
+  getters: {
+    isLoading (): boolean {
+      return this.carregando || this.carregandoMateriais || this.carregandoHoras || this.carregandoFuncionarios
+    },
+  },
+
   actions: {
     init () {
       this.buscarOverview()

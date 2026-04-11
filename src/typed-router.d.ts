@@ -33,6 +33,34 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/[...path]': RouteRecordInfo<
+      '/[...path]',
+      '/:path(.*)',
+      { path: ParamValue<true> },
+      { path: ParamValue<false> },
+      | never
+    >,
+    '/planejamento': RouteRecordInfo<
+      '/planejamento',
+      '/planejamento',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/programas': RouteRecordInfo<
+      '/programas',
+      '/programas',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/projetos': RouteRecordInfo<
+      '/projetos',
+      '/projetos',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
   }
 
   /**
@@ -49,6 +77,30 @@ declare module 'vue-router/auto-routes' {
     'src/pages/index.vue': {
       routes:
         | '/'
+      views:
+        | never
+    }
+    'src/pages/[...path].vue': {
+      routes:
+        | '/[...path]'
+      views:
+        | never
+    }
+    'src/pages/planejamento.vue': {
+      routes:
+        | '/planejamento'
+      views:
+        | never
+    }
+    'src/pages/programas.vue': {
+      routes:
+        | '/programas'
+      views:
+        | never
+    }
+    'src/pages/projetos.vue': {
+      routes:
+        | '/projetos'
       views:
         | never
     }
