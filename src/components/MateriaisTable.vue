@@ -2,7 +2,7 @@
   <div class="materiais-section">
     <div class="section-header">
       <div class="section-title">
-        <v-icon size="16" color="#F59E0B">mdi-package-variant-closed</v-icon>
+        <v-icon color="#F59E0B" size="16">mdi-package-variant-closed</v-icon>
         <span>Materiais</span>
       </div>
       <span v-if="store.materiais" class="section-count">
@@ -11,12 +11,12 @@
     </div>
 
     <div v-if="!store.projetoSelecionado" class="empty-state">
-      <v-icon size="36" color="#9CA3AF">mdi-folder-open-outline</v-icon>
+      <v-icon color="#9CA3AF" size="36">mdi-folder-open-outline</v-icon>
       <span>Selecione um projeto para ver os materiais</span>
     </div>
 
     <div v-else-if="store.carregandoMateriais" class="empty-state">
-      <v-progress-circular indeterminate color="#F59E0B" size="26" width="2" />
+      <v-progress-circular color="#F59E0B" indeterminate size="26" width="2" />
       <span>Carregando materiais...</span>
     </div>
 
@@ -75,25 +75,25 @@
     </template>
 
     <div v-else class="empty-state">
-      <v-icon size="36" color="#9CA3AF">mdi-package-variant-remove</v-icon>
+      <v-icon color="#9CA3AF" size="36">mdi-package-variant-remove</v-icon>
       <span>Nenhum material encontrado para este projeto</span>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useProjetoStore } from '@/stores/projeto'
+  import { useProjetoStore } from '@/stores/projeto'
 
-const store = useProjetoStore()
+  const store = useProjetoStore()
 
-function formatarMoeda(valor: number): string {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
+  function formatarMoeda (valor: number): string {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
 
-async function mudarPagina(page: number) {
-  if (!store.projetoSelecionado) return
-  await store.buscarMateriais(store.projetoSelecionado.id, page)
-}
+  async function mudarPagina (page: number) {
+    if (!store.projetoSelecionado) return
+    await store.buscarMateriais(store.projetoSelecionado.id, page)
+  }
 </script>
 
 <style scoped>
