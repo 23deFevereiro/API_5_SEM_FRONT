@@ -1,43 +1,27 @@
 <template>
   <div class="custo-cards">
-    <div v-for="card in cards" :key="card.label" class="custo-card">
+    <div class="custo-card">
       <div class="card-header">
         <div class="card-icon">
-          <v-icon :color="card.iconColor" size="16">{{ card.icon }}</v-icon>
+          <v-icon color="#F59E0B" size="16">mdi-cash-multiple</v-icon>
         </div>
-        <span class="card-label">{{ card.label }}</span>
+        <span class="card-label">Custo Total do Projeto</span>
       </div>
       <div class="card-value" :class="{ 'card-value--empty': !store.resumo }">
-        {{ store.resumo ? card.value : 'Selecione um projeto' }}
+        {{ store.resumo ? formatarMoeda(store.resumo.custo_total) : '--' }}
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
   import { useProjetoStore } from '@/stores/projeto'
 
   const store = useProjetoStore()
 
-  function formatarMoeda (valor: number): string {
-    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  function formatarMoeda(valor: number): string {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   }
-
-  const cards = computed(() => [
-    {
-      label: 'Custo de Materiais',
-      icon: 'mdi-cash-multiple',
-      iconColor: '#F59E0B',
-      value: store.resumo ? formatarMoeda(store.resumo.custo_materiais) : '',
-    },
-    {
-      label: 'Tempo Total de Projeto',
-      icon: 'mdi-clock-outline',
-      iconColor: '#6B7280',
-      value: store.resumo ? store.resumo.tempo_total.toFixed(1) + 'h' : '',
-    },
-  ])
 </script>
 
 <style scoped>

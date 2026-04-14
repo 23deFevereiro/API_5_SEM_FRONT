@@ -9,9 +9,7 @@ type Projeto = {
 }
 
 type ResumoProjeto = {
-  custo_materiais: number
-  custo_compras: number
-  tempo_total: number
+  custo_total: number
 }
 
 type Material = {
@@ -108,7 +106,9 @@ export const useProjetoStore = defineStore('projeto', {
           this.buscarHorasPorFuncionario(projeto.id),
           this.buscarFuncionarios(projeto.id, 1),
         ])
-        this.resumo = resumoRes.data
+        this.resumo = {
+          custo_total: Number(resumoRes.data.custo_total),
+        }
       } finally {
         this.carregando = false
       }
