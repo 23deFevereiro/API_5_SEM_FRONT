@@ -10,6 +10,7 @@ type Projeto = {
 
 type ResumoProjeto = {
   custo_total: number
+  tempo_total: number
 }
 
 type Material = {
@@ -108,6 +109,7 @@ export const useProjetoStore = defineStore('projeto', {
         ])
         this.resumo = {
           custo_total: Number(resumoRes.data.custo_total),
+          tempo_total: Number(resumoRes.data.tempo_total),
         }
       } finally {
         this.carregando = false

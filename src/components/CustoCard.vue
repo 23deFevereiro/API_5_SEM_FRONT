@@ -11,6 +11,18 @@
         {{ store.resumo ? formatarMoeda(store.resumo.custo_total) : '--' }}
       </div>
     </div>
+
+    <div class="custo-card">
+      <div class="card-header">
+        <div class="card-icon">
+          <v-icon color="#6B7280" size="16">mdi-clock-outline</v-icon>
+        </div>
+        <span class="card-label">Tempo Total do Projeto</span>
+      </div>
+      <div class="card-value" :class="{ 'card-value--empty': !store.resumo }">
+        {{ store.resumo ? store.resumo.tempo_total.toFixed(1) + 'h' : '--' }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -20,10 +32,9 @@
   const store = useProjetoStore()
 
   function formatarMoeda(valor: number): string {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   }
 </script>
-
 <style scoped>
 .custo-cards {
   display: flex;
