@@ -84,12 +84,29 @@ export const useProjetoStore = defineStore('projeto', {
       const response = await axios.get(apiUrl(`/api/projetos-overview`))
       this.overviewData = response.data
     },
-    async buscarProjetos (search = '') {
-      const route: string = apiUrl(`/api/projetos`
-        + (search ? `?search=${search}` : ''))
+    async buscarProjetos (search = '', programaId: number | null = null) {
+      const params = new URLSearchParams()
+      if (search) {
+        params.set('search', search)
+      }
+      if (programaId) {
+        params.set('programa_id', String(programaId))
+      }
+      const qs = params.toString()
+      const route: string = apiUrl(`/api/projetos/` + (qs ? `?${qs}` : ''))
 
       const response = await axios.get(route)
       this.projetos = response.data
+    },
+
+    async aplicarFiltroPorPrograma (programaId: number | null) {
+      await this.buscarProjetos('', programaId)
+      if (
+        this.projetoSelecionado
+        && !this.projetos.some(p => p.id === this.projetoSelecionado!.id)
+      ) {
+        this.limpar()
+      }
     },
 
     async selecionarProjeto (projeto: Projeto) {

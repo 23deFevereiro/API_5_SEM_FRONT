@@ -1,5 +1,6 @@
 <template>
   <div class="main-card">
+    <ProgramaSelector />
     <CustoTempoChart />
     <div class="main-card__inner">
       <ProjetoSelector />
@@ -18,6 +19,7 @@
   import FuncionariosTable from '@/components/FuncionariosTable.vue'
   import HorasFuncionarioChart from '@/components/HorasFuncionarioChart.vue'
   import MateriaisTable from '@/components/MateriaisTable.vue'
+  import ProgramaSelector from '@/components/ProgramaSelector.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
   import { useProjetoStore } from '@/stores/projeto'
 
