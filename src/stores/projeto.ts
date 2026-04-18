@@ -79,6 +79,8 @@ export const useProjetoStore = defineStore('projeto', {
     carregandoHoras: false,
     funcionarios: null as FuncionariosPaginados | null,
     carregandoFuncionarios: false,
+    burnupHoras: [] as BurnupProjeto[],
+    carregandoBurnup: false,
   }),
 
   getters: {
