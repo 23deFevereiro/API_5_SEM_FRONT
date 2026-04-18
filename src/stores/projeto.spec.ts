@@ -123,6 +123,73 @@ describe('Integração: buscarProjetos', () => {
     await store.buscarProjetos()
     expect(store.projetos).toEqual([])
   })
+
+  it('passa programa_id na URL quando informado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.buscarProjetos('', 7)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=7'))
+  })
+
+  it('nao inclui programa_id na URL quando null', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.buscarProjetos('', null)
+    expect(axios.get).toHaveBeenCalledWith(expect.not.stringContaining('programa_id'))
+  })
+
+  it('combina search e programa_id na URL', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.buscarProjetos('Conversor', 3)
+    const chamada = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(chamada).toContain('search=Conversor')
+    expect(chamada).toContain('programa_id=3')
+  })
+})
+
+describe('Integração: aplicarFiltroPorPrograma', () => {
+  it('busca projetos passando o programa_id recebido', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=5'))
+  })
+
+  it('atualiza a lista de projetos com o retorno filtrado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    expect(store.projetos).toEqual([projetoMock])
+  })
+
+  it('mantem projeto selecionado quando ele continua na lista filtrada', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    store.resumo = resumoMock
+    await store.aplicarFiltroPorPrograma(5)
+    expect(store.projetoSelecionado).toEqual(projetoMock)
+    expect(store.resumo).toEqual(resumoMock)
+  })
+
+  it('limpa projeto selecionado quando ele nao esta mais na lista filtrada', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    store.resumo = resumoMock
+    await store.aplicarFiltroPorPrograma(99)
+    expect(store.projetoSelecionado).toBeNull()
+    expect(store.resumo).toBeNull()
+  })
+
+  it('nao limpa quando nao ha projeto selecionado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    store.projetoSelecionado = null
+    await store.aplicarFiltroPorPrograma(null)
+    expect(store.projetoSelecionado).toBeNull()
+  })
 })
 
 describe('Integração: buscarMateriais', () => {
