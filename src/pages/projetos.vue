@@ -20,6 +20,7 @@
   import MateriaisTable from '@/components/MateriaisTable.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
   import { useProjetoStore } from '@/stores/projeto'
+  import BurnupHorasChart from '@/components/BurnupHorasChart.vue'
 
   onMounted(() => {
     useProjetoStore().init()
