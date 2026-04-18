@@ -52,6 +52,18 @@ type CustoTempoChartData = {
   cost: number
 }
 
+type BurnupPonto = {
+  data: string
+  horas: number
+  horas_acumuladas: number
+}
+
+type BurnupProjeto = {
+  projeto_id: number
+  projeto: string
+  serie: BurnupPonto[]
+}
+
 type CustoTempoChartResponse = { date_str: string, values: CustoTempoChartData[] }[]
 
 export const useProjetoStore = defineStore('projeto', {
