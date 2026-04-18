@@ -85,13 +85,14 @@ export const useProjetoStore = defineStore('projeto', {
 
   getters: {
     isLoading (): boolean {
-      return this.carregando || this.carregandoMateriais || this.carregandoHoras || this.carregandoFuncionarios
+      return this.carregando || this.carregandoMateriais || this.carregandoHoras || this.carregandoFuncionarios || this.carregandoBurnup
     },
   },
 
   actions: {
     init () {
       this.buscarOverview()
+      this.buscarBurnupHoras()
     },
 
     async buscarOverview () {
@@ -104,6 +105,18 @@ export const useProjetoStore = defineStore('projeto', {
 
       const response = await axios.get(route)
       this.projetos = response.data
+    },
+
+    async buscarBurnupHoras () {
+      this.carregandoBurnup = true
+      try {
+        const response = await axios.get(
+          apiUrl(`/api/projetos/burnup-horas/`),
+        )
+        this.burnupHoras = response.data
+      } finally {
+        this.carregandoBurnup = false
+      }
     },
 
     async selecionarProjeto (projeto: Projeto) {
