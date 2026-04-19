@@ -1,7 +1,9 @@
 <template>
   <div class="main-card">
-    <CustoTempoChart />
-    <BurnupHorasChart />
+    <div class="charts-row">
+      <CustoTempoChart />
+      <BurnupHorasChart />
+    </div>
     <div class="main-card__inner">
       <ProjetoSelector />
       <CustoCard />
