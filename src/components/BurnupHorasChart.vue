@@ -1,12 +1,5 @@
 <template>
   <div class="horas-section">
-    <div class="section-header">
-      <div class="section-title">
-        <v-icon color="#2563EB" size="16">mdi-chart-line</v-icon>
-        <span>Burnup de Horas por Projeto</span>
-      </div>
-    </div>
-
     <div v-if="store.carregandoBurnup" class="empty-state">
       <v-progress-circular color="#2563EB" indeterminate size="26" width="2" />
       <span>Carregando burnup...</span>
@@ -144,6 +137,13 @@
         },
         y: {
           beginAtZero: true,
+          suggestedMax: 4,
+          ticks: {
+            stepSize: 1,
+            color: '#6B7280',
+            font: { size: 12 },
+            callback: value => `${value}h`,
+          },
           title: {
             display: true,
             text: 'Horas Investidas',
@@ -151,11 +151,6 @@
             font: { size: 12 },
           },
           grid: { color: '#F3F4F6' },
-          ticks: {
-            color: '#6B7280',
-            font: { size: 12 },
-            callback: val => `${val}h`,
-          },
         },
       },
     },
@@ -189,7 +184,6 @@
   border-radius: 0;
   margin-top: 0;
   overflow: hidden;
-  transition: none;
   width: 100%;
   height: 100%;
 }
@@ -205,28 +199,19 @@
   padding: 0 0 12px 0;
 }
 
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-}
-
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  height: 340px;
+  height: 260px;
   font-size: 13px;
   color: #9CA3AF;
 }
 
 .chart-wrapper {
-  height: 340px;
+  height: 260px;
   width: 100%;
 }
 </style>
