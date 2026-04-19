@@ -12,11 +12,6 @@
       <span>Carregando burnup...</span>
     </div>
 
-    <div v-else-if="store.burnupHoras.length === 0" class="empty-state">
-      <v-icon color="#9CA3AF" size="36">mdi-chart-timeline-variant</v-icon>
-      <span>Nenhum dado de burnup encontrado</span>
-    </div>
-
     <div v-else class="chart-wrapper">
       <canvas ref="canvasRef" />
     </div>
@@ -52,135 +47,132 @@
   let chartInstance: Chart | null = null
 
   function buildChart () {
-    if (!canvasRef.value) return
+  if (!canvasRef.value) return
 
-    if (chartInstance) {
-      chartInstance.destroy()
-      chartInstance = null
-    }
-
-    const todasDatas = Array.from(
-      new Set(
-        store.burnupHoras.flatMap(projeto =>
-          projeto.serie.map(ponto => ponto.data),
-        ),
-      ),
-    ).sort((a, b) => a.localeCompare(b))
-
-    const datasets = store.burnupHoras.map((projeto, index) => {
-      let ultimoAcumulado = 0
-
-      const data = todasDatas.map(data => {
-        const ponto = projeto.serie.find(item => item.data === data)
-
-        if (ponto) {
-          ultimoAcumulado = ponto.horas_acumuladas
-        }
-
-        return ultimoAcumulado
-      })
-
-      const colors = [
-        '#2563EB',
-        '#10B981',
-        '#F59E0B',
-        '#EF4444',
-        '#8B5CF6',
-        '#06B6D4',
-      ]
-
-      const color = colors[index % colors.length]
-
-      return {
-        label: projeto.projeto,
-        data,
-        borderColor: color,
-        backgroundColor: color,
-        borderWidth: 2,
-        tension: 0.3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        fill: false,
-      }
-    })
-
-    chartInstance = new Chart(canvasRef.value, {
-      type: 'line',
-      data: {
-        labels: todasDatas,
-        datasets,
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom',
-            labels: {
-              color: '#6B7280',
-              font: { size: 11 },
-              usePointStyle: true,
-            },
-          },
-          tooltip: {
-            callbacks: {
-              label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)}h`,
-            },
-          },
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Tempo',
-              color: '#6B7280',
-              font: { size: 12 },
-            },
-            grid: { color: '#F3F4F6' },
-            ticks: {
-              color: '#6B7280',
-              font: { size: 12 },
-            },
-          },
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Horas Investidas',
-              color: '#6B7280',
-              font: { size: 12 },
-            },
-            grid: { color: '#F3F4F6' },
-            ticks: {
-              color: '#6B7280',
-              font: { size: 12 },
-              callback: val => `${val}h`,
-            },
-          },
-        },
-      },
-    })
+  if (chartInstance) {
+    chartInstance.destroy()
+    chartInstance = null
   }
+
+  const todasDatas = Array.from(
+    new Set(
+      store.burnupHoras.flatMap(projeto =>
+        projeto.serie.map(ponto => ponto.data),
+      ),
+    ),
+  ).sort((a, b) => a.localeCompare(b))
+
+  const labels = todasDatas.length > 0
+    ? todasDatas
+    : ['']
+
+  const datasets = store.burnupHoras.map((projeto, index) => {
+    let ultimoAcumulado = 0
+
+    const data = labels.map(data => {
+      const ponto = projeto.serie.find(item => item.data === data)
+
+      if (ponto) {
+        ultimoAcumulado = ponto.horas_acumuladas
+      }
+
+      return ultimoAcumulado
+    })
+
+    const colors = [
+      '#2563EB',
+      '#10B981',
+      '#F59E0B',
+      '#EF4444',
+      '#8B5CF6',
+      '#06B6D4',
+    ]
+
+    const color = colors[index % colors.length]
+
+    return {
+      label: projeto.projeto,
+      data,
+      borderColor: color,
+      backgroundColor: color,
+      borderWidth: 2,
+      tension: 0.3,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      fill: false,
+    }
+  })
+
+  chartInstance = new Chart(canvasRef.value, {
+    type: 'line',
+    data: {
+      labels,
+      datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: datasets.length > 0,
+          position: 'bottom',
+          labels: {
+            color: '#374151',
+            font: { size: 12 },
+            usePointStyle: true,
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)}h`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Tempo',
+            color: '#6B7280',
+            font: { size: 12 },
+          },
+          grid: { color: '#F3F4F6' },
+          ticks: {
+            color: '#6B7280',
+            font: { size: 12 },
+          },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Horas Investidas',
+            color: '#6B7280',
+            font: { size: 12 },
+          },
+          grid: { color: '#F3F4F6' },
+          ticks: {
+            color: '#6B7280',
+            font: { size: 12 },
+            callback: val => `${val}h`,
+          },
+        },
+      },
+    },
+  })
+}
 
   watch(
     () => store.burnupHoras,
-    async novoValor => {
-      if (novoValor.length > 0) {
-        await nextTick()
-        buildChart()
-      } else if (chartInstance) {
-        chartInstance.destroy()
-        chartInstance = null
-      }
+    async () => {
+      await nextTick()
+      buildChart()
     },
     { deep: true },
   )
 
   onMounted(() => {
-    if (store.burnupHoras.length > 0) {
-      buildChart()
-    }
+    buildChart()
   })
 
   onBeforeUnmount(() => {
