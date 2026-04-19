@@ -12,8 +12,7 @@ const projetoMock = {
 }
 
 const resumoMock = {
-  custo_materiais: 500,
-  custo_compras: 200,
+  custo_total: 700,
   tempo_total: 12.5,
 }
 
@@ -148,49 +147,51 @@ describe('Integração: buscarProjetos', () => {
   })
 })
 
+function mockarRespostasDoFiltro (
+  projetos: unknown[] = [projetoMock],
+  overview: unknown[] = overviewMock,
+) {
+  vi.mocked(axios.get)
+    .mockResolvedValueOnce({ data: projetos })
+    .mockResolvedValueOnce({ data: overview })
+}
+
 describe('Integração: aplicarFiltroPorPrograma', () => {
+  // aplicarFiltroPorPrograma dispara 2 GETs em paralelo via Promise.all (projetos e overview, nessa ordem).
+  // Este helper centraliza o setup dos dois mocks pra evitar duplicação entre os testes.
+
   it('busca projetos passando o programa_id recebido', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [projetoMock] })
-      .mockResolvedValueOnce({ data: overviewMock })
+    mockarRespostasDoFiltro()
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
-    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
     expect(urls.some(u => u.includes('/api/projetos/') && u.includes('programa_id=5'))).toBe(true)
   })
 
   it('busca overview passando o programa_id recebido', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [projetoMock] })
-      .mockResolvedValueOnce({ data: overviewMock })
+    mockarRespostasDoFiltro()
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
-    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
     expect(urls.some(u => u.includes('/api/projetos-overview') && u.includes('programa_id=5'))).toBe(true)
   })
 
   it('atualiza overviewData com o retorno filtrado', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [projetoMock] })
-      .mockResolvedValueOnce({ data: overviewMock })
+    mockarRespostasDoFiltro()
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
     expect(store.overviewData).toEqual(overviewMock)
   })
 
   it('atualiza a lista de projetos com o retorno filtrado', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [projetoMock] })
-      .mockResolvedValueOnce({ data: overviewMock })
+    mockarRespostasDoFiltro()
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
     expect(store.projetos).toEqual([projetoMock])
   })
 
   it('mantem projeto selecionado quando ele continua na lista filtrada', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [projetoMock] })
-      .mockResolvedValueOnce({ data: overviewMock })
+    mockarRespostasDoFiltro()
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     store.resumo = resumoMock
@@ -200,9 +201,7 @@ describe('Integração: aplicarFiltroPorPrograma', () => {
   })
 
   it('limpa projeto selecionado quando ele nao esta mais na lista filtrada', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [] })
-      .mockResolvedValueOnce({ data: [] })
+    mockarRespostasDoFiltro([], [])
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     store.resumo = resumoMock
@@ -212,9 +211,7 @@ describe('Integração: aplicarFiltroPorPrograma', () => {
   })
 
   it('nao limpa quando nao ha projeto selecionado', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: [] })
-      .mockResolvedValueOnce({ data: [] })
+    mockarRespostasDoFiltro([], [])
     const store = useProjetoStore()
     store.projetoSelecionado = null
     await store.aplicarFiltroPorPrograma(null)
