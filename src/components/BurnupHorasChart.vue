@@ -118,8 +118,8 @@
             display: true,
             position: 'bottom',
             labels: {
-              color: '#374151',
-              font: { size: 12 },
+              color: '#6B7280',
+              font: { size: 11 },
               usePointStyle: true,
             },
           },
@@ -131,6 +131,12 @@
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: 'Tempo',
+              color: '#6B7280',
+              font: { size: 12 },
+            },
             grid: { color: '#F3F4F6' },
             ticks: {
               color: '#6B7280',
@@ -139,6 +145,12 @@
           },
           y: {
             beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Horas Investidas',
+              color: '#6B7280',
+              font: { size: 12 },
+            },
             grid: { color: '#F3F4F6' },
             ticks: {
               color: '#6B7280',
@@ -180,23 +192,25 @@
 
 <style scoped>
 .horas-section {
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  margin-top: 24px;
+  background: #FFFFFF;
+  border: none;
+  border-radius: 0;
+  margin-top: 0;
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
+  transition: none;
+  width: 100%;
+  height: 100%;
 }
 
 .horas-section:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 12px;
+  padding: 0 0 12px 0;
 }
 
 .section-title {
@@ -214,13 +228,13 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 40px 16px;
+  height: 340px;
   font-size: 13px;
   color: #9CA3AF;
 }
 
 .chart-wrapper {
-  padding: 8px 16px 20px;
-  height: 320px;
+  height: 340px;
+  width: 100%;
 }
 </style>
