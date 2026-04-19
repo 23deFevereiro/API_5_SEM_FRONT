@@ -39,6 +39,17 @@
   width: 100%;
 }
 
+.charts-row {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.charts-row > * {
+  flex: 1;
+  min-width: 0;
+}
+
 .main-card__inner {
   display: flex;
   flex-direction: row;
@@ -48,6 +59,10 @@
 }
 
 @media (max-width: 768px) {
+  .charts-row {
+    flex-direction: column;
+  }
+
   .main-card__inner {
     flex-direction: column;
   }
