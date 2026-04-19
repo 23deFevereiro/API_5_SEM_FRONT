@@ -80,8 +80,10 @@ export const useProjetoStore = defineStore('projeto', {
       this.buscarOverview()
     },
 
-    async buscarOverview () {
-      const response = await axios.get(apiUrl(`/api/projetos-overview`))
+    async buscarOverview (programaId: number | null = null) {
+      const qs = programaId ? `?programa_id=${programaId}` : ''
+      const url = apiUrl(`/api/projetos-overview${qs}`)
+      const response = await axios.get(url)
       this.overviewData = response.data
     },
     async buscarProjetos (search = '', programaId: number | null = null) {
@@ -100,7 +102,10 @@ export const useProjetoStore = defineStore('projeto', {
     },
 
     async aplicarFiltroPorPrograma (programaId: number | null) {
-      await this.buscarProjetos('', programaId)
+      await Promise.all([
+        this.buscarProjetos('', programaId),
+        this.buscarOverview(programaId),
+      ])
       if (
         this.projetoSelecionado
         && !this.projetos.some(p => p.id === this.projetoSelecionado!.id)

@@ -150,21 +150,47 @@ describe('Integração: buscarProjetos', () => {
 
 describe('Integração: aplicarFiltroPorPrograma', () => {
   it('busca projetos passando o programa_id recebido', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [projetoMock] })
+      .mockResolvedValueOnce({ data: overviewMock })
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
-    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=5'))
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/api/projetos/') && u.includes('programa_id=5'))).toBe(true)
+  })
+
+  it('busca overview passando o programa_id recebido', async () => {
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [projetoMock] })
+      .mockResolvedValueOnce({ data: overviewMock })
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/api/projetos-overview') && u.includes('programa_id=5'))).toBe(true)
+  })
+
+  it('atualiza overviewData com o retorno filtrado', async () => {
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [projetoMock] })
+      .mockResolvedValueOnce({ data: overviewMock })
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    expect(store.overviewData).toEqual(overviewMock)
   })
 
   it('atualiza a lista de projetos com o retorno filtrado', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [projetoMock] })
+      .mockResolvedValueOnce({ data: overviewMock })
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
     expect(store.projetos).toEqual([projetoMock])
   })
 
   it('mantem projeto selecionado quando ele continua na lista filtrada', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [projetoMock] })
+      .mockResolvedValueOnce({ data: overviewMock })
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     store.resumo = resumoMock
@@ -174,7 +200,9 @@ describe('Integração: aplicarFiltroPorPrograma', () => {
   })
 
   it('limpa projeto selecionado quando ele nao esta mais na lista filtrada', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [] })
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     store.resumo = resumoMock
@@ -184,7 +212,9 @@ describe('Integração: aplicarFiltroPorPrograma', () => {
   })
 
   it('nao limpa quando nao ha projeto selecionado', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: [] })
+      .mockResolvedValueOnce({ data: [] })
     const store = useProjetoStore()
     store.projetoSelecionado = null
     await store.aplicarFiltroPorPrograma(null)
@@ -246,6 +276,20 @@ describe('Integração: buscarOverview', () => {
     const store = useProjetoStore()
     await store.buscarOverview()
     expect(store.overviewData).toEqual(overviewMock)
+  })
+
+  it('chama URL sem programa_id quando nao informado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: overviewMock })
+    const store = useProjetoStore()
+    await store.buscarOverview()
+    expect(axios.get).toHaveBeenCalledWith(expect.not.stringContaining('programa_id'))
+  })
+
+  it('passa programa_id na URL quando informado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: overviewMock })
+    const store = useProjetoStore()
+    await store.buscarOverview(9)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=9'))
   })
 })
 

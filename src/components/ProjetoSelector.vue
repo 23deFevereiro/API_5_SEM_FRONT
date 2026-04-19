@@ -7,7 +7,7 @@
       clearable
       density="comfortable"
       hide-details
-      item-title="nome_projeto"
+      :item-title="formatarTitulo"
       item-value="id"
       :items="store.projetos"
       :loading="carregando"
@@ -62,6 +62,10 @@
       return
     }
     await store.selecionarProjeto(projeto)
+  }
+
+  function formatarTitulo (projeto: { codigo_projeto: string, nome_projeto: string }) {
+    return `${projeto.codigo_projeto}: ${projeto.nome_projeto}`
   }
 </script>
 
