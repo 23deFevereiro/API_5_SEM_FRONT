@@ -47,31 +47,9 @@
     chartInstance = null
   }
 
-  const todasDatas = Array.from(
-    new Set(
-      store.burnupHoras.flatMap(projeto =>
-        projeto.serie.map(ponto => ponto.data),
-      ),
-    ),
-  ).sort((a, b) => a.localeCompare(b))
-
-  const labels = todasDatas.length > 0
-    ? todasDatas
-    : ['']
+  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4']
 
   const datasets = store.burnupHoras.map((projeto, index) => {
-    let ultimoAcumulado = 0
-
-    const data = labels.map(data => {
-      const ponto = projeto.serie.find(item => item.data === data)
-
-      if (ponto) {
-        ultimoAcumulado = ponto.horas_acumuladas
-      }
-
-      return ultimoAcumulado
-    })
-
     const colors = [
       '#2563EB',
       '#10B981',
@@ -85,7 +63,7 @@
 
     return {
       label: projeto.projeto,
-      data,
+      data: [],
       borderColor: color,
       backgroundColor: color,
       borderWidth: 2,
@@ -108,16 +86,11 @@
       plugins: {
         legend: {
           display: datasets.length > 0,
-          position: 'bottom',
+          position: 'right',
           labels: {
             color: '#374151',
             font: { size: 12 },
             usePointStyle: true,
-          },
-        },
-        tooltip: {
-          callbacks: {
-            label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)}h`,
           },
         },
       },
@@ -137,11 +110,9 @@
         },
         y: {
           beginAtZero: true,
-          suggestedMax: 4,
+          max: 8,
           ticks: {
             stepSize: 1,
-            color: '#6B7280',
-            font: { size: 12 },
             callback: value => `${value}h`,
           },
           title: {
