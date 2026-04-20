@@ -83,17 +83,23 @@
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: {
+        mode: 'nearest',
+        intersect: false,
+      },
       plugins: {
         legend: {
-          display: datasets.length > 0,
-          position: 'right',
-          labels: {
-            color: '#374151',
-            font: { size: 12 },
-            usePointStyle: true,
+          display: false,
+        },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            title: items => items[0]?.label || '',
+            label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)}h`,
           },
         },
       },
+      
       scales: {
         x: {
           title: {
@@ -182,7 +188,7 @@
 }
 
 .chart-wrapper {
-  height: 380px;
+  height: 280px;
   width: 100%;
 }
 </style>
