@@ -2,7 +2,7 @@
   <div class="not-found">
     <v-icon color="#9CA3AF" size="80">mdi-alert-circle-outline</v-icon>
     <h2 class="not-found__code">404</h2>
-    <p class="not-found__text">Pagina nao encontrada</p>
+    <p class="not-found__text">Página não encontrada</p>
     <v-btn
       class="mt-4"
       color="primary"
@@ -10,7 +10,7 @@
       to="/programas"
       variant="flat"
     >
-      Voltar ao inicio
+      Voltar ao início
     </v-btn>
   </div>
 </template>

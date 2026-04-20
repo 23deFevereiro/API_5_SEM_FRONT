@@ -26,11 +26,12 @@
 </template>
 
 <script lang="ts" setup>
+  import { storeToRefs } from 'pinia'
   import { onMounted, ref } from 'vue'
   import { useProjetoStore } from '@/stores/projeto'
 
   const store = useProjetoStore()
-  const projetoSelecionado = ref(null)
+  const { projetoSelecionado } = storeToRefs(store)
   const carregando = ref(false)
 
   onMounted(async () => {

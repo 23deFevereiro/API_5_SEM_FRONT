@@ -185,9 +185,8 @@ export const useProjetoStore = defineStore('projeto', {
           params.set('funcionario', this.filtroFuncionario)
         }
         const qs = params.toString()
-        const response = await axios.get(
-          apiUrl(`/api/projetos/${projetoId}/horas-por-funcionario/${qs ? `?${qs}` : ''}`),
-        )
+        const route = apiUrl(`/api/projetos/${projetoId}/horas-por-funcionario/` + (qs ? '?' + qs : ''))
+        const response = await axios.get(route)
         this.horasPorFuncionario = response.data
       } finally {
         this.carregandoHoras = false
