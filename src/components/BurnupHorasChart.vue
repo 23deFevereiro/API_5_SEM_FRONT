@@ -47,32 +47,50 @@
     chartInstance = null
   }
 
-  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4']
+  const labels = Array.from(
+  new Set(
+    store.burnupHoras.flatMap(projeto =>
+      projeto.serie.map(ponto => ponto.data),
+    ),
+  ),
+).sort((a, b) => a.localeCompare(b))
 
-  const datasets = store.burnupHoras.map((projeto, index) => {
-    const colors = [
-      '#2563EB',
-      '#10B981',
-      '#F59E0B',
-      '#EF4444',
-      '#8B5CF6',
-      '#06B6D4',
-    ]
+const datasets = store.burnupHoras.map((projeto, index) => {
+  const colors = [
+    '#2563EB',
+    '#10B981',
+    '#F59E0B',
+    '#EF4444',
+    '#8B5CF6',
+    '#06B6D4',
+  ]
 
-    const color = colors[index % colors.length]
+  const color = colors[index % colors.length]
 
-    return {
-      label: projeto.projeto,
-      data: [],
-      borderColor: color,
-      backgroundColor: color,
-      borderWidth: 2,
-      tension: 0.3,
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      fill: false,
+  let ultimoAcumulado = 0
+
+  const data = labels.map(dataLabel => {
+    const ponto = projeto.serie.find(ponto => ponto.data === dataLabel)
+
+    if (ponto) {
+      ultimoAcumulado = ponto.horas_acumuladas
     }
+
+    return ultimoAcumulado
   })
+
+  return {
+    label: projeto.projeto,
+    data,
+    borderColor: color,
+    backgroundColor: color,
+    borderWidth: 2,
+    tension: 0.3,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    fill: false,
+  }
+})
 
   chartInstance = new Chart(canvasRef.value, {
     type: 'line',
