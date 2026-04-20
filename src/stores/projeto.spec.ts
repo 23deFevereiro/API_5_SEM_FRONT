@@ -373,15 +373,15 @@ describe('Integração: filtro de período na URL', () => {
     expect(url).toContain('material=Capacitor')
   })
 
-  it('buscarResumo inclui periodo quando setado', async () => {
+  it('buscarResumo nao inclui periodo na URL (agregados absolutos)', async () => {
     vi.mocked(axios.get).mockResolvedValueOnce({ data: resumoMock })
     const store = useProjetoStore()
     store.filtroDataInicio = '2025-01-01'
     store.filtroDataFim = '2025-12-31'
     await store.buscarResumo(1)
     const url = vi.mocked(axios.get).mock.calls[0][0] as string
-    expect(url).toContain('data_inicio=2025-01-01')
-    expect(url).toContain('data_fim=2025-12-31')
+    expect(url).not.toContain('data_inicio')
+    expect(url).not.toContain('data_fim')
   })
 })
 
@@ -399,16 +399,17 @@ describe('Integração: aplicarPeriodo', () => {
     expect(axios.get).not.toHaveBeenCalled()
   })
 
-  it('refaz resumo, materiais, horas e funcionarios quando ha projeto selecionado', async () => {
+  it('refaz materiais, horas e funcionarios quando ha projeto selecionado (mas nao resumo)', async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: resumoMock })
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     await store.aplicarPeriodo('2025-01-01', null)
     const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
-    expect(urls.some(u => u.includes('/resumo/'))).toBe(true)
     expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
     expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
     expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
+    // resumo \u00e9 agregado absoluto do projeto, n\u00e3o muda com per\u00edodo
+    expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
   })
 })
 

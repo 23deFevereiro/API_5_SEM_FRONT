@@ -152,8 +152,7 @@ export const useProjetoStore = defineStore('projeto', {
     },
 
     async buscarResumo (projetoId: number) {
-      const qs = this.queryStringPeriodo()
-      const response = await axios.get(apiUrl(`/api/projetos/${projetoId}/resumo/${qs}`))
+      const response = await axios.get(apiUrl(`/api/projetos/${projetoId}/resumo/`))
       this.resumo = {
         custo_total: Number(response.data.custo_total),
         tempo_total: Number(response.data.tempo_total),
@@ -235,11 +234,6 @@ export const useProjetoStore = defineStore('projeto', {
       return params
     },
 
-    queryStringPeriodo () {
-      const qs = this.paramsComPeriodo().toString()
-      return qs ? `?${qs}` : ''
-    },
-
     async aplicarPeriodo (dataInicio: string | null, dataFim: string | null) {
       this.filtroDataInicio = dataInicio
       this.filtroDataFim = dataFim
@@ -249,7 +243,6 @@ export const useProjetoStore = defineStore('projeto', {
       }
 
       await Promise.all([
-        this.buscarResumo(projeto.id),
         this.buscarMateriais(projeto.id, 1),
         this.buscarHorasPorFuncionario(projeto.id),
         this.buscarFuncionarios(projeto.id, 1),
