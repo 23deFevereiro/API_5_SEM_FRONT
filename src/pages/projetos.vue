@@ -6,6 +6,14 @@
       <ProjetoSelector />
       <CustoCard />
     </div>
+    <div class="filtros-secundarios">
+      <FiltroPeriodoBotao :disabled="!projetoSelecionado" />
+      <FuncionarioFilterSelector :disabled="!projetoSelecionado" />
+      <MaterialFilterSelector :disabled="!projetoSelecionado" />
+      <span v-if="!projetoSelecionado" class="filtros-hint">
+        Selecione um projeto para habilitar os filtros
+      </span>
+    </div>
     <MateriaisTable />
     <HorasFuncionarioChart />
     <FuncionariosTable />
@@ -13,18 +21,25 @@
 </template>
 
 <script lang="ts" setup>
+  import { storeToRefs } from 'pinia'
   import { onMounted } from 'vue'
   import CustoCard from '@/components/CustoCard.vue'
   import CustoTempoChart from '@/components/CustoTempoChart.vue'
+  import FiltroPeriodoBotao from '@/components/FiltroPeriodoBotao.vue'
+  import FuncionarioFilterSelector from '@/components/FuncionarioFilterSelector.vue'
   import FuncionariosTable from '@/components/FuncionariosTable.vue'
   import HorasFuncionarioChart from '@/components/HorasFuncionarioChart.vue'
   import MateriaisTable from '@/components/MateriaisTable.vue'
+  import MaterialFilterSelector from '@/components/MaterialFilterSelector.vue'
   import ProgramaSelector from '@/components/ProgramaSelector.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
   import { useProjetoStore } from '@/stores/projeto'
 
+  const store = useProjetoStore()
+  const { projetoSelecionado } = storeToRefs(store)
+
   onMounted(() => {
-    useProjetoStore().init()
+    store.init()
   })
 </script>
 
@@ -45,9 +60,30 @@
   flex-wrap: wrap;
 }
 
+.filtros-secundarios {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #F9FAFB;
+  border-radius: 10px;
+}
+
+.filtros-hint {
+  font-size: 13px;
+  color: #6B7280;
+}
+
 @media (max-width: 768px) {
   .main-card__inner {
     flex-direction: column;
+  }
+
+  .filtros-secundarios {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

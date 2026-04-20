@@ -312,4 +312,173 @@ describe('Integração: selecionarProjeto', () => {
     await store.selecionarProjeto(projetoMock)
     expect(store.resumo).toEqual(resumoMock)
   })
+
+  it('reseta filtros de funcionario e material mas mantem periodo', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: resumoMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-01-01'
+    store.filtroDataFim = '2025-12-31'
+    store.filtroFuncionario = 'Ana'
+    store.filtroMaterial = { id: 1, descricao: 'Capacitor' }
+    await store.selecionarProjeto(projetoMock)
+    expect(store.filtroDataInicio).toBe('2025-01-01')
+    expect(store.filtroDataFim).toBe('2025-12-31')
+    expect(store.filtroFuncionario).toBeNull()
+    expect(store.filtroMaterial).toBeNull()
+  })
+})
+
+// ─── FILTROS SECUNDÁRIOS (período, funcionário, material) ─────────────────
+
+describe('Integração: filtro de período na URL', () => {
+  it('buscarMateriais inclui data_inicio e data_fim quando setados', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: materiaisMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-01-01'
+    store.filtroDataFim = '2025-06-30'
+    await store.buscarMateriais(1, 1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('data_inicio=2025-01-01')
+    expect(url).toContain('data_fim=2025-06-30')
+  })
+
+  it('buscarHorasPorFuncionario inclui periodo e funcionario', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: horasMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-02-01'
+    store.filtroFuncionario = 'Ana'
+    await store.buscarHorasPorFuncionario(1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('data_inicio=2025-02-01')
+    expect(url).toContain('funcionario=Ana')
+  })
+
+  it('buscarFuncionarios inclui periodo e funcionario', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: funcionariosMock })
+    const store = useProjetoStore()
+    store.filtroDataFim = '2025-03-15'
+    store.filtroFuncionario = 'Bruno'
+    await store.buscarFuncionarios(1, 1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('data_fim=2025-03-15')
+    expect(url).toContain('funcionario=Bruno')
+  })
+
+  it('buscarMateriais inclui filtroMaterial.descricao na URL', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: materiaisMock })
+    const store = useProjetoStore()
+    store.filtroMaterial = { id: 7, descricao: 'Capacitor' }
+    await store.buscarMateriais(1, 1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('material=Capacitor')
+  })
+
+  it('buscarResumo inclui periodo quando setado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: resumoMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-01-01'
+    store.filtroDataFim = '2025-12-31'
+    await store.buscarResumo(1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('data_inicio=2025-01-01')
+    expect(url).toContain('data_fim=2025-12-31')
+  })
+})
+
+describe('Integração: aplicarPeriodo', () => {
+  it('atualiza o estado com as datas informadas', async () => {
+    const store = useProjetoStore()
+    await store.aplicarPeriodo('2025-01-01', '2025-06-30')
+    expect(store.filtroDataInicio).toBe('2025-01-01')
+    expect(store.filtroDataFim).toBe('2025-06-30')
+  })
+
+  it('nao faz fetch quando nao ha projeto selecionado', async () => {
+    const store = useProjetoStore()
+    await store.aplicarPeriodo('2025-01-01', '2025-06-30')
+    expect(axios.get).not.toHaveBeenCalled()
+  })
+
+  it('refaz resumo, materiais, horas e funcionarios quando ha projeto selecionado', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: resumoMock })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    await store.aplicarPeriodo('2025-01-01', null)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/resumo/'))).toBe(true)
+    expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
+    expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
+    expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
+  })
+})
+
+describe('Integração: aplicarFiltroFuncionario', () => {
+  it('atualiza o estado com o funcionario', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroFuncionario('Ana')
+    expect(store.filtroFuncionario).toBe('Ana')
+  })
+
+  it('nao faz fetch quando nao ha projeto selecionado', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroFuncionario('Ana')
+    expect(axios.get).not.toHaveBeenCalled()
+  })
+
+  it('refaz apenas horas e funcionarios (nao toca resumo nem materiais)', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: [] })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    await store.aplicarFiltroFuncionario('Ana')
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
+    expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
+    expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
+    expect(urls.some(u => u.includes('/materiais/'))).toBe(false)
+  })
+})
+
+describe('Integração: aplicarFiltroMaterial', () => {
+  const material = { id: 1, descricao: 'Capacitor' }
+
+  it('atualiza o estado com o material', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroMaterial(material)
+    expect(store.filtroMaterial).toEqual(material)
+  })
+
+  it('nao faz fetch quando nao ha projeto selecionado', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroMaterial(material)
+    expect(axios.get).not.toHaveBeenCalled()
+  })
+
+  it('refaz apenas materiais (nao toca resumo, horas nem funcionarios)', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: materiaisMock })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    await store.aplicarFiltroMaterial(material)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
+    expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
+    expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(false)
+    expect(urls.some(u => u.includes('/funcionarios/'))).toBe(false)
+  })
+})
+
+describe('Integração: buscarNomesFuncionarios / buscarMateriaisDisponiveis', () => {
+  it('buscarNomesFuncionarios popula state', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: ['Ana', 'Bruno'] })
+    const store = useProjetoStore()
+    await store.buscarNomesFuncionarios(1)
+    expect(store.nomesFuncionarios).toEqual(['Ana', 'Bruno'])
+  })
+
+  it('buscarMateriaisDisponiveis popula state', async () => {
+    const materiais = [{ id: 1, descricao: 'Capacitor' }]
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: materiais })
+    const store = useProjetoStore()
+    await store.buscarMateriaisDisponiveis(1)
+    expect(store.materiaisDisponiveis).toEqual(materiais)
+  })
 })
