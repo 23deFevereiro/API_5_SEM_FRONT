@@ -41,6 +41,7 @@
 
   function buildChart () {
   if (!canvasRef.value) return
+  if (!store.burnupHoras.length) return
 
   if (chartInstance) {
     chartInstance.destroy()
@@ -48,49 +49,49 @@
   }
 
   const labels = Array.from(
-  new Set(
-    store.burnupHoras.flatMap(projeto =>
-      projeto.serie.map(ponto => ponto.data),
+    new Set(
+      store.burnupHoras.flatMap(projeto =>
+        projeto.serie.map(ponto => ponto.data),
+      ),
     ),
-  ),
-).sort((a, b) => a.localeCompare(b))
+  ).sort((a, b) => a.localeCompare(b))
 
-const datasets = store.burnupHoras.map((projeto, index) => {
-  const colors = [
-    '#2563EB',
-    '#10B981',
-    '#F59E0B',
-    '#EF4444',
-    '#8B5CF6',
-    '#06B6D4',
-  ]
+  const datasets = store.burnupHoras.map((projeto, index) => {
+    const grays = [
+      '#111111',
+      '#333333',
+      '#555555',
+      '#777777',
+      '#999999',
+      '#BBBBBB',
+    ]
 
-  const color = colors[index % colors.length]
+    const color = grays[index % grays.length]
 
-  let ultimoAcumulado = 0
+    let ultimoAcumulado = 0
 
-  const data = labels.map(dataLabel => {
-    const ponto = projeto.serie.find(ponto => ponto.data === dataLabel)
+    const data = labels.map(dataLabel => {
+      const ponto = projeto.serie.find(ponto => ponto.data === dataLabel)
 
-    if (ponto) {
-      ultimoAcumulado = ponto.horas_acumuladas
+      if (ponto) {
+        ultimoAcumulado = ponto.horas_acumuladas
+      }
+
+      return ultimoAcumulado
+    })
+
+    return {
+      label: projeto.projeto,
+      data,
+      borderColor: color,
+      backgroundColor: color,
+      borderWidth: 2,
+      tension: 0.3,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      fill: false,
     }
-
-    return ultimoAcumulado
   })
-
-  return {
-    label: projeto.projeto,
-    data,
-    borderColor: color,
-    backgroundColor: color,
-    borderWidth: 2,
-    tension: 0.3,
-    pointRadius: 4,
-    pointHoverRadius: 6,
-    fill: false,
-  }
-})
 
   chartInstance = new Chart(canvasRef.value, {
     type: 'line',
@@ -117,7 +118,6 @@ const datasets = store.burnupHoras.map((projeto, index) => {
           },
         },
       },
-      
       scales: {
         x: {
           title: {
