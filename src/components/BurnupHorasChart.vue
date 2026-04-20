@@ -134,7 +134,7 @@
         },
         y: {
           beginAtZero: true,
-          max: 8,
+          max: 12,
           ticks: {
             stepSize: 1,
             callback: value => `${value}h`,
