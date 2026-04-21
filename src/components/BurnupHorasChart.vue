@@ -60,21 +60,25 @@
   
   const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4']
 
-  const datasets = store.burnupHoras.map((projeto, index) => {
-    const color = grays[index % grays.length]
+    const datasets = store.burnupHoras.map((projeto, index) => {
+      const color = grays[index % grays.length]
 
-    const pontosPorSemana = [...(projeto.serie || [])]
-      .filter(ponto => ponto.semana && ponto.horas_acumuladas !== undefined)
-      .reduce((acc, ponto) => {
-        if (labels.includes(ponto.semana)) {
-          acc[ponto.semana] = Number(ponto.horas_acumuladas ?? 0)
+      const serieOrdenada = [...(projeto.serie || [])]
+        .filter(ponto => ponto.semana && ponto.horas_acumuladas !== undefined)
+        .sort((a, b) => a.data.localeCompare(b.data))
+
+      const data: (number | null)[] = [null, null, null, null]
+
+      serieOrdenada.forEach(ponto => {
+        const match = ponto.semana.match(/\d+/)
+        if (!match) return
+
+        const numeroSemana = Number(match[0])
+
+        if (numeroSemana >= 1 && numeroSemana <= 4) {
+          data[numeroSemana - 1] = Number(ponto.horas_acumuladas ?? 0)
         }
-        return acc
-      }, {} as Record<string, number>)
-
-    const data = labels.map(semana =>
-      pontosPorSemana[semana] !== undefined ? pontosPorSemana[semana] : null,
-    )
+      })
 
     return {
       label: projeto.projeto,
