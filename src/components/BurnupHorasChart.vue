@@ -37,7 +37,11 @@
 
   const store = useProjetoStore()
   const canvasRef = ref<HTMLCanvasElement | null>(null)
-  let chartInstance: Chart | null = null
+    type BurnupChartPoint = {
+      x: string
+      y: number
+    }
+  let chartInstance: Chart<'line', { x: string; y: number }[]> | null = null
 
   function buildChart() {
   if (!canvasRef.value) return
@@ -56,18 +60,29 @@
     '#999999',
     '#BBBBBB',
   ]
-
-  const datasets = store.burnupHoras
+  
+  const datasets: {
+  label: string
+  data: BurnupChartPoint[]
+  borderColor: string
+  backgroundColor: string
+  borderWidth: number
+  tension: number
+  pointRadius: number
+  pointHoverRadius: number
+  fill: boolean
+  spanGaps: boolean
+}[] = store.burnupHoras
     .map((projeto, index) => {
       const color = grays[index % grays.length]
 
       const serieOrdenada = [...(projeto.serie || [])]
-        .filter(ponto => ponto.data)
-        .sort((a, b) => a.data.localeCompare(b.data))
-        .map((ponto, index) => ({
-          x: `Semana ${Math.min(index + 1, 4)}`,
-          y: Number(ponto.horas_acumuladas ?? 0),
-        }))
+      .filter(ponto => ponto.data && ponto.semana)
+      .sort((a, b) => a.data.localeCompare(b.data))
+      .map(ponto => ({
+        x: ponto.semana,
+        y: Number(ponto.horas_acumuladas ?? 0),
+      }))
 
       return {
         label: projeto.projeto,
@@ -91,7 +106,7 @@
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      parsing: true,
+      parsing: false,
       interaction: {
         mode: 'nearest',
         intersect: true,
@@ -111,14 +126,16 @@
           intersect: true,
           callbacks: {
             title(items) {
-              return items[0]?.raw?.x || ''
+              const raw = items[0]?.raw as BurnupChartPoint | undefined
+              return raw?.x || ''
             },
             label(ctx) {
+              const raw = ctx.raw as BurnupChartPoint
               const projeto = ctx.dataset.label || ''
-              const valor = Number(ctx.raw?.y ?? 0).toFixed(1)
+              const valor = Number(raw?.y ?? 0).toFixed(1)
               return `${projeto}: ${valor}h`
             },
-          },
+                      },
         },
       },
       scales: {
