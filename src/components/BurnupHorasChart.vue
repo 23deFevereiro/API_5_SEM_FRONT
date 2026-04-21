@@ -39,7 +39,7 @@
   const canvasRef = ref<HTMLCanvasElement | null>(null)
   let chartInstance: Chart | null = null
 
-  function buildChart () {
+  function buildChart() {
   if (!canvasRef.value) return
   if (!store.burnupHoras.length) return
 
@@ -48,122 +48,119 @@
     chartInstance = null
   }
 
-  const labels = Array.from(
-    new Set(
-      store.burnupHoras.flatMap(projeto =>
-        projeto.serie.map(ponto => ponto.data),
-      ),
-    ),
-  ).sort((a, b) => a.localeCompare(b))
+  const grays = [
+    '#111111',
+    '#333333',
+    '#555555',
+    '#777777',
+    '#999999',
+    '#BBBBBB',
+  ]
 
-  const datasets = store.burnupHoras.map((projeto, index) => {
-    const grays = [
-      '#111111',
-      '#333333',
-      '#555555',
-      '#777777',
-      '#999999',
-      '#BBBBBB',
-    ]
+  const datasets = store.burnupHoras
+    .filter(projeto => Array.isArray(projeto.serie) && projeto.serie.length > 0)
+    .map((projeto, index) => {
+      const color = grays[index % grays.length]
 
-    const color = grays[index % grays.length]
+      const serieOrdenada = [...projeto.serie]
+        .filter(ponto => ponto.data && ponto.horas_acumuladas !== null && ponto.horas_acumuladas !== undefined)
+        .sort((a, b) => a.data.localeCompare(b.data))
+        .map(ponto => ({
+          x: ponto.data,
+          y: Number(ponto.horas_acumuladas),
+        }))
 
-    const serieOrdenada = [...projeto.serie].sort((a, b) =>
-      a.data.localeCompare(b.data),
-    )
-
-    const primeiraDataProjeto = serieOrdenada[0]?.data
-    const ultimaDataProjeto = serieOrdenada[serieOrdenada.length - 1]?.data
-
-    let ultimoAcumulado: number | null = null
-
-    const data = labels.map(dataLabel => {
-        const ponto = serieOrdenada.find(ponto => ponto.data === dataLabel)
-
-        if (ponto) {
-          ultimoAcumulado = ponto.horas_acumuladas
-          return ultimoAcumulado
-        }
-
-        if (dataLabel < primeiraDataProjeto) {
-          return null
-        }
-
-        if (dataLabel > ultimaDataProjeto) {
-          return null
-        }
-
-        return ultimoAcumulado
-      })
-
-    return {
-      label: projeto.projeto,
-      data,
-      borderColor: color,
-      backgroundColor: color,
-      borderWidth: 2,
-      tension: 0.3,
-      pointRadius: 0,
-      pointHoverRadius: 0,
-      fill: false,
-    }
-  })
+      return {
+        label: projeto.projeto,
+        data: serieOrdenada,
+        borderColor: color,
+        backgroundColor: color,
+        borderWidth: 2,
+        tension: 0,
+        pointRadius: 2,
+        pointHoverRadius: 4,
+        fill: false,
+        spanGaps: false,
+      }
+    })
 
   chartInstance = new Chart(canvasRef.value, {
     type: 'line',
     data: {
-      labels,
       datasets,
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      parsing: true,
       interaction: {
         mode: 'nearest',
         intersect: true,
       },
       plugins: {
         legend: {
-          display: false,
+          display: true,
+          position: 'top',
+          labels: {
+            boxWidth: 18,
+            boxHeight: 8,
+            padding: 12,
+          },
         },
         tooltip: {
           enabled: true,
           mode: 'nearest',
           intersect: true,
           callbacks: {
-            title: items => items[0]?.label || '',
-            label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)}h`,
+            title(items) {
+              return items[0]?.raw?.x || ''
+            },
+            label(ctx) {
+              const projeto = ctx.dataset.label || ''
+              const valor = Number(ctx.raw?.y ?? 0).toFixed(1)
+              return `${projeto}: ${valor}h`
+            },
           },
         },
       },
       scales: {
         x: {
+          type: 'category',
           title: {
             display: true,
             text: 'Tempo',
             color: '#6B7280',
             font: { size: 12 },
           },
-          grid: { color: '#F3F4F6' },
+          grid: {
+            color: '#F3F4F6',
+          },
           ticks: {
             color: '#6B7280',
             font: { size: 12 },
+            maxRotation: 45,
+            minRotation: 45,
+            autoSkip: true,
           },
         },
         y: {
           beginAtZero: true,
           max: 12,
-          ticks: {
-            stepSize: 1,
-            callback: value => `${value}h`,
-          },
           title: {
             display: true,
             text: 'Horas Investidas',
             color: '#6B7280',
             font: { size: 12 },
           },
-          grid: { color: '#F3F4F6' },
+          ticks: {
+            stepSize: 1,
+            callback(value) {
+              return `${value}h`
+            },
+          },
+          grid: {
+            color: '#F3F4F6',
+          },
         },
       },
     },
