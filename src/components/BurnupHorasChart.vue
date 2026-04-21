@@ -58,16 +58,15 @@
   ]
 
   const datasets = store.burnupHoras
-    .filter(projeto => Array.isArray(projeto.serie) && projeto.serie.length > 0)
     .map((projeto, index) => {
       const color = grays[index % grays.length]
 
-      const serieOrdenada = [...projeto.serie]
-        .filter(ponto => ponto.data && ponto.horas_acumuladas !== null && ponto.horas_acumuladas !== undefined)
+      const serieOrdenada = [...(projeto.serie || [])]
+        .filter(ponto => ponto.data)
         .sort((a, b) => a.data.localeCompare(b.data))
         .map(ponto => ({
           x: ponto.data,
-          y: Number(ponto.horas_acumuladas),
+          y: Number(ponto.horas_acumuladas ?? 0),
         }))
 
       return {
@@ -220,7 +219,7 @@
 }
 
 .chart-wrapper {
-  height: 380px;
+  height: 300px;
   width: 100%;
 }
 </style>
