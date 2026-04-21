@@ -220,7 +220,7 @@
 }
 
 .chart-wrapper {
-  height: 280px;
+  height: 380px;
   width: 100%;
 }
 </style>
