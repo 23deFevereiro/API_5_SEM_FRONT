@@ -64,8 +64,8 @@
       const serieOrdenada = [...(projeto.serie || [])]
         .filter(ponto => ponto.data)
         .sort((a, b) => a.data.localeCompare(b.data))
-        .map(ponto => ({
-          x: ponto.data,
+        .map((ponto, index) => ({
+          x: `Semana ${Math.min(index + 1, 4)}`,
           y: Number(ponto.horas_acumuladas ?? 0),
         }))
 
@@ -136,8 +136,8 @@
           ticks: {
             color: '#6B7280',
             font: { size: 12 },
-            maxRotation: 45,
-            minRotation: 45,
+            maxRotation: 0,
+            minRotation: 0,
             autoSkip: true,
           },
         },
