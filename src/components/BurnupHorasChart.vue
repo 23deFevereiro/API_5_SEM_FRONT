@@ -68,17 +68,33 @@
 
     const color = grays[index % grays.length]
 
-    let ultimoAcumulado = 0
+    const serieOrdenada = [...projeto.serie].sort((a, b) =>
+      a.data.localeCompare(b.data),
+    )
+
+    const primeiraDataProjeto = serieOrdenada[0]?.data
+    const ultimaDataProjeto = serieOrdenada[serieOrdenada.length - 1]?.data
+
+    let ultimoAcumulado: number | null = null
 
     const data = labels.map(dataLabel => {
-      const ponto = projeto.serie.find(ponto => ponto.data === dataLabel)
+        const ponto = serieOrdenada.find(ponto => ponto.data === dataLabel)
 
-      if (ponto) {
-        ultimoAcumulado = ponto.horas_acumuladas
-      }
+        if (ponto) {
+          ultimoAcumulado = ponto.horas_acumuladas
+          return ultimoAcumulado
+        }
 
-      return ultimoAcumulado
-    })
+        if (dataLabel < primeiraDataProjeto) {
+          return null
+        }
+
+        if (dataLabel > ultimaDataProjeto) {
+          return null
+        }
+
+        return ultimoAcumulado
+      })
 
     return {
       label: projeto.projeto,
@@ -104,7 +120,7 @@
       maintainAspectRatio: false,
       interaction: {
         mode: 'nearest',
-        intersect: false,
+        intersect: true,
       },
       plugins: {
         legend: {
@@ -112,6 +128,8 @@
         },
         tooltip: {
           enabled: true,
+          mode: 'nearest',
+          intersect: true,
           callbacks: {
             title: items => items[0]?.label || '',
             label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)}h`,
