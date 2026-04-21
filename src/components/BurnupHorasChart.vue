@@ -99,8 +99,7 @@
       },
       plugins: {
         legend: {
-          display: true,
-          position: 'top',
+          display: false,
           labels: {
             boxWidth: 18,
             boxHeight: 8,
