@@ -54,6 +54,7 @@ type CustoTempoChartData = {
 
 type BurnupPonto = {
   data: string
+  semana: string
   horas: number
   horas_acumuladas: number
 }
