@@ -275,11 +275,15 @@ export const useProjetoStore = defineStore('projeto', {
       this.projetoSelecionado = null
       this.resumo = null
       this.materiais = null
+      this.horasPorFuncionario = []
       this.funcionarios = null
       this.filtroFuncionario = null
       this.filtroMaterial = null
       this.nomesFuncionarios = []
       this.materiaisDisponiveis = []
+      this.carregandoMateriais = false
+      this.carregandoHoras = false
+      this.carregandoFuncionarios = false
     },
   },
 })
