@@ -11,13 +11,16 @@ export const useProgramaStore = defineStore('programa', {
   state: () => ({
     programas: [] as Programa[],
     programaSelecionado: null as Programa | null,
-    carregando: false,
   }),
 
   actions: {
     async buscarProgramas (search = '') {
-      const route = apiUrl(`/api/programas`
-        + (search ? `?search=${search}` : ''))
+      const params = new URLSearchParams()
+      if (search) {
+        params.set('search', search)
+      }
+      const query = params.toString() ? `?${params.toString()}` : ''
+      const route = apiUrl(`/api/programas${query}`)
       const response = await axios.get(route)
       this.programas = response.data
     },
