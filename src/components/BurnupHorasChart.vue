@@ -37,11 +37,8 @@
 
   const store = useProjetoStore()
   const canvasRef = ref<HTMLCanvasElement | null>(null)
-    type BurnupChartPoint = {
-      x: string
-      y: number
-    }
-  let chartInstance: Chart<'line', { x: string; y: number }[]> | null = null
+    
+  let chartInstance: Chart<'line', (number | null)[], string> | null = null
 
   function buildChart() {
   if (!canvasRef.value) return
@@ -61,52 +58,47 @@
     '#BBBBBB',
   ]
   
-  const datasets: {
-  label: string
-  data: BurnupChartPoint[]
-  borderColor: string
-  backgroundColor: string
-  borderWidth: number
-  tension: number
-  pointRadius: number
-  pointHoverRadius: number
-  fill: boolean
-  spanGaps: boolean
-}[] = store.burnupHoras
-    .map((projeto, index) => {
-      const color = grays[index % grays.length]
+  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4']
 
-      const serieOrdenada = [...(projeto.serie || [])]
-      .filter(ponto => ponto.data && ponto.semana)
-      .sort((a, b) => a.data.localeCompare(b.data))
-      .map(ponto => ({
-        x: ponto.semana,
-        y: Number(ponto.horas_acumuladas ?? 0),
-      }))
+  const datasets = store.burnupHoras.map((projeto, index) => {
+    const color = grays[index % grays.length]
 
-      return {
-        label: projeto.projeto,
-        data: serieOrdenada,
-        borderColor: color,
-        backgroundColor: color,
-        borderWidth: 2,
-        tension: 0,
-        pointRadius: 2,
-        pointHoverRadius: 4,
-        fill: false,
-        spanGaps: false,
-      }
-    })
+    const pontosPorSemana = [...(projeto.serie || [])]
+      .filter(ponto => ponto.semana && ponto.horas_acumuladas !== undefined)
+      .reduce((acc, ponto) => {
+        if (labels.includes(ponto.semana)) {
+          acc[ponto.semana] = Number(ponto.horas_acumuladas ?? 0)
+        }
+        return acc
+      }, {} as Record<string, number>)
+
+    const data = labels.map(semana =>
+      pontosPorSemana[semana] !== undefined ? pontosPorSemana[semana] : null,
+    )
+
+    return {
+      label: projeto.projeto,
+      data,
+      borderColor: color,
+      backgroundColor: color,
+      borderWidth: 2,
+      tension: 0,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      fill: false,
+      spanGaps: false,
+    }
+  })
 
   chartInstance = new Chart(canvasRef.value, {
     type: 'line',
     data: {
+      labels,
       datasets,
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      parsing: false,
       interaction: {
         mode: 'nearest',
         intersect: true,
@@ -126,13 +118,11 @@
           intersect: true,
           callbacks: {
             title(items) {
-              const raw = items[0]?.raw as BurnupChartPoint | undefined
-              return raw?.x || ''
+              return items[0]?.label || ''
             },
             label(ctx) {
-              const raw = ctx.raw as BurnupChartPoint
               const projeto = ctx.dataset.label || ''
-              const valor = Number(raw?.y ?? 0).toFixed(1)
+              const valor = Number(ctx.parsed.y ?? 0).toFixed(1)
               return `${projeto}: ${valor}h`
             },
                       },
