@@ -1,10 +1,17 @@
 <template>
   <div class="main-card">
+<<<<<<< HEAD
     <ProgramaSelector />
+=======
+>>>>>>> a06ff9ddce4f1eb15102b273aa1f5cd9b2ecd8a2
     <div class="charts-row">
       <CustoTempoChart />
       <BurnupHorasChart />
     </div>
+<<<<<<< HEAD
+=======
+    <ProgramaSelector />
+>>>>>>> a06ff9ddce4f1eb15102b273aa1f5cd9b2ecd8a2
     <div class="main-card__inner">
       <ProjetoSelector />
       <CustoCard />
