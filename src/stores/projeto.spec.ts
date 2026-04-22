@@ -12,8 +12,7 @@ const projetoMock = {
 }
 
 const resumoMock = {
-  custo_materiais: 500,
-  custo_compras: 200,
+  custo_total: 700,
   tempo_total: 12.5,
 }
 
@@ -123,6 +122,101 @@ describe('Integração: buscarProjetos', () => {
     await store.buscarProjetos()
     expect(store.projetos).toEqual([])
   })
+
+  it('passa programa_id na URL quando informado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.buscarProjetos('', 7)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=7'))
+  })
+
+  it('nao inclui programa_id na URL quando null', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.buscarProjetos('', null)
+    expect(axios.get).toHaveBeenCalledWith(expect.not.stringContaining('programa_id'))
+  })
+
+  it('combina search e programa_id na URL', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
+    const store = useProjetoStore()
+    await store.buscarProjetos('Conversor', 3)
+    const chamada = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(chamada).toContain('search=Conversor')
+    expect(chamada).toContain('programa_id=3')
+  })
+})
+
+function mockarRespostasDoFiltro (
+  projetos: unknown[] = [projetoMock],
+  overview: unknown[] = overviewMock,
+) {
+  vi.mocked(axios.get)
+    .mockResolvedValueOnce({ data: projetos })
+    .mockResolvedValueOnce({ data: overview })
+}
+
+describe('Integração: aplicarFiltroPorPrograma', () => {
+  // aplicarFiltroPorPrograma dispara 2 GETs em paralelo via Promise.all (projetos e overview, nessa ordem).
+  // Este helper centraliza o setup dos dois mocks pra evitar duplicação entre os testes.
+
+  it('busca projetos passando o programa_id recebido', async () => {
+    mockarRespostasDoFiltro()
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
+    expect(urls.some(u => u.includes('/api/projetos/') && u.includes('programa_id=5'))).toBe(true)
+  })
+
+  it('busca overview passando o programa_id recebido', async () => {
+    mockarRespostasDoFiltro()
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
+    expect(urls.some(u => u.includes('/api/projetos-overview') && u.includes('programa_id=5'))).toBe(true)
+  })
+
+  it('atualiza overviewData com o retorno filtrado', async () => {
+    mockarRespostasDoFiltro()
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    expect(store.overviewData).toEqual(overviewMock)
+  })
+
+  it('atualiza a lista de projetos com o retorno filtrado', async () => {
+    mockarRespostasDoFiltro()
+    const store = useProjetoStore()
+    await store.aplicarFiltroPorPrograma(5)
+    expect(store.projetos).toEqual([projetoMock])
+  })
+
+  it('mantem projeto selecionado quando ele continua na lista filtrada', async () => {
+    mockarRespostasDoFiltro()
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    store.resumo = resumoMock
+    await store.aplicarFiltroPorPrograma(5)
+    expect(store.projetoSelecionado).toEqual(projetoMock)
+    expect(store.resumo).toEqual(resumoMock)
+  })
+
+  it('limpa projeto selecionado quando ele nao esta mais na lista filtrada', async () => {
+    mockarRespostasDoFiltro([], [])
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    store.resumo = resumoMock
+    await store.aplicarFiltroPorPrograma(99)
+    expect(store.projetoSelecionado).toBeNull()
+    expect(store.resumo).toBeNull()
+  })
+
+  it('nao limpa quando nao ha projeto selecionado', async () => {
+    mockarRespostasDoFiltro([], [])
+    const store = useProjetoStore()
+    store.projetoSelecionado = null
+    await store.aplicarFiltroPorPrograma(null)
+    expect(store.projetoSelecionado).toBeNull()
+  })
 })
 
 describe('Integração: buscarMateriais', () => {
@@ -180,6 +274,20 @@ describe('Integração: buscarOverview', () => {
     await store.buscarOverview()
     expect(store.overviewData).toEqual(overviewMock)
   })
+
+  it('chama URL sem programa_id quando nao informado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: overviewMock })
+    const store = useProjetoStore()
+    await store.buscarOverview()
+    expect(axios.get).toHaveBeenCalledWith(expect.not.stringContaining('programa_id'))
+  })
+
+  it('passa programa_id na URL quando informado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: overviewMock })
+    const store = useProjetoStore()
+    await store.buscarOverview(9)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=9'))
+  })
 })
 
 describe('Integração: selecionarProjeto', () => {
@@ -203,5 +311,175 @@ describe('Integração: selecionarProjeto', () => {
     store.resumo = null
     await store.selecionarProjeto(projetoMock)
     expect(store.resumo).toEqual(resumoMock)
+  })
+
+  it('reseta filtros de funcionario e material mas mantem periodo', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: resumoMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-01-01'
+    store.filtroDataFim = '2025-12-31'
+    store.filtroFuncionario = 'Ana'
+    store.filtroMaterial = { id: 1, descricao: 'Capacitor' }
+    await store.selecionarProjeto(projetoMock)
+    expect(store.filtroDataInicio).toBe('2025-01-01')
+    expect(store.filtroDataFim).toBe('2025-12-31')
+    expect(store.filtroFuncionario).toBeNull()
+    expect(store.filtroMaterial).toBeNull()
+  })
+})
+
+// ─── FILTROS SECUNDÁRIOS (período, funcionário, material) ─────────────────
+
+describe('Integração: filtro de período na URL', () => {
+  it('buscarMateriais inclui data_inicio e data_fim quando setados', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: materiaisMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-01-01'
+    store.filtroDataFim = '2025-06-30'
+    await store.buscarMateriais(1, 1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('data_inicio=2025-01-01')
+    expect(url).toContain('data_fim=2025-06-30')
+  })
+
+  it('buscarHorasPorFuncionario inclui periodo e funcionario', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: horasMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-02-01'
+    store.filtroFuncionario = 'Ana'
+    await store.buscarHorasPorFuncionario(1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('data_inicio=2025-02-01')
+    expect(url).toContain('funcionario=Ana')
+  })
+
+  it('buscarFuncionarios inclui periodo e funcionario', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: funcionariosMock })
+    const store = useProjetoStore()
+    store.filtroDataFim = '2025-03-15'
+    store.filtroFuncionario = 'Bruno'
+    await store.buscarFuncionarios(1, 1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('data_fim=2025-03-15')
+    expect(url).toContain('funcionario=Bruno')
+  })
+
+  it('buscarMateriais inclui filtroMaterial.descricao na URL', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: materiaisMock })
+    const store = useProjetoStore()
+    store.filtroMaterial = { id: 7, descricao: 'Capacitor' }
+    await store.buscarMateriais(1, 1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).toContain('material=Capacitor')
+  })
+
+  it('buscarResumo nao inclui periodo na URL (agregados absolutos)', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: resumoMock })
+    const store = useProjetoStore()
+    store.filtroDataInicio = '2025-01-01'
+    store.filtroDataFim = '2025-12-31'
+    await store.buscarResumo(1)
+    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    expect(url).not.toContain('data_inicio')
+    expect(url).not.toContain('data_fim')
+  })
+})
+
+describe('Integração: aplicarPeriodo', () => {
+  it('atualiza o estado com as datas informadas', async () => {
+    const store = useProjetoStore()
+    await store.aplicarPeriodo('2025-01-01', '2025-06-30')
+    expect(store.filtroDataInicio).toBe('2025-01-01')
+    expect(store.filtroDataFim).toBe('2025-06-30')
+  })
+
+  it('nao faz fetch quando nao ha projeto selecionado', async () => {
+    const store = useProjetoStore()
+    await store.aplicarPeriodo('2025-01-01', '2025-06-30')
+    expect(axios.get).not.toHaveBeenCalled()
+  })
+
+  it('refaz materiais, horas e funcionarios quando ha projeto selecionado (mas nao resumo)', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: resumoMock })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    await store.aplicarPeriodo('2025-01-01', null)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
+    expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
+    expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
+    // resumo \u00e9 agregado absoluto do projeto, n\u00e3o muda com per\u00edodo
+    expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
+  })
+})
+
+describe('Integração: aplicarFiltroFuncionario', () => {
+  it('atualiza o estado com o funcionario', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroFuncionario('Ana')
+    expect(store.filtroFuncionario).toBe('Ana')
+  })
+
+  it('nao faz fetch quando nao ha projeto selecionado', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroFuncionario('Ana')
+    expect(axios.get).not.toHaveBeenCalled()
+  })
+
+  it('refaz apenas horas e funcionarios (nao toca resumo nem materiais)', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: [] })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    await store.aplicarFiltroFuncionario('Ana')
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
+    expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
+    expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
+    expect(urls.some(u => u.includes('/materiais/'))).toBe(false)
+  })
+})
+
+describe('Integração: aplicarFiltroMaterial', () => {
+  const material = { id: 1, descricao: 'Capacitor' }
+
+  it('atualiza o estado com o material', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroMaterial(material)
+    expect(store.filtroMaterial).toEqual(material)
+  })
+
+  it('nao faz fetch quando nao ha projeto selecionado', async () => {
+    const store = useProjetoStore()
+    await store.aplicarFiltroMaterial(material)
+    expect(axios.get).not.toHaveBeenCalled()
+  })
+
+  it('refaz apenas materiais (nao toca resumo, horas nem funcionarios)', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: materiaisMock })
+    const store = useProjetoStore()
+    store.projetoSelecionado = projetoMock
+    await store.aplicarFiltroMaterial(material)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
+    expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
+    expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(false)
+    expect(urls.some(u => u.includes('/funcionarios/'))).toBe(false)
+  })
+})
+
+describe('Integração: buscarNomesFuncionarios / buscarMateriaisDisponiveis', () => {
+  it('buscarNomesFuncionarios popula state', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: ['Ana', 'Bruno'] })
+    const store = useProjetoStore()
+    await store.buscarNomesFuncionarios(1)
+    expect(store.nomesFuncionarios).toEqual(['Ana', 'Bruno'])
+  })
+
+  it('buscarMateriaisDisponiveis popula state', async () => {
+    const materiais = [{ id: 1, descricao: 'Capacitor' }]
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: materiais })
+    const store = useProjetoStore()
+    await store.buscarMateriaisDisponiveis(1)
+    expect(store.materiaisDisponiveis).toEqual(materiais)
   })
 })
