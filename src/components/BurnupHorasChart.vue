@@ -58,17 +58,7 @@
     '#BBBBBB',
   ]
   
-  const labels = Array.from(
-    new Set(
-      store.burnupHoras.flatMap(projeto =>
-        projeto.serie.map(ponto => ponto.semana),
-      ),
-    ),
-  ).sort((a, b) => {
-    const semanaA = Number(a.match(/\d+/)?.[0] || 0)
-    const semanaB = Number(b.match(/\d+/)?.[0] || 0)
-    return semanaA - semanaB
-  })
+  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5+']
 
     const datasets = store.burnupHoras.map((projeto, index) => {
       const color = grays[index % grays.length]
@@ -88,9 +78,10 @@
       borderColor: color,
       backgroundColor: color,
       borderWidth: 2,
-      tension: 0,
-      pointRadius: 3,
+      pointRadius: 2,
       pointHoverRadius: 5,
+      hoverBorderWidth: 4,
+      tension: 0.25,
       fill: false,
       spanGaps: false,
     }
@@ -129,7 +120,7 @@
             label(ctx) {
               const projeto = ctx.dataset.label || ''
               const valor = Number(ctx.parsed.y ?? 0).toFixed(1)
-              return `${projeto}: ${valor}h`
+              return `${projeto}: ${valor}h acumuladas`
             },
                       },
         },
