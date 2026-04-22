@@ -58,7 +58,7 @@
     '#BBBBBB',
   ]
   
-  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Semana 5+']
+  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4+']
 
     const datasets = store.burnupHoras.map((projeto, index) => {
       const color = grays[index % grays.length]
