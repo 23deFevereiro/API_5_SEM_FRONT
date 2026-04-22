@@ -65,7 +65,11 @@
 
       const serieOrdenada = [...(projeto.serie || [])]
         .filter(ponto => ponto.semana && ponto.horas_acumuladas !== undefined)
-        .sort((a, b) => a.data.localeCompare(b.data))
+        .sort((a, b) => {
+          const semanaA = Number(a.semana.match(/\d+/)?.[0] || 0)
+          const semanaB = Number(b.semana.match(/\d+/)?.[0] || 0)
+          return semanaA - semanaB
+        })
 
       const data: (number | null)[] = labels.map(label => {
         const ponto = serieOrdenada.find(p => p.semana === label)
