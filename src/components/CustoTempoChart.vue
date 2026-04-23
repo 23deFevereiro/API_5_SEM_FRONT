@@ -70,14 +70,14 @@
           x: {
             title: {
               display: true,
-              text: 'Month',
+              text: 'Mês',
             },
           },
           y: {
             beginAtZero: true,
             title: {
               display: true,
-              text: 'Cost (R$)',
+              text: 'Custo (R$)',
             },
           },
         },

@@ -9,8 +9,7 @@ type Projeto = {
 }
 
 type ResumoProjeto = {
-  custo_materiais: number
-  custo_compras: number
+  custo_total: number
   tempo_total: number
 }
 
@@ -70,17 +69,26 @@ export const useProjetoStore = defineStore('projeto', {
     carregandoFuncionarios: false,
   }),
 
+  getters: {
+    isLoading (): boolean {
+      return this.carregando || this.carregandoMateriais || this.carregandoHoras || this.carregandoFuncionarios
+    },
+  },
+
   actions: {
     init () {
       this.buscarOverview()
     },
 
     async buscarOverview () {
-      const response = await axios.get(apiUrl(`/projetos-overview`))
+      const response = await axios.get(apiUrl(`/api/projetos-overview`))
       this.overviewData = response.data
     },
     async buscarProjetos (search = '') {
-      const response = await axios.get(apiUrl(`/projetos/?search=${search}`))
+      const route: string = apiUrl(`/api/projetos`
+        + (search ? `?search=${search}` : ''))
+
+      const response = await axios.get(route)
       this.projetos = response.data
     },
 
@@ -94,12 +102,15 @@ export const useProjetoStore = defineStore('projeto', {
 
       try {
         const [resumoRes] = await Promise.all([
-          axios.get(apiUrl(`/projetos/${projeto.id}/resumo/`)),
+          axios.get(apiUrl(`/api/projetos/${projeto.id}/resumo/`)),
           this.buscarMateriais(projeto.id, 1),
           this.buscarHorasPorFuncionario(projeto.id),
           this.buscarFuncionarios(projeto.id, 1),
         ])
-        this.resumo = resumoRes.data
+        this.resumo = {
+          custo_total: Number(resumoRes.data.custo_total),
+          tempo_total: Number(resumoRes.data.tempo_total),
+        }
       } finally {
         this.carregando = false
       }
@@ -109,7 +120,7 @@ export const useProjetoStore = defineStore('projeto', {
       this.carregandoMateriais = true
       try {
         const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/materiais/?page=${page}`),
+          apiUrl(`/api/projetos/${projetoId}/materiais?page=${page}`),
         )
         this.materiais = response.data
       } finally {
@@ -121,7 +132,7 @@ export const useProjetoStore = defineStore('projeto', {
       this.carregandoHoras = true
       try {
         const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/horas-por-funcionario/`),
+          apiUrl(`/api/projetos/${projetoId}/horas-por-funcionario/`),
         )
         this.horasPorFuncionario = response.data
       } finally {
@@ -133,7 +144,7 @@ export const useProjetoStore = defineStore('projeto', {
       this.carregandoFuncionarios = true
       try {
         const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/funcionarios/?page=${page}`),
+          apiUrl(`/api/projetos/${projetoId}/funcionarios/?page=${page}`),
         )
         this.funcionarios = response.data
       } finally {

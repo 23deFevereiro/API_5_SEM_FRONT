@@ -3,67 +3,66 @@
     <div class="selector-label">Projeto</div>
     <v-autocomplete
       v-model="projetoSelecionado"
-      :items="store.projetos"
-      :loading="carregando"
+      class="projeto-autocomplete"
+      clearable
+      density="comfortable"
+      hide-details
       item-title="nome_projeto"
       item-value="id"
+      :items="store.projetos"
+      :loading="carregando"
       placeholder="Selecione um projeto"
       return-object
-      clearable
-      hide-details
       variant="outlined"
-      density="comfortable"
-      class="projeto-autocomplete"
-      @update:search="buscarProjetos"
-      @update:model-value="selecionarProjeto"
       @click="carregarTodos"
+      @update:model-value="selecionarProjeto"
+      @update:search="buscarProjetos"
     />
     <div class="selector-hint">
-      <v-icon size="14" color="#6B7280">mdi-information-outline</v-icon>
+      <v-icon color="#6B7280" size="14">mdi-information-outline</v-icon>
       Selecione um projeto para visualizar os dados
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import { useProjetoStore } from '@/stores/projeto'
+  import { onMounted, ref } from 'vue'
+  import { useProjetoStore } from '@/stores/projeto'
 
-const store = useProjetoStore()
-const projetoSelecionado = ref(null)
-const carregando = ref(false)
+  const store = useProjetoStore()
+  const projetoSelecionado = ref(null)
+  const carregando = ref(false)
 
-onMounted(async () => {
-  await carregarTodos()
-})
+  onMounted(async () => {
+    await carregarTodos()
+  })
 
-async function carregarTodos() {
-  if (store.projetos.length > 0) return 
-  carregando.value = true
-  try {
-    await store.buscarProjetos('')
-  } finally {
-    carregando.value = false
+  async function carregarTodos () {
+    if (store.projetos.length > 0) return
+    carregando.value = true
+    try {
+      await store.buscarProjetos('')
+    } finally {
+      carregando.value = false
+    }
   }
-}
 
-async function buscarProjetos(search: string) {
-  carregando.value = true
-  try {
-    await store.buscarProjetos(search ?? '')
-  } finally {
-    carregando.value = false
+  async function buscarProjetos (search: string) {
+    carregando.value = true
+    try {
+      await store.buscarProjetos(search ?? '')
+    } finally {
+      carregando.value = false
+    }
   }
-}
 
-async function selecionarProjeto(projeto: any) {
-  if (!projeto) {
-    
-    store.limpar()
-    return
+  async function selecionarProjeto (projeto: any) {
+    if (!projeto) {
+      store.limpar()
+      return
+    }
+    await store.selecionarProjeto(projeto)
   }
-  await store.selecionarProjeto(projeto)
-}
 </script>
 
 <style scoped>
