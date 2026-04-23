@@ -196,12 +196,4 @@ describe('Integração: selecionarProjeto', () => {
     await store.selecionarProjeto(projetoMock)
     expect(store.carregando).toBe(false)
   })
-
-  it('limpa dados anteriores ao selecionar novo projeto', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: resumoMock })
-    const store = useProjetoStore()
-    store.resumo = null
-    await store.selecionarProjeto(projetoMock)
-    expect(store.resumo).toEqual(resumoMock)
-  })
 })

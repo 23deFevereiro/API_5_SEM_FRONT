@@ -80,7 +80,7 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: ctx => ` ${ctx.parsed.y.toFixed(1)}h`,
+              label: ctx => ` ${ctx.parsed.y?.toFixed(1)}h`,
             },
           },
         },
