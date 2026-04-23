@@ -7,7 +7,7 @@
       clearable
       density="comfortable"
       hide-details
-      item-title="nome"
+      item-title="nome_programa"
       item-value="id"
       :items="store.programas"
       :loading="carregando"
@@ -20,7 +20,7 @@
     />
     <div class="selector-hint">
       <v-icon color="#6B7280" size="14">mdi-information-outline</v-icon>
-      Filtra os projetos pelo programa selecionado
+      Selecione um programa para visualizar os dados
     </div>
   </div>
 </template>
