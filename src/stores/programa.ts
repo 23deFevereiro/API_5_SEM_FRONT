@@ -16,12 +16,26 @@ type ResumoProjeto = {
   custo_real: number
 }
 
+export type StatusDistribuicao = {
+  status: string
+  quantidade: number
+  percentual: number
+  cor: string
+}
+
+export type DistribuicaoStatus = {
+  total: number
+  status: StatusDistribuicao[]
+}
+
 export const useProgramaStore = defineStore('programa', {
   state: () => ({
     programas: [] as Programa[],
     programaSelecionado: null as Programa | null,
     resumo: null as ResumoProjeto | null,
+    distribuicaoStatus: null as DistribuicaoStatus | null,
     carregando: false,
+    carregandoDistribuicao: false,
   }),
 
   actions: {
@@ -32,30 +46,44 @@ export const useProgramaStore = defineStore('programa', {
       this.programas = response.data
     },
 
-    async selecionarPrograma (programa: Programa) {
+    async selecionarPrograma (programa: Programa | null) {
       this.programaSelecionado = programa
-      this.carregando = true
       this.resumo = null
+      this.distribuicaoStatus = null
+
+      if (!programa) return
+
+      this.carregando = true
+      this.carregandoDistribuicao = true
 
       try {
-        const response = await axios.get(
-          apiUrl(`/api/programas/${programa.id}/resumo/`),
-        )
+        const [resumoRes, distribuicaoRes] = await Promise.all([
+          axios.get(apiUrl(`/api/programas/${programa.id}/resumo/`)),
+          axios.get(apiUrl(`/api/programas/${programa.id}/distribuicao-status/`)),
+        ])
+
         this.resumo = {
-          total_projetos: Number(response.data.total_projetos),
-          horas_estimadas: Number(response.data.horas_estimadas),
-          horas_realizadas: Number(response.data.horas_realizadas),
-          custo_estimado: Number(response.data.custo_estimado),
-          custo_real: Number(response.data.custo_real),
+          total_projetos: Number(resumoRes.data.total_projetos),
+          horas_estimadas: Number(resumoRes.data.horas_estimadas),
+          horas_realizadas: Number(resumoRes.data.horas_realizadas),
+          custo_estimado: Number(resumoRes.data.custo_estimado),
+          custo_real: Number(resumoRes.data.custo_real),
+        }
+
+        this.distribuicaoStatus = {
+          total: distribuicaoRes.data.total,
+          status: distribuicaoRes.data.status,
         }
       } finally {
         this.carregando = false
+        this.carregandoDistribuicao = false
       }
     },
 
     limpar () {
       this.programaSelecionado = null
       this.resumo = null
+      this.distribuicaoStatus = null
     },
   },
 })
