@@ -53,6 +53,7 @@ type CustoTempoChartData = {
 }
 
 type BurnupPonto = {
+  data?: string
   semana: string
   horas: number
   horas_acumuladas: number
@@ -84,19 +85,19 @@ export const useProjetoStore = defineStore('projeto', {
     carregandoHoras: false,
     funcionarios: null as FuncionariosPaginados | null,
     carregandoFuncionarios: false,
-    burnupHoras: [] as BurnupProjeto[],
-    carregandoBurnup: false,
     filtroDataInicio: null as string | null,
     filtroDataFim: null as string | null,
     filtroFuncionario: null as string | null,
     filtroMaterial: null as MaterialDisponivel | null,
     nomesFuncionarios: [] as string[],
     materiaisDisponiveis: [] as MaterialDisponivel[],
+    burnupHoras: [] as BurnupProjeto[],
+    carregandoBurnup: false,
   }),
 
   getters: {
     isLoading (): boolean {
-      return this.carregando || this.carregandoMateriais || this.carregandoHoras || this.carregandoFuncionarios || this.carregandoBurnup
+      return this.carregando || this.carregandoMateriais || this.carregandoHoras || this.carregandoFuncionarios
     },
   },
 
@@ -111,6 +112,22 @@ export const useProjetoStore = defineStore('projeto', {
       const response = await axios.get(apiUrl(`/api/projetos-overview${qs}`))
       this.overviewData = response.data
     },
+
+    async buscarBurnupHoras (programaId: number | null = null) {
+      this.carregandoBurnup = true
+      try {
+        const qs = programaId ? `?programa_id=${programaId}` : ''
+
+        const response = await axios.get(
+          apiUrl(`/api/projetos/burnup-horas/${qs}`),
+        )
+
+        this.burnupHoras = response.data
+      } finally {
+        this.carregandoBurnup = false
+      }
+    },
+
     async buscarProjetos (search = '', programaId: number | null = null) {
       const params = new URLSearchParams()
       if (search) {
@@ -130,12 +147,14 @@ export const useProjetoStore = defineStore('projeto', {
       await Promise.all([
         this.buscarProjetos('', programaId),
         this.buscarOverview(programaId),
+        this.buscarBurnupHoras(),
       ])
       if (
         this.projetoSelecionado
         && !this.projetos.some(p => p.id === this.projetoSelecionado!.id)
       ) {
         this.limpar()
+<<<<<<< HEAD
       }
     },
 
@@ -148,6 +167,8 @@ export const useProjetoStore = defineStore('projeto', {
         this.burnupHoras = response.data
       } finally {
         this.carregandoBurnup = false
+=======
+>>>>>>> 5aaf667 (feat(#8): integrate burnup chart with program filter and improve chart behavior)
       }
     },
 

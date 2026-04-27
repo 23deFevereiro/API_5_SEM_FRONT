@@ -56,17 +56,6 @@
   width: 100%;
 }
 
-.charts-row {
-  display: flex;
-  gap: 24px;
-  align-items: stretch;
-}
-
-.charts-row > * {
-  flex: 1;
-  min-width: 0;
-}
-
 .main-card__inner {
   display: flex;
   flex-direction: row;
@@ -105,4 +94,23 @@
     align-items: stretch;
   }
 }
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .main-card__inner {
+    flex-direction: column;
+  }
+
+  .filtros-secundarios {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 </style>

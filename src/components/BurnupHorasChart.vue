@@ -1,233 +1,124 @@
 <template>
-  <div class="horas-section">
-    <div v-if="store.carregandoBurnup" class="empty-state">
-      <v-progress-circular color="#2563EB" indeterminate size="26" width="2" />
-      <span>Carregando burnup...</span>
-    </div>
-
-    <div v-else class="chart-wrapper">
-      <canvas ref="canvasRef" />
-    </div>
+  <div class="chart-wrapper">
+    <canvas ref="canvasRef" />
   </div>
 </template>
 
-<script lang="ts" setup>
-  import {
-    CategoryScale,
-    Chart,
-    Legend,
-    LineController,
-    LineElement,
-    LinearScale,
-    PointElement,
-    Tooltip,
-  } from 'chart.js'
-  import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+<script setup lang="ts">
+  import { Chart } from 'chart.js'
+  import { ref, shallowRef, watch } from 'vue'
   import { useProjetoStore } from '@/stores/projeto'
-
-  Chart.register(
-    LineController,
-    LineElement,
-    PointElement,
-    CategoryScale,
-    LinearScale,
-    Tooltip,
-    Legend,
-  )
 
   const store = useProjetoStore()
   const canvasRef = ref<HTMLCanvasElement | null>(null)
-    
-  let chartInstance: Chart<'line', (number | null)[], string> | null = null
 
-  function buildChart() {
-  if (!canvasRef.value) return
-  if (!store.burnupHoras.length) return
+  const chartInstance = shallowRef<null | Chart>(null)
 
-  if (chartInstance) {
-    chartInstance.destroy()
-    chartInstance = null
-  }
-
-  const grays = [
-    '#111111',
-    '#333333',
-    '#555555',
-    '#777777',
-    '#999999',
-    '#BBBBBB',
-  ]
-  
-  const labels = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4+']
-
-    const datasets = store.burnupHoras.map((projeto, index) => {
-      const color = grays[index % grays.length]
-
-      const serieOrdenada = [...(projeto.serie || [])]
-        .filter(ponto => ponto.semana && ponto.horas_acumuladas !== undefined)
-        .sort((a, b) => {
-          const semanaA = Number(a.semana.match(/\d+/)?.[0] || 0)
-          const semanaB = Number(b.semana.match(/\d+/)?.[0] || 0)
-          return semanaA - semanaB
-        })
-
-      const data: (number | null)[] = labels.map(label => {
-        const ponto = serieOrdenada.find(p => p.semana === label)
-        return ponto ? Number(ponto.horas_acumuladas ?? 0) : null
-      })
-
-    return {
-      label: projeto.projeto,
-      data,
-      borderColor: color,
-      backgroundColor: color,
-      borderWidth: 2,
-      pointRadius: 2,
-      pointHoverRadius: 5,
-      hoverBorderWidth: 4,
-      tension: 0.25,
-      fill: false,
-      spanGaps: false,
+  function buildChart () {
+    if (!canvasRef.value) return
+    if (store.burnupHoras.length === 0) {
+      return
     }
-  })
 
-  chartInstance = new Chart(canvasRef.value, {
-    type: 'line',
-    data: {
-      labels,
-      datasets,
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: 'nearest',
-        intersect: true,
+    if (chartInstance.value) {
+      chartInstance.value.destroy()
+      chartInstance.value = null
+    }
+
+    const labels = Array.from(
+      new Set(
+        store.burnupHoras.flatMap(projeto =>
+          projeto.serie.map(ponto => ponto.semana),
+        ),
+      ),
+      // eslint-disable-next-line unicorn/no-array-sort
+    ).sort((a, b) => {
+      const semanaA = Number(a.match(/\d+/)?.[0] || 0)
+      const semanaB = Number(b.match(/\d+/)?.[0] || 0)
+      return semanaA - semanaB
+    })
+
+    const projects: any = {}
+
+    for (const projeto of store.burnupHoras) {
+      projects[projeto.projeto] = {
+        label: projeto.projeto,
+        data: Array.from({ length: labels.length }).fill(null),
+        spanGaps: true,
+      }
+
+      for (const ponto of projeto.serie) {
+        const index = labels.indexOf(ponto.semana)
+
+        if (index !== -1) {
+          projects[projeto.projeto].data[index] = Number(ponto.horas_acumuladas)
+        }
+      }
+    }
+
+    const datasets = Object.values(projects) as any[]
+
+    chartInstance.value = new Chart(canvasRef.value, {
+      type: 'line',
+      data: {
+        labels,
+        datasets,
       },
-      plugins: {
-        legend: {
-          display: false,
-          labels: {
-            boxWidth: 18,
-            boxHeight: 8,
-            padding: 12,
-          },
+      options: {
+        responsive: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
         },
-        tooltip: {
-          enabled: true,
-          mode: 'nearest',
-          intersect: true,
-          callbacks: {
-            title(items) {
-              return items[0]?.label || ''
-            },
-            label(ctx) {
-              const projeto = ctx.dataset.label || ''
-              const valor = Number(ctx.parsed.y ?? 0).toFixed(1)
-              return `${projeto}: ${valor}h acumuladas`
-            },
-                      },
-        },
-      },
-      scales: {
-        x: {
-          type: 'category',
-          title: {
-            display: true,
-            text: 'Tempo',
-            color: '#6B7280',
-            font: { size: 12 },
+        plugins: {
+          legend: {
+            position: 'top',
           },
-          grid: {
-            color: '#F3F4F6',
-          },
-          ticks: {
-            color: '#6B7280',
-            font: { size: 12 },
-            maxRotation: 0,
-            minRotation: 0,
-            autoSkip: true,
-          },
-        },
-        y: {
-          beginAtZero: true,
-          max: 12,
-          title: {
-            display: true,
-            text: 'Horas Investidas',
-            color: '#6B7280',
-            font: { size: 12 },
-          },
-          ticks: {
-            stepSize: 1,
-            callback(value) {
-              return `${value}h`
+          tooltip: {
+            callbacks: {
+              label: function (context: any) {
+                const valor = Number(context.parsed.y ?? 0).toLocaleString('pt-BR', {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 1,
+                })
+
+                return `${context.dataset.label}: ${valor}h acumuladas`
+              },
             },
           },
-          grid: {
-            color: '#F3F4F6',
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Semana',
+            },
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Horas investidas',
+            },
           },
         },
       },
-    },
-  })
-}
+    })
+  }
 
   watch(
     () => store.burnupHoras,
-    async () => {
-      await nextTick()
+    () => {
       buildChart()
     },
     { deep: true },
   )
-
-  onMounted(() => {
-    buildChart()
-  })
-
-  onBeforeUnmount(() => {
-    if (chartInstance) {
-      chartInstance.destroy()
-    }
-  })
 </script>
 
 <style scoped>
-.horas-section {
-  background: #FFFFFF;
-  border: none;
-  border-radius: 0;
-  margin-top: 0;
-  overflow: hidden;
-  width: 100%;
-  height: 100%;
-}
-
-.horas-section:hover {
-  box-shadow: none;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0 12px 0;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 260px;
-  font-size: 13px;
-  color: #9CA3AF;
-}
-
 .chart-wrapper {
-  height: 300px;
+  padding: 8px 16px 20px;
+  height: 380px;
   width: 100%;
 }
 </style>
