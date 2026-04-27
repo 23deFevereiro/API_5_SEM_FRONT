@@ -55,6 +55,9 @@ export const useProgramaStore = defineStore('programa', {
 
   actions: {
     async buscarProgramas (search = '') {
+      if (search && this.programaSelecionado?.nome_programa === search) {
+        return
+      }
       const response = await axios.get(
         apiUrl(`/api/programas/${search ? `?search=${search}` : ''}`),
       )

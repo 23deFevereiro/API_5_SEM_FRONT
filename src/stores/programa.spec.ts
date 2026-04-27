@@ -85,6 +85,23 @@ describe('Integração: buscarProgramas', () => {
     await store.buscarProgramas()
     expect(store.programas).toEqual([])
   })
+
+  it('ignora busca quando search coincide com o nome do programa selecionado', async () => {
+    const store = useProgramaStore()
+    store.programas = [{ id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }]
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }
+    await store.buscarProgramas('Alpha')
+    expect(axios.get).not.toHaveBeenCalled()
+    expect(store.programas).toEqual([{ id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }])
+  })
+
+  it('faz busca normalmente quando search difere do nome do programa selecionado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [programaMock] })
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }
+    await store.buscarProgramas('Beta')
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('search=Beta'))
+  })
 })
 
 describe('Integração: buscarBurnupHoras', () => {

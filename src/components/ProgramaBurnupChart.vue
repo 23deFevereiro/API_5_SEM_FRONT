@@ -143,9 +143,14 @@
     aplicarRealce()
   })
 
-  onMounted(() => {
+  onMounted(async () => {
     if (store.burnupHoras === null) {
-      store.buscarBurnupHoras()
+      await store.buscarBurnupHoras()
+      return
+    }
+    if (store.burnupHoras.length > 0) {
+      await nextTick()
+      buildChart(store.burnupHoras)
     }
   })
 
