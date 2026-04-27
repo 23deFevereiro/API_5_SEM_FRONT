@@ -1,26 +1,26 @@
 <template>
-  <div class="projeto-selector">
-    <div class="selector-label">Projeto</div>
+  <div class="programa-selector">
+    <div class="selector-label">Programa</div>
     <v-autocomplete
-      v-model="projetoSelecionado"
-      class="projeto-autocomplete"
+      v-model="programaSelecionado"
+      class="programa-autocomplete"
       clearable
       density="comfortable"
       hide-details
-      :item-title="formatarTitulo"
+      item-title="nome_programa"
       item-value="id"
-      :items="store.projetos"
+      :items="store.programas"
       :loading="carregando"
-      placeholder="Selecione um projeto"
+      placeholder="Selecione um programa"
       return-object
       variant="outlined"
       @click="carregarTodos"
-      @update:model-value="selecionarProjeto"
-      @update:search="buscarProjetos"
+      @update:model-value="selecionarPrograma"
+      @update:search="buscarProgramas"
     />
     <div class="selector-hint">
       <v-icon color="#6B7280" size="14">mdi-information-outline</v-icon>
-      Selecione um projeto para visualizar os dados
+      Selecione um programa para visualizar os dados
     </div>
   </div>
 </template>
@@ -28,10 +28,12 @@
 <script lang="ts" setup>
   import { storeToRefs } from 'pinia'
   import { onMounted, ref } from 'vue'
+  import { type Programa, useProgramaStore } from '@/stores/programa'
   import { useProjetoStore } from '@/stores/projeto'
 
-  const store = useProjetoStore()
-  const { projetoSelecionado } = storeToRefs(store)
+  const store = useProgramaStore()
+  const projetoStore = useProjetoStore()
+  const { programaSelecionado } = storeToRefs(store)
   const carregando = ref(false)
 
   onMounted(async () => {
@@ -39,43 +41,37 @@
   })
 
   async function carregarTodos () {
-    if (store.projetos.length > 0) return
+    if (store.programas.length > 0) return
     carregando.value = true
     try {
-      await store.buscarProjetos('')
+      await store.buscarProgramas('')
     } finally {
       carregando.value = false
     }
   }
 
-  async function buscarProjetos (search: string) {
+  async function buscarProgramas (search: string) {
     carregando.value = true
     try {
-      await store.buscarProjetos(search ?? '')
+      await store.buscarProgramas(search ?? '')
     } finally {
       carregando.value = false
     }
   }
 
-  async function selecionarProjeto (projeto: any) {
-    if (!projeto) {
-      store.limpar()
-      return
-    }
-    await store.selecionarProjeto(projeto)
-  }
-
-  function formatarTitulo (projeto: { codigo_projeto: string, nome_projeto: string }) {
-    return `${projeto.codigo_projeto}: ${projeto.nome_projeto}`
+  async function selecionarPrograma (programa: Programa | null) {
+    store.selecionarPrograma(programa)
+    await projetoStore.aplicarFiltroPorPrograma(programa?.id ?? null)
   }
 </script>
 
 <style scoped>
-.projeto-selector {
+.programa-selector {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-width: 280px;
+  margin-bottom: 16px;
 }
 
 .selector-label {
@@ -84,18 +80,18 @@
   color: #6B7280;
 }
 
-.projeto-autocomplete :deep(.v-field) {
+.programa-autocomplete :deep(.v-field) {
   background: #F9FAFB;
   border-radius: 10px;
   font-size: 16px;
   color: #111827;
 }
 
-.projeto-autocomplete :deep(.v-field__outline) {
+.programa-autocomplete :deep(.v-field__outline) {
   border-color: #E5E7EB;
 }
 
-.projeto-autocomplete :deep(.v-field--focused .v-field__outline) {
+.programa-autocomplete :deep(.v-field--focused .v-field__outline) {
   border-color: #2563EB;
 }
 

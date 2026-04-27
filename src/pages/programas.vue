@@ -1,22 +1,55 @@
 <template>
-  <div class="page-placeholder">
-    <v-icon color="#9CA3AF" size="64">mdi-folder-multiple-outline</v-icon>
-    <p class="page-placeholder__text">Em breve</p>
+  <div class="main-card">
+    <div class="main-card__inner">
+      <ProgramaSelector />
+      <ProgramaCards />
+    </div>
+    <div class="main-card__charts">
+      <ProgramaDonutChart />
+    </div>
   </div>
 </template>
 
+<script lang="ts" setup>
+  import ProgramaCards from '@/components/ProgramaCards.vue'
+  import ProgramaDonutChart from '@/components/ProgramaDonutChart.vue'
+  import ProgramaSelector from '@/components/ProgramaSelector.vue'
+</script>
+
 <style scoped>
-.page-placeholder {
+.main-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 16px;
+  gap: 24px;
 }
 
-.page-placeholder__text {
-  color: #9CA3AF;
-  font-size: 1.1rem;
+.main-card__inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.main-card__charts {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .main-card__inner {
+    flex-direction: column;
+  }
+
+  .main-card__charts {
+    flex-direction: column;
+  }
 }
 </style>
