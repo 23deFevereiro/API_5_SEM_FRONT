@@ -1,6 +1,6 @@
 <template>
   <div class="page-placeholder">
-    <v-icon size="64" color="#9CA3AF">mdi-folder-multiple-outline</v-icon>
+    <v-icon color="#9CA3AF" size="64">mdi-folder-multiple-outline</v-icon>
     <p class="page-placeholder__text">Em breve</p>
   </div>
 </template>

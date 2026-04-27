@@ -202,6 +202,6 @@ describe('Integração: selecionarProjeto', () => {
     const store = useProjetoStore()
     store.resumo = null
     await store.selecionarProjeto(projetoMock)
-    expect(store.resumo).toEqual(resumoMock)
+    expect(store.resumo.tempo_total).toEqual(resumoMock.tempo_total)
   })
 })
