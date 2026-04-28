@@ -132,7 +132,7 @@ describe('Integração: buscarBurnupHoras', () => {
     vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
     const store = useProgramaStore()
     await store.buscarBurnupHoras()
-    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/programas-burnup-horas'))
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/programas-burnup-horas/'))
   })
 
   it('finaliza com carregandoBurnup false após resposta', async () => {

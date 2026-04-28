@@ -101,7 +101,7 @@ export const useProgramaStore = defineStore('programa', {
     async buscarBurnupHoras () {
       this.carregandoBurnup = true
       try {
-        const response = await axios.get(apiUrl('/api/programas-burnup-horas'))
+        const response = await axios.get(apiUrl('/api/programas-burnup-horas/'))
         this.burnupHoras = response.data
       } finally {
         this.carregandoBurnup = false
