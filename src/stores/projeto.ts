@@ -154,21 +154,6 @@ export const useProjetoStore = defineStore('projeto', {
         && !this.projetos.some(p => p.id === this.projetoSelecionado!.id)
       ) {
         this.limpar()
-<<<<<<< HEAD
-      }
-    },
-
-    async buscarBurnupHoras () {
-      this.carregandoBurnup = true
-      try {
-        const response = await axios.get(
-          apiUrl(`/api/projetos/burnup-horas/`),
-        )
-        this.burnupHoras = response.data
-      } finally {
-        this.carregandoBurnup = false
-=======
->>>>>>> 5aaf667 (feat(#8): integrate burnup chart with program filter and improve chart behavior)
       }
     },
 
