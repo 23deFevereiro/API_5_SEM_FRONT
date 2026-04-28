@@ -28,14 +28,14 @@
     const labels = Array.from(
       new Set(
         store.burnupHoras.flatMap(projeto =>
-          projeto.serie.map(ponto => ponto.semana),
+          projeto.serie.map(ponto => ponto.mes),
         ),
       ),
       // eslint-disable-next-line unicorn/no-array-sort
     ).sort((a, b) => {
-      const semanaA = Number(a.match(/\d+/)?.[0] || 0)
-      const semanaB = Number(b.match(/\d+/)?.[0] || 0)
-      return semanaA - semanaB
+      const [mesA, anoA] = a.split('/').map(Number)
+      const [mesB, anoB] = b.split('/').map(Number)
+      return anoA !== anoB ? anoA - anoB : mesA - mesB
     })
 
     const projects: any = {}
@@ -48,7 +48,7 @@
       }
 
       for (const ponto of projeto.serie) {
-        const index = labels.indexOf(ponto.semana)
+        const index = labels.indexOf(ponto.mes)
 
         if (index !== -1) {
           projects[projeto.projeto].data[index] = Number(ponto.horas_acumuladas)
@@ -91,7 +91,7 @@
           x: {
             title: {
               display: true,
-              text: 'Semana',
+              text: 'Mês',
             },
           },
           y: {
