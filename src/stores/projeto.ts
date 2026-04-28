@@ -146,7 +146,7 @@ export const useProjetoStore = defineStore('projeto', {
       await Promise.all([
         this.buscarProjetos('', programaId),
         this.buscarOverview(programaId),
-        this.buscarBurnupHoras(),
+        this.buscarBurnupHoras(programaId),
       ])
       if (
         this.projetoSelecionado

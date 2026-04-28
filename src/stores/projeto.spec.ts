@@ -150,10 +150,12 @@ describe('Integração: buscarProjetos', () => {
 function mockarRespostasDoFiltro (
   projetos: unknown[] = [projetoMock],
   overview: unknown[] = overviewMock,
+  burnup: unknown[] = [],
 ) {
   vi.mocked(axios.get)
     .mockResolvedValueOnce({ data: projetos })
     .mockResolvedValueOnce({ data: overview })
+    .mockResolvedValueOnce({ data: burnup })
 }
 
 describe('Integração: aplicarFiltroPorPrograma', () => {
