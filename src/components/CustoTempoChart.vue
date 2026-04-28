@@ -45,7 +45,7 @@
     const chartData = {
       labels,
       datasets,
-    }
+    } as any
 
     chartInstance.value = new Chart(canvasRef.value, {
       type: 'line',
