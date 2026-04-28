@@ -109,14 +109,14 @@ describe('Integração: buscarBurnupHoras', () => {
     {
       date_str: '01/2025',
       values: [
-        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', horas: 10.0 },
-        { codigo_programa: 'PROG-2', nome_programa: 'Beta', horas: 5.0 },
+        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', horas: 10 },
+        { codigo_programa: 'PROG-2', nome_programa: 'Beta', horas: 5 },
       ],
     },
     {
       date_str: '02/2025',
       values: [
-        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', horas: 18.0 },
+        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', horas: 18 },
       ],
     },
   ]
