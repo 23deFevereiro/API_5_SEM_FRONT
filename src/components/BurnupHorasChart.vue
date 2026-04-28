@@ -17,6 +17,11 @@
   function buildChart () {
     if (!canvasRef.value) return
     if (store.burnupHoras.length === 0) {
+      if (chartInstance.value) {
+        chartInstance.value.data.labels = []
+        chartInstance.value.data.datasets = []
+        chartInstance.value.update()
+      }
       return
     }
 
@@ -35,7 +40,7 @@
     ).sort((a, b) => {
       const [mesA, anoA] = a.split('/').map(Number)
       const [mesB, anoB] = b.split('/').map(Number)
-      return anoA !== anoB ? anoA - anoB : mesA - mesB
+      return anoA === anoB ? mesA - mesB : anoA - anoB
     })
 
     const projects: any = {}
