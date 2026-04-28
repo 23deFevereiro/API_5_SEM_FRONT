@@ -30,6 +30,16 @@ describe('Unitário: estado inicial', () => {
     const store = useProgramaStore()
     expect(store.carregando).toBe(false)
   })
+
+  it('inicia com burnupHoras null', () => {
+    const store = useProgramaStore()
+    expect(store.burnupHoras).toBeNull()
+  })
+
+  it('inicia com carregandoBurnup false', () => {
+    const store = useProgramaStore()
+    expect(store.carregandoBurnup).toBe(false)
+  })
 })
 
 describe('Unitário: selecionarPrograma', () => {
@@ -78,5 +88,75 @@ describe('Integração: buscarProgramas', () => {
     const store = useProgramaStore()
     await store.buscarProgramas()
     expect(store.programas).toEqual([])
+  })
+
+  it('ignora busca quando search coincide com o nome do programa selecionado', async () => {
+    const store = useProgramaStore()
+    store.programas = [{ id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }]
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }
+    await store.buscarProgramas('Alpha')
+    expect(axios.get).not.toHaveBeenCalled()
+    expect(store.programas).toEqual([{ id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }])
+  })
+
+  it('faz busca normalmente quando search difere do nome do programa selecionado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [programaMock] })
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }
+    await store.buscarProgramas('Beta')
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('search=Beta'))
+  })
+})
+
+describe('Integração: buscarBurnupHoras', () => {
+  const burnupMock = [
+    {
+      date_str: '01/2025',
+      values: [
+        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', horas: 10 },
+        { codigo_programa: 'PROG-2', nome_programa: 'Beta', horas: 5 },
+      ],
+    },
+    {
+      date_str: '02/2025',
+      values: [
+        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', horas: 18 },
+      ],
+    },
+  ]
+
+  it('popula burnupHoras com a resposta da API', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: burnupMock })
+    const store = useProgramaStore()
+    await store.buscarBurnupHoras()
+    expect(store.burnupHoras).toEqual(burnupMock)
+  })
+
+  it('chama o endpoint /api/programas-burnup-horas', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarBurnupHoras()
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/programas-burnup-horas/'))
+  })
+
+  it('finaliza com carregandoBurnup false após resposta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarBurnupHoras()
+    expect(store.carregandoBurnup).toBe(false)
+  })
+
+  it('mantém carregandoBurnup false e propaga erro em caso de falha', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('boom'))
+    const store = useProgramaStore()
+    await expect(store.buscarBurnupHoras()).rejects.toThrow('boom')
+    expect(store.carregandoBurnup).toBe(false)
+  })
+
+  it('aceita resposta vazia (sem registros)', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarBurnupHoras()
+    expect(store.burnupHoras).toEqual([])
   })
 })

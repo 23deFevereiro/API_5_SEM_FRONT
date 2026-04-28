@@ -41,7 +41,6 @@
   })
 
   async function carregarTodos () {
-    if (store.programas.length > 0) return
     carregando.value = true
     try {
       await store.buscarProgramas('')
