@@ -43,13 +43,4 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  test: {
-    environment: 'happy-dom',
-    coverage: {
-      provider: 'istanbul',
-      reporter: ['text', 'lcov'],
-      include: ['src/**/*.ts', 'src/**/*.vue'],
-      exclude: ['src/main.ts', 'src/plugins/**', 'src/typed-router.d.ts'],
-    },
-  },
 })

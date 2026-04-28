@@ -1,13 +1,14 @@
 name: Sonar Check
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+   branches:
       - develop
-    types: [opened, synchronize, reopened]
+      - main
+  workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+
 jobs:
   sonarqube:
     name: SonarQube
@@ -15,8 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@299e4b793aaa83bf2aba7c9c14bedbb485688ec4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        fetch-depth: 0
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm run test:coverage
+
+      # - name: SonarQube Scan

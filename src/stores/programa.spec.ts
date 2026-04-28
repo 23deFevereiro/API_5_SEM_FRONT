@@ -33,16 +33,20 @@ describe('Unitário: estado inicial', () => {
 })
 
 describe('Unitário: selecionarPrograma', () => {
-  it('define o programa selecionado', () => {
+  it('define o programa selecionado', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: {
+      total_projetos: 0, horas_estimadas: 0, horas_realizadas: 0,
+      custo_estimado: 0, custo_real: 0, total: 0, status: []
+    }})
     const store = useProgramaStore()
-    store.selecionarPrograma(programaMock)
+    await store.selecionarPrograma(programaMock)
     expect(store.programaSelecionado).toEqual(programaMock)
   })
 
-  it('aceita null para limpar a selecao', () => {
+  it('aceita null para limpar a selecao', async () => {
     const store = useProgramaStore()
     store.programaSelecionado = programaMock
-    store.selecionarPrograma(null)
+    await store.selecionarPrograma(null)
     expect(store.programaSelecionado).toBeNull()
   })
 })
