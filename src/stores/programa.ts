@@ -41,6 +41,19 @@ export type BurnupHorasGrupo = {
 
 export type BurnupHorasResponse = BurnupHorasGrupo[]
 
+export type BurnupCustoPonto = {
+  codigo_programa: string
+  nome_programa: string
+  custo: number
+}
+
+export type BurnupCustoGrupo = {
+  date_str: string
+  values: BurnupCustoPonto[]
+}
+
+export type BurnupCustoResponse = BurnupCustoGrupo[]
+
 export const useProgramaStore = defineStore('programa', {
   state: () => ({
     programas: [] as Programa[],
@@ -48,9 +61,11 @@ export const useProgramaStore = defineStore('programa', {
     resumo: null as ResumoProjeto | null,
     distribuicaoStatus: null as DistribuicaoStatus | null,
     burnupHoras: null as BurnupHorasResponse | null,
+    burnupCusto: null as BurnupCustoResponse | null,
     carregando: false,
     carregandoDistribuicao: false,
     carregandoBurnup: false,
+    carregandoBurnupCusto: false,
   }),
 
   actions: {
@@ -105,6 +120,16 @@ export const useProgramaStore = defineStore('programa', {
         this.burnupHoras = response.data
       } finally {
         this.carregandoBurnup = false
+      }
+    },
+
+    async buscarBurnupCusto () {
+      this.carregandoBurnupCusto = true
+      try {
+        const response = await axios.get(apiUrl('/api/programas-burnup-custo/'))
+        this.burnupCusto = response.data
+      } finally {
+        this.carregandoBurnupCusto = false
       }
     },
 
