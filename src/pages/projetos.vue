@@ -1,7 +1,10 @@
 <template>
   <div class="main-card">
     <ProgramaSelector />
-    <CustoTempoChart />
+    <div class="charts-row">
+      <CustoTempoChart />
+      <BurnupHorasChart />
+    </div>
     <div class="main-card__inner">
       <ProjetoSelector />
       <CustoCard />
@@ -34,6 +37,7 @@
   import ProgramaSelector from '@/components/ProgramaSelector.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
   import { useProjetoStore } from '@/stores/projeto'
+  import BurnupHorasChart from '@/components/BurnupHorasChart.vue'
 
   const store = useProjetoStore()
   const { projetoSelecionado } = storeToRefs(store)
@@ -77,6 +81,10 @@
 }
 
 @media (max-width: 768px) {
+  .charts-row {
+    flex-direction: column;
+  }
+
   .main-card__inner {
     flex-direction: column;
   }
@@ -86,4 +94,23 @@
     align-items: stretch;
   }
 }
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .main-card__inner {
+    flex-direction: column;
+  }
+
+  .filtros-secundarios {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 </style>

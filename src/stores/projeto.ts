@@ -52,6 +52,18 @@ type CustoTempoChartData = {
   cost: number
 }
 
+type BurnupPonto = {
+  mes: string
+  horas: number
+  horas_acumuladas: number
+}
+
+type BurnupProjeto = {
+  projeto_id: number
+  projeto: string
+  serie: BurnupPonto[]
+}
+
 type CustoTempoChartResponse = { date_str: string, values: CustoTempoChartData[] }[]
 
 export type MaterialDisponivel = {
@@ -78,6 +90,8 @@ export const useProjetoStore = defineStore('projeto', {
     filtroMaterial: null as MaterialDisponivel | null,
     nomesFuncionarios: [] as string[],
     materiaisDisponiveis: [] as MaterialDisponivel[],
+    burnupHoras: [] as BurnupProjeto[],
+    carregandoBurnup: false,
   }),
 
   getters: {
@@ -89,6 +103,7 @@ export const useProjetoStore = defineStore('projeto', {
   actions: {
     init () {
       this.buscarOverview()
+      this.buscarBurnupHoras()
     },
 
     async buscarOverview (programaId: number | null = null) {
@@ -96,6 +111,22 @@ export const useProjetoStore = defineStore('projeto', {
       const response = await axios.get(apiUrl(`/api/projetos-overview${qs}`))
       this.overviewData = response.data
     },
+
+    async buscarBurnupHoras (programaId: number | null = null) {
+      this.carregandoBurnup = true
+      try {
+        const qs = programaId ? `?programa_id=${programaId}` : ''
+
+        const response = await axios.get(
+          apiUrl(`/api/projetos/burnup-horas/${qs}`),
+        )
+
+        this.burnupHoras = response.data
+      } finally {
+        this.carregandoBurnup = false
+      }
+    },
+
     async buscarProjetos (search = '', programaId: number | null = null) {
       const params = new URLSearchParams()
       if (search) {
@@ -115,6 +146,7 @@ export const useProjetoStore = defineStore('projeto', {
       await Promise.all([
         this.buscarProjetos('', programaId),
         this.buscarOverview(programaId),
+        this.buscarBurnupHoras(programaId),
       ])
       if (
         this.projetoSelecionado
