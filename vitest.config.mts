@@ -7,6 +7,11 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'happy-dom',
+      server: {
+        deps: {
+          inline: [/vuetify/],
+        },
+      },
       coverage: {
         provider: 'istanbul',
         reporter: ['text', 'lcov'],
