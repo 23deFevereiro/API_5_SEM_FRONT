@@ -1,6 +1,7 @@
 <template>
   <div class="main-card">
-    <ProgramaBurnupChart />
+    <ProgramaBurnupHorasChart />
+    <ProgramaBurnupCustoChart />
     <div class="main-card__inner">
       <ProgramaSelector />
       <ProgramaCards />
@@ -12,7 +13,8 @@
 </template>
 
 <script lang="ts" setup>
-  import ProgramaBurnupChart from '@/components/ProgramaBurnupChart.vue'
+  import ProgramaBurnupCustoChart from '@/components/ProgramaBurnupCustoChart.vue'
+  import ProgramaBurnupHorasChart from '@/components/ProgramaBurnupHorasChart.vue'
   import ProgramaCards from '@/components/ProgramaCards.vue'
   import ProgramaDonutChart from '@/components/ProgramaDonutChart.vue'
   import ProgramaSelector from '@/components/ProgramaSelector.vue'

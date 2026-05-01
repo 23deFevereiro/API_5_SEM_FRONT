@@ -40,6 +40,16 @@ describe('Unitário: estado inicial', () => {
     const store = useProgramaStore()
     expect(store.carregandoBurnup).toBe(false)
   })
+
+  it('inicia com burnupCusto null', () => {
+    const store = useProgramaStore()
+    expect(store.burnupCusto).toBeNull()
+  })
+
+  it('inicia com carregandoBurnupCusto false', () => {
+    const store = useProgramaStore()
+    expect(store.carregandoBurnupCusto).toBe(false)
+  })
 })
 
 describe('Unitário: selecionarPrograma', () => {
@@ -158,5 +168,58 @@ describe('Integração: buscarBurnupHoras', () => {
     const store = useProgramaStore()
     await store.buscarBurnupHoras()
     expect(store.burnupHoras).toEqual([])
+  })
+})
+
+describe('Integração: buscarBurnupCusto', () => {
+  const burnupCustoMock = [
+    {
+      date_str: '01/2025',
+      values: [
+        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', custo: 500 },
+        { codigo_programa: 'PROG-2', nome_programa: 'Beta', custo: 200 },
+      ],
+    },
+    {
+      date_str: '02/2025',
+      values: [
+        { codigo_programa: 'PROG-1', nome_programa: 'Alpha', custo: 800 },
+      ],
+    },
+  ]
+
+  it('popula burnupCusto com a resposta da API', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: burnupCustoMock })
+    const store = useProgramaStore()
+    await store.buscarBurnupCusto()
+    expect(store.burnupCusto).toEqual(burnupCustoMock)
+  })
+
+  it('chama o endpoint /api/programas-burnup-custo/', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarBurnupCusto()
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/programas-burnup-custo/'))
+  })
+
+  it('finaliza com carregandoBurnupCusto false após resposta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarBurnupCusto()
+    expect(store.carregandoBurnupCusto).toBe(false)
+  })
+
+  it('mantém carregandoBurnupCusto false e propaga erro em caso de falha', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('boom'))
+    const store = useProgramaStore()
+    await expect(store.buscarBurnupCusto()).rejects.toThrow('boom')
+    expect(store.carregandoBurnupCusto).toBe(false)
+  })
+
+  it('aceita resposta vazia (sem registros)', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarBurnupCusto()
+    expect(store.burnupCusto).toEqual([])
   })
 })
