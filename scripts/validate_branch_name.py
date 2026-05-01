@@ -6,6 +6,7 @@ import sys
 
 ALLOWED_TYPES = ["feat", "fix", "docs", "chore", "refactor", "test", "style", "ci", "perf"]
 
+# tipo/descricao-com-hifen (opcionalmente com número de card: feat/42-descricao)
 BRANCH_PATTERN = re.compile(
     r"^(?P<type>[a-z]+)/(?P<desc>[a-z0-9][a-z0-9\-]*)$"
 )
@@ -25,6 +26,8 @@ def get_current_branch() -> str:
 def validate() -> None:
     branch = get_current_branch()
 
+    # Branches protegidas são tratadas pelo no-commit-to-branch,
+    # mas adicionamos uma mensagem amigável aqui também
     if branch in PROTECTED_BRANCHES:
         _fail(
             f"Direct commits to '{branch}' are not allowed.\n"
@@ -50,11 +53,11 @@ def validate() -> None:
             f"  Allowed types: {', '.join(ALLOWED_TYPES)}"
         )
 
-    print(f"✅ Branch name OK: {branch}")
+    print(f"[OK] Branch name OK: {branch}")
 
 
 def _fail(message: str) -> None:
-    print(f"\n❌ Invalid branch name:\n   {message}\n", file=sys.stderr)
+    print(f"\n[ERROR] Invalid branch name:\n   {message}\n", file=sys.stderr)
     sys.exit(1)
 
 

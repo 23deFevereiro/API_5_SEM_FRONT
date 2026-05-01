@@ -5,6 +5,7 @@ import sys
 
 ALLOWED_TYPES = ["feat", "fix", "docs", "chore", "refactor", "test", "style", "ci", "perf"]
 
+# tipo(#123): mensagem   OU   tipo(RF-01): mensagem   OU   tipo(RNF-01): mensagem
 COMMIT_PATTERN = re.compile(
     r"^(?P<type>[a-z]+)"
     r"\((?P<id>#\d+|RF-\d+|RNF-\d+)\)"
@@ -18,12 +19,14 @@ def validate(commit_msg_file: str) -> None:
     with open(commit_msg_file, encoding="utf-8") as f:
         lines = f.readlines()
 
-    content_lines = [l for l in lines if not l.startswith("#")]
+    # Ignora linhas de comentário do git
+    content_lines = [line for line in lines if not line.startswith("#")]
     if not content_lines:
         _fail("Commit message is empty.")
 
     first_line = content_lines[0].rstrip()
 
+    # Comprimento
     if len(first_line) > MAX_FIRST_LINE:
         _fail(
             f"First line too long ({len(first_line)} chars). Max: {MAX_FIRST_LINE}.\n"
@@ -48,11 +51,11 @@ def validate(commit_msg_file: str) -> None:
             f"  Allowed types: {', '.join(ALLOWED_TYPES)}"
         )
 
-    print(f"✅ Commit message OK: {first_line}")
+    print(f"[OK] Commit message OK: {first_line}")
 
 
 def _fail(message: str) -> None:
-    print(f"\n❌ Invalid commit message:\n   {message}\n", file=sys.stderr)
+    print(f"\n[ERROR] Invalid commit message:\n   {message}\n", file=sys.stderr)
     sys.exit(1)
 
 
