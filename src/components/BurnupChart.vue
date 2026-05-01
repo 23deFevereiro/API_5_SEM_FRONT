@@ -1,20 +1,20 @@
 <template>
   <div class="burnup-section">
     <div class="section-header">
-      <div class="card-icon" style="background: #DBEAFE;">
-        <v-icon color="#2563EB" size="16">mdi-chart-line</v-icon>
+      <div class="card-icon" :style="{ background: bgHeader }">
+        <v-icon :color="corHeader" size="16">{{ iconeHeader }}</v-icon>
       </div>
-      <span class="section-title">Burnup de Horas por Programa</span>
+      <span class="section-title">{{ titulo }}</span>
     </div>
 
-    <div v-if="carregandoBurnup || burnupHoras === null" class="empty-state">
-      <v-progress-circular color="#2563EB" indeterminate size="26" width="2" />
+    <div v-if="carregando || dados === null" class="empty-state">
+      <v-progress-circular :color="corLoading" indeterminate size="26" width="2" />
       <span>Carregando burnup...</span>
     </div>
 
-    <div v-else-if="burnupHoras.length === 0" class="empty-state">
-      <v-icon color="#9CA3AF" size="36">mdi-chart-line</v-icon>
-      <span>Nenhum registro de horas encontrado</span>
+    <div v-else-if="dados.length === 0" class="empty-state">
+      <v-icon color="#9CA3AF" size="36">{{ iconeVazio }}</v-icon>
+      <span>{{ textoVazio }}</span>
     </div>
 
     <div v-else class="chart-wrapper">
@@ -23,7 +23,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends { codigo_programa: string, nome_programa: string }">
+  import type { Programa } from '@/stores/programa'
   import {
     CategoryScale,
     Chart,
@@ -34,18 +35,32 @@
     PointElement,
     Tooltip,
   } from 'chart.js'
-  import { storeToRefs } from 'pinia'
   import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
-  import { type BurnupHorasResponse, useProgramaStore } from '@/stores/programa'
 
   Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend)
+
+  type Grupo = { date_str: string, values: T[] }
+
+  const props = defineProps<{
+    dados: Grupo[] | null
+    programaSelecionado: Programa | null
+    carregando: boolean
+    titulo: string
+    iconeHeader: string
+    corHeader: string
+    bgHeader: string
+    corLoading: string
+    iconeVazio: string
+    textoVazio: string
+    tituloEixoY: string
+    extratorValor: (ponto: T) => number
+    formatarValor: (valor: number) => string
+    aoMontar?: () => Promise<void>
+  }>()
 
   const COR_NEUTRA = '#9CA3AF'
   const COR_REALCE = '#2563EB'
   const COR_REALCE_HOVER = '#1D4ED8'
-
-  const store = useProgramaStore()
-  const { burnupHoras, programaSelecionado, carregandoBurnup } = storeToRefs(store)
 
   const canvasRef = ref<HTMLCanvasElement | null>(null)
   const chartInstance = shallowRef<Chart | null>(null)
@@ -57,24 +72,23 @@
     }
   }
 
-  function buildChart (raw: BurnupHorasResponse) {
+  function buildChart (raw: Grupo[]) {
     if (!canvasRef.value) return
     destruirGrafico()
 
     const labels = raw.map(item => item.date_str)
-    const programas: Record<string, { label: string, nome: string, data: (number | null)[], spanGaps: boolean }> = {}
+    const programas: Record<string, { label: string, data: (number | null)[], spanGaps: boolean }> = {}
 
     for (const [monthIndex, month] of raw.entries()) {
       for (const v of month.values) {
         if (!programas[v.codigo_programa]) {
           programas[v.codigo_programa] = {
             label: v.codigo_programa,
-            nome: v.nome_programa,
             data: Array.from({ length: raw.length }).fill(null) as (number | null)[],
             spanGaps: true,
           }
         }
-        programas[v.codigo_programa].data[monthIndex] = v.horas
+        programas[v.codigo_programa].data[monthIndex] = props.extratorValor(v)
       }
     }
 
@@ -99,7 +113,7 @@
           legend: { position: 'top' },
           tooltip: {
             callbacks: {
-              label: ctx => `${ctx.dataset.label}: ${Number(ctx.parsed.y ?? 0).toFixed(1)}h`,
+              label: ctx => `${ctx.dataset.label}: ${props.formatarValor(Number(ctx.parsed.y ?? 0))}`,
             },
           },
         },
@@ -107,8 +121,8 @@
           x: { title: { display: true, text: 'Mês' } },
           y: {
             beginAtZero: true,
-            title: { display: true, text: 'Horas acumuladas' },
-            ticks: { callback: val => `${val}h` },
+            title: { display: true, text: props.tituloEixoY },
+            ticks: { callback: val => props.formatarValor(Number(val)) },
           },
         },
       },
@@ -119,7 +133,7 @@
 
   function aplicarRealce () {
     if (!chartInstance.value) return
-    const codigoSelecionado = programaSelecionado.value?.codigo_programa
+    const codigoSelecionado = props.programaSelecionado?.codigo_programa
     for (const dataset of chartInstance.value.data.datasets) {
       const realcado = !!codigoSelecionado && dataset.label === codigoSelecionado
       dataset.borderColor = realcado ? COR_REALCE : COR_NEUTRA
@@ -130,7 +144,7 @@
     chartInstance.value.update()
   }
 
-  watch(burnupHoras, async novo => {
+  watch(() => props.dados, async novo => {
     if (!novo || novo.length === 0) {
       destruirGrafico()
       return
@@ -139,18 +153,18 @@
     buildChart(novo)
   })
 
-  watch(programaSelecionado, () => {
+  watch(() => props.programaSelecionado, () => {
     aplicarRealce()
   })
 
   onMounted(async () => {
-    if (store.burnupHoras === null) {
-      await store.buscarBurnupHoras()
+    if (props.dados === null) {
+      if (props.aoMontar) await props.aoMontar()
       return
     }
-    if (store.burnupHoras.length > 0) {
+    if (props.dados.length > 0) {
       await nextTick()
-      buildChart(store.burnupHoras)
+      buildChart(props.dados)
     }
   })
 
