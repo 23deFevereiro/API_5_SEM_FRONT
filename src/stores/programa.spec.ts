@@ -7,7 +7,27 @@ vi.mock('axios')
 
 const programaMock = {
   id: 1,
-  nome: 'Programa Alpha',
+  codigo_programa: 'P-1',
+  nome_programa: 'Programa Alpha',
+}
+
+const tabelaProjetosMock = {
+  count: 1,
+  page: 1,
+  page_size: 10,
+  total_pages: 1,
+  results: [
+    {
+      nome_projeto: 'Projeto A',
+      responsavel: 'Maria',
+      status: 'Planejamento',
+      horas_estimadas: 12,
+      horas_realizadas: 8,
+      percentual_tarefas_concluidas: 50,
+      desvio_horas: -4,
+      percentual_desvio: 33.3,
+    },
+  ],
 }
 
 beforeEach(() => {
@@ -54,10 +74,13 @@ describe('Unitário: estado inicial', () => {
 
 describe('Unitário: selecionarPrograma', () => {
   it('define o programa selecionado', async () => {
-    vi.mocked(axios.get).mockResolvedValue({ data: {
-      total_projetos: 0, horas_estimadas: 0, horas_realizadas: 0,
-      custo_estimado: 0, custo_real: 0, total: 0, status: []
-    }})
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: {
+        total_projetos: 0, horas_estimadas: 0, horas_realizadas: 0,
+        custo_estimado: 0, custo_real: 0,
+      }})
+      .mockResolvedValueOnce({ data: { total: 0, status: [] } })
+      .mockResolvedValueOnce({ data: tabelaProjetosMock })
     const store = useProgramaStore()
     await store.selecionarPrograma(programaMock)
     expect(store.programaSelecionado).toEqual(programaMock)
@@ -221,5 +244,29 @@ describe('Integração: buscarBurnupCusto', () => {
     const store = useProgramaStore()
     await store.buscarBurnupCusto()
     expect(store.burnupCusto).toEqual([])
+  })
+})
+
+describe('Integração: tabela de projetos paginada', () => {
+  it('popula a tabela de projetos com a resposta paginada da API', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
+    const store = useProgramaStore()
+    await store.buscarTabelaProjetos(1)
+    expect(store.tabelaProjetos).toEqual(tabelaProjetosMock)
+    expect(store.tabelaProjetosItens).toEqual(tabelaProjetosMock.results)
+  })
+
+  it('inclui a página na query string ao buscar a tabela', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
+    const store = useProgramaStore()
+    await store.buscarTabelaProjetos(7, 3)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/programas/7/tabela-projetos/?page=3'))
+  })
+
+  it('limpa a tabela ao remover o programa selecionado', async () => {
+    const store = useProgramaStore()
+    store.tabelaProjetos = tabelaProjetosMock
+    await store.selecionarPrograma(null)
+    expect(store.tabelaProjetos).toBeNull()
   })
 })
