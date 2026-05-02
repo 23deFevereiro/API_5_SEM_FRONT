@@ -9,6 +9,7 @@
     <div class="main-card__charts">
       <ProgramaDonutChart />
     </div>
+    <ProjetosTable />
   </div>
 </template>
 
@@ -18,6 +19,7 @@
   import ProgramaCards from '@/components/ProgramaCards.vue'
   import ProgramaDonutChart from '@/components/ProgramaDonutChart.vue'
   import ProgramaSelector from '@/components/ProgramaSelector.vue'
+  import ProjetosTable from '@/components/ProjetosTable.vue'
 </script>
 
 <style scoped>

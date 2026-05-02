@@ -54,6 +54,17 @@ export type BurnupCustoGrupo = {
 
 export type BurnupCustoResponse = BurnupCustoGrupo[]
 
+export type TabelaProjeto = {
+  nome_projeto: string
+  responsavel: string
+  status: string
+  horas_estimadas: number
+  horas_realizadas: number
+  percentual_tarefas_concluidas: number
+  desvio_horas: number
+  percentual_desvio: number
+}
+
 export const useProgramaStore = defineStore('programa', {
   state: () => ({
     programas: [] as Programa[],
@@ -66,6 +77,8 @@ export const useProgramaStore = defineStore('programa', {
     carregandoDistribuicao: false,
     carregandoBurnup: false,
     carregandoBurnupCusto: false,
+    tabelaProjetos: [] as TabelaProjeto[],
+    carregandoTabela: false,
   }),
 
   actions: {
@@ -84,15 +97,19 @@ export const useProgramaStore = defineStore('programa', {
       this.resumo = null
       this.distribuicaoStatus = null
 
-      if (!programa) return
+      if (!programa) {
+        return
+      }
 
       this.carregando = true
       this.carregandoDistribuicao = true
+      this.carregandoTabela = true
 
       try {
-        const [resumoRes, distribuicaoRes] = await Promise.all([
+        const [resumoRes, distribuicaoRes, tabelaRes] = await Promise.all([
           axios.get(apiUrl(`/api/programas/${programa.id}/resumo/`)),
           axios.get(apiUrl(`/api/programas/${programa.id}/distribuicao-status/`)),
+          axios.get(apiUrl(`/api/programas/${programa.id}/tabela-projetos/`)),
         ])
 
         this.resumo = {
@@ -107,9 +124,12 @@ export const useProgramaStore = defineStore('programa', {
           total: distribuicaoRes.data.total,
           status: distribuicaoRes.data.status,
         }
+
+        this.tabelaProjetos = tabelaRes.data
       } finally {
         this.carregando = false
         this.carregandoDistribuicao = false
+        this.carregandoTabela = false
       }
     },
 
@@ -137,6 +157,7 @@ export const useProgramaStore = defineStore('programa', {
       this.programaSelecionado = null
       this.resumo = null
       this.distribuicaoStatus = null
+      this.tabelaProjetos = []
     },
   },
 })
