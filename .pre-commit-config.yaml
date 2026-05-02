@@ -6,26 +6,20 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-      - id: check-merge-conflict   # bloqueia se houver conflito não resolvido
-      - id: no-commit-to-branch    # impede commit direto em main/master
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
         args: [--branch, main, --branch, master]
 
-  # ── ESLint (Vue + JS/TS) ─────────────────────────────────────────────────────
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.57.0
+  # ── ESLint + Prettier via npm (usa scripts do package.json) ─────────────────
+  - repo: local
     hooks:
       - id: eslint
+        name: ESLint
+        language: system
+        entry: npm run lint
         files: \.(js|ts|vue)$
-        additional_dependencies:
-          - eslint@8.57.0
-          - eslint-plugin-vue@9.24.0
+        pass_filenames: true
 
-  # ── Prettier (formatação geral) ───────────────────────────────────────────────
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
-    hooks:
-      - id: prettier
-        files: \.(js|ts|vue|css|scss|json|md)$
 
   # ── Validação da mensagem de commit ─────────────────────────────────────────
   - repo: local
