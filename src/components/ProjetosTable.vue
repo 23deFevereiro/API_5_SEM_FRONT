@@ -5,8 +5,8 @@
         <v-icon color="#6366F1" size="16">mdi-table-large</v-icon>
         <span>Projetos do Programa</span>
       </div>
-      <span v-if="store.tabelaProjetos.length > 0" class="section-count">
-        {{ store.tabelaProjetos.length }} {{ store.tabelaProjetos.length === 1 ? 'projeto' : 'projetos' }}
+      <span v-if="totalProjetos > 0" class="section-count">
+        {{ totalProjetos }} {{ totalProjetos === 1 ? 'projeto' : 'projetos' }}
       </span>
     </div>
 
@@ -20,7 +20,7 @@
       <span>Carregando projetos...</span>
     </div>
 
-    <div v-else-if="store.tabelaProjetos.length === 0" class="empty-state">
+    <div v-else-if="projetos.length === 0" class="empty-state">
       <v-icon color="#9CA3AF" size="36">mdi-folder-alert-outline</v-icon>
       <span>Nenhum projeto encontrado para este programa</span>
     </div>
@@ -41,7 +41,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="(projeto, i) in store.tabelaProjetos"
+            v-for="(projeto, i) in projetos"
             :key="i"
             class="table-row"
           >
@@ -82,14 +82,66 @@
           </tr>
         </tbody>
       </table>
+
+      <div class="table-footer">
+        <span class="pagination-summary">
+          Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ totalProjetos }}
+        </span>
+
+        <div class="pagination-controls">
+          <button
+            class="pagination-button"
+            :disabled="store.carregandoTabela || paginaAtual <= 1"
+            type="button"
+            @click="trocarPagina(paginaAtual - 1)"
+          >
+            Anterior
+          </button>
+          <span class="pagination-page">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
+          <button
+            class="pagination-button"
+            :disabled="store.carregandoTabela || paginaAtual >= totalPaginas"
+            type="button"
+            @click="trocarPagina(paginaAtual + 1)"
+          >
+            Próxima
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { useProgramaStore } from '@/stores/programa'
 
   const store = useProgramaStore()
+  const projetos = computed(() => store.tabelaProjetosItens)
+  const totalProjetos = computed(() => store.tabelaProjetos?.count ?? 0)
+  const paginaAtual = computed(() => store.tabelaProjetos?.page ?? 1)
+  const totalPaginas = computed(() => store.tabelaProjetos?.total_pages ?? 1)
+  const pageSize = computed(() => store.tabelaProjetos?.page_size ?? projetos.value.length)
+  const primeiroItem = computed(() => {
+    if (totalProjetos.value === 0) {
+      return 0
+    }
+    return (paginaAtual.value - 1) * pageSize.value + 1
+  })
+  const ultimoItem = computed(() => {
+    if (totalProjetos.value === 0) {
+      return 0
+    }
+    return Math.min(paginaAtual.value * pageSize.value, totalProjetos.value)
+  })
+
+  async function trocarPagina (page: number) {
+    if (!store.programaSelecionado || page < 1 || page > totalPaginas.value || page === paginaAtual.value) {
+      return
+    }
+
+    await store.buscarTabelaProjetos(store.programaSelecionado.id, page)
+  }
 
   function statusClass (status: string): string {
     const map: Record<string, string> = {
@@ -349,4 +401,60 @@
 .col-tarefas { min-width: 140px; }
 .col-desvio { min-width: 90px; text-align: right; }
 .col-acao { min-width: 160px; }
+
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid #E5E7EB;
+  background: #F9FAFB;
+}
+
+.pagination-summary,
+.pagination-page {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-button {
+  border: 1px solid #D1D5DB;
+  background: #FFFFFF;
+  color: #374151;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background: #EEF2FF;
+  border-color: #C7D2FE;
+  color: #4338CA;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .table-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-controls {
+    justify-content: space-between;
+  }
+}
 </style>
