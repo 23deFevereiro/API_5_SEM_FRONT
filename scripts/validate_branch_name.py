@@ -14,6 +14,7 @@ BRANCH_PATTERN = re.compile(
 
 PROTECTED_BRANCHES = {"main", "master"}
 
+EXEMPT_BRANCHES = {"develop", "staging", "release"}
 
 def get_current_branch() -> str:
     ci_branch = (
@@ -37,6 +38,12 @@ def validate() -> None:
     if branch in ("HEAD", ""):
         print("[SKIP] Could not determine branch name, skipping validation.")
         sys.exit(0)
+
+    if branch in EXEMPT_BRANCHES:
+        print(
+            f"[OK] Branch '{branch}' is a long-lived branch, skipping name validation."
+        )
+        return
 
     if branch in PROTECTED_BRANCHES:
         _fail(
