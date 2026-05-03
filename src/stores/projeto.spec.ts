@@ -141,7 +141,7 @@ describe('Integração: buscarProjetos', () => {
     vi.mocked(axios.get).mockResolvedValueOnce({ data: [projetoMock] })
     const store = useProjetoStore()
     await store.buscarProjetos('Conversor', 3)
-    const chamada = vi.mocked(axios.get).mock.calls[0][0] as string
+    const chamada = vi.mocked(axios.get).mock.calls[0][0]
     expect(chamada).toContain('search=Conversor')
     expect(chamada).toContain('programa_id=3')
   })
@@ -339,7 +339,7 @@ describe('Integração: filtro de período na URL', () => {
     store.filtroDataInicio = '2025-01-01'
     store.filtroDataFim = '2025-06-30'
     await store.buscarMateriais(1, 1)
-    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    const url = vi.mocked(axios.get).mock.calls[0][0]
     expect(url).toContain('data_inicio=2025-01-01')
     expect(url).toContain('data_fim=2025-06-30')
   })
@@ -350,7 +350,7 @@ describe('Integração: filtro de período na URL', () => {
     store.filtroDataInicio = '2025-02-01'
     store.filtroFuncionario = 'Ana'
     await store.buscarHorasPorFuncionario(1)
-    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    const url = vi.mocked(axios.get).mock.calls[0][0]
     expect(url).toContain('data_inicio=2025-02-01')
     expect(url).toContain('funcionario=Ana')
   })
@@ -361,7 +361,7 @@ describe('Integração: filtro de período na URL', () => {
     store.filtroDataFim = '2025-03-15'
     store.filtroFuncionario = 'Bruno'
     await store.buscarFuncionarios(1, 1)
-    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    const url = vi.mocked(axios.get).mock.calls[0][0]
     expect(url).toContain('data_fim=2025-03-15')
     expect(url).toContain('funcionario=Bruno')
   })
@@ -371,7 +371,7 @@ describe('Integração: filtro de período na URL', () => {
     const store = useProjetoStore()
     store.filtroMaterial = { id: 7, descricao: 'Capacitor' }
     await store.buscarMateriais(1, 1)
-    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    const url = vi.mocked(axios.get).mock.calls[0][0]
     expect(url).toContain('material=Capacitor')
   })
 
@@ -381,7 +381,7 @@ describe('Integração: filtro de período na URL', () => {
     store.filtroDataInicio = '2025-01-01'
     store.filtroDataFim = '2025-12-31'
     await store.buscarResumo(1)
-    const url = vi.mocked(axios.get).mock.calls[0][0] as string
+    const url = vi.mocked(axios.get).mock.calls[0][0]
     expect(url).not.toContain('data_inicio')
     expect(url).not.toContain('data_fim')
   })
@@ -406,7 +406,7 @@ describe('Integração: aplicarPeriodo', () => {
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     await store.aplicarPeriodo('2025-01-01', null)
-    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
     expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
     expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
     expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
@@ -433,7 +433,7 @@ describe('Integração: aplicarFiltroFuncionario', () => {
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     await store.aplicarFiltroFuncionario('Ana')
-    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
     expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
     expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
     expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
@@ -461,7 +461,7 @@ describe('Integração: aplicarFiltroMaterial', () => {
     const store = useProjetoStore()
     store.projetoSelecionado = projetoMock
     await store.aplicarFiltroMaterial(material)
-    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0] as string)
+    const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
     expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
     expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
     expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(false)

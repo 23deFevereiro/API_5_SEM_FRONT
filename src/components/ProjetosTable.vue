@@ -193,7 +193,7 @@
 
 .section-count {
   font-size: 12px;
-  color: #6B7280;
+  color: #4B5563;
   background: #F3F4F6;
   padding: 2px 8px;
   border-radius: 999px;
@@ -283,12 +283,12 @@
 
 .status-planejamento {
   background: #EFF6FF;
-  color: #3B82F6;
+  color: #1D4ED8;
 }
 
 .status-desenvolvimento {
   background: #FEF3C7;
-  color: #D97706;
+  color: #92400E;
 }
 
 .status-testes {
@@ -298,12 +298,12 @@
 
 .status-concluido {
   background: #ECFDF5;
-  color: #059669;
+  color: #047857;
 }
 
 .status-default {
   background: #F3F4F6;
-  color: #6B7280;
+  color: #4B5563;
 }
 
 /* Progress bar */
