@@ -18,10 +18,12 @@
 
   function buildChart (raw: any) {
     if (!canvasRef.value || !overviewData.value) return
-    // get all months
+    if (chartInstance.value) {
+      chartInstance.value.destroy()
+      chartInstance.value = null
+    }
     const labels = raw.map((item: any) => item.date_str)
 
-    // get unique projects
     const projects: any = {}
 
     for (const [monthIndex, month] of raw.entries()) {
@@ -43,7 +45,7 @@
     const chartData = {
       labels,
       datasets,
-    }
+    } as any
 
     chartInstance.value = new Chart(canvasRef.value, {
       type: 'line',
@@ -70,14 +72,14 @@
           x: {
             title: {
               display: true,
-              text: 'Month',
+              text: 'Mês',
             },
           },
           y: {
             beginAtZero: true,
             title: {
               display: true,
-              text: 'Cost (R$)',
+              text: 'Custo (R$)',
             },
           },
         },

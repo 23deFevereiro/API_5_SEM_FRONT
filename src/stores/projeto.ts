@@ -9,8 +9,7 @@ type Projeto = {
 }
 
 type ResumoProjeto = {
-  custo_materiais: number
-  custo_compras: number
+  custo_total: number
   tempo_total: number
 }
 
@@ -34,7 +33,7 @@ type HorasFuncionario = {
 }
 
 type Funcionario = {
-  usuario: string
+  funcionario: string
   total_horas: number
   projetos: string[]
 }
@@ -53,7 +52,24 @@ type CustoTempoChartData = {
   cost: number
 }
 
+type BurnupPonto = {
+  mes: string
+  horas: number
+  horas_acumuladas: number
+}
+
+type BurnupProjeto = {
+  projeto_id: number
+  projeto: string
+  serie: BurnupPonto[]
+}
+
 type CustoTempoChartResponse = { date_str: string, values: CustoTempoChartData[] }[]
+
+export type MaterialDisponivel = {
+  id: number
+  descricao: string
+}
 
 export const useProjetoStore = defineStore('projeto', {
   state: () => ({
@@ -68,48 +84,123 @@ export const useProjetoStore = defineStore('projeto', {
     carregandoHoras: false,
     funcionarios: null as FuncionariosPaginados | null,
     carregandoFuncionarios: false,
+    filtroDataInicio: null as string | null,
+    filtroDataFim: null as string | null,
+    filtroFuncionario: null as string | null,
+    filtroMaterial: null as MaterialDisponivel | null,
+    nomesFuncionarios: [] as string[],
+    materiaisDisponiveis: [] as MaterialDisponivel[],
+    burnupHoras: [] as BurnupProjeto[],
+    carregandoBurnup: false,
   }),
+
+  getters: {
+    isLoading (): boolean {
+      return this.carregando || this.carregandoMateriais || this.carregandoHoras || this.carregandoFuncionarios
+    },
+  },
 
   actions: {
     init () {
       this.buscarOverview()
+      this.buscarBurnupHoras()
     },
 
-    async buscarOverview () {
-      const response = await axios.get(apiUrl(`/projetos-overview`))
+    async buscarOverview (programaId: number | null = null) {
+      const qs = programaId ? `?programa_id=${programaId}` : ''
+      const response = await axios.get(apiUrl(`/api/projetos-overview${qs}`))
       this.overviewData = response.data
     },
-    async buscarProjetos (search = '') {
-      const response = await axios.get(apiUrl(`/projetos/?search=${search}`))
+
+    async buscarBurnupHoras (programaId: number | null = null) {
+      this.carregandoBurnup = true
+      try {
+        const qs = programaId ? `?programa_id=${programaId}` : ''
+
+        const response = await axios.get(
+          apiUrl(`/api/projetos/burnup-horas/${qs}`),
+        )
+
+        this.burnupHoras = response.data
+      } finally {
+        this.carregandoBurnup = false
+      }
+    },
+
+    async buscarProjetos (search = '', programaId: number | null = null) {
+      const params = new URLSearchParams()
+      if (search) {
+        params.set('search', search)
+      }
+      if (programaId) {
+        params.set('programa_id', String(programaId))
+      }
+      const qs = params.toString()
+      const route: string = apiUrl(`/api/projetos/` + (qs ? `?${qs}` : ''))
+
+      const response = await axios.get(route)
       this.projetos = response.data
+    },
+
+    async aplicarFiltroPorPrograma (programaId: number | null) {
+      await Promise.all([
+        this.buscarProjetos('', programaId),
+        this.buscarOverview(programaId),
+        this.buscarBurnupHoras(programaId),
+      ])
+      if (
+        this.projetoSelecionado
+        && !this.projetos.some(p => p.id === this.projetoSelecionado!.id)
+      ) {
+        this.limpar()
+      }
     },
 
     async selecionarProjeto (projeto: Projeto) {
       this.projetoSelecionado = projeto
+      // Acordado: per\u00edodo persiste entre projetos; funcion\u00e1rio/material resetam.
+      this.filtroFuncionario = null
+      this.filtroMaterial = null
       this.carregando = true
       this.resumo = null
       this.materiais = null
       this.horasPorFuncionario = []
       this.funcionarios = null
+      this.nomesFuncionarios = []
+      this.materiaisDisponiveis = []
 
       try {
-        const [resumoRes] = await Promise.all([
-          axios.get(apiUrl(`/projetos/${projeto.id}/resumo/`)),
+        await Promise.all([
+          this.buscarResumo(projeto.id),
           this.buscarMateriais(projeto.id, 1),
           this.buscarHorasPorFuncionario(projeto.id),
           this.buscarFuncionarios(projeto.id, 1),
+          this.buscarNomesFuncionarios(projeto.id),
+          this.buscarMateriaisDisponiveis(projeto.id),
         ])
-        this.resumo = resumoRes.data
       } finally {
         this.carregando = false
+      }
+    },
+
+    async buscarResumo (projetoId: number) {
+      const response = await axios.get(apiUrl(`/api/projetos/${projetoId}/resumo/`))
+      this.resumo = {
+        custo_total: Number(response.data.custo_total),
+        tempo_total: Number(response.data.tempo_total),
       }
     },
 
     async buscarMateriais (projetoId: number, page = 1) {
       this.carregandoMateriais = true
       try {
+        const params = this.paramsComPeriodo()
+        params.set('page', String(page))
+        if (this.filtroMaterial?.descricao) {
+          params.set('material', this.filtroMaterial.descricao)
+        }
         const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/materiais/?page=${page}`),
+          apiUrl(`/api/projetos/${projetoId}/materiais/?${params.toString()}`),
         )
         this.materiais = response.data
       } finally {
@@ -120,9 +211,13 @@ export const useProjetoStore = defineStore('projeto', {
     async buscarHorasPorFuncionario (projetoId: number) {
       this.carregandoHoras = true
       try {
-        const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/horas-por-funcionario/`),
-        )
+        const params = this.paramsComPeriodo()
+        if (this.filtroFuncionario) {
+          params.set('funcionario', this.filtroFuncionario)
+        }
+        const qs = params.toString()
+        const route = apiUrl(`/api/projetos/${projetoId}/horas-por-funcionario/` + (qs ? '?' + qs : ''))
+        const response = await axios.get(route)
         this.horasPorFuncionario = response.data
       } finally {
         this.carregandoHoras = false
@@ -132,8 +227,13 @@ export const useProjetoStore = defineStore('projeto', {
     async buscarFuncionarios (projetoId: number, page = 1) {
       this.carregandoFuncionarios = true
       try {
+        const params = this.paramsComPeriodo()
+        params.set('page', String(page))
+        if (this.filtroFuncionario) {
+          params.set('funcionario', this.filtroFuncionario)
+        }
         const response = await axios.get(
-          apiUrl(`/projetos/${projetoId}/funcionarios/?page=${page}`),
+          apiUrl(`/api/projetos/${projetoId}/funcionarios/?${params.toString()}`),
         )
         this.funcionarios = response.data
       } finally {
@@ -141,11 +241,81 @@ export const useProjetoStore = defineStore('projeto', {
       }
     },
 
+    async buscarNomesFuncionarios (projetoId: number) {
+      const response = await axios.get(
+        apiUrl(`/api/projetos/${projetoId}/nomes-funcionarios/`),
+      )
+      this.nomesFuncionarios = response.data
+    },
+
+    async buscarMateriaisDisponiveis (projetoId: number) {
+      const response = await axios.get(
+        apiUrl(`/api/projetos/${projetoId}/materiais-disponiveis/`),
+      )
+      this.materiaisDisponiveis = response.data
+    },
+
+    paramsComPeriodo () {
+      const params = new URLSearchParams()
+      if (this.filtroDataInicio) {
+        params.set('data_inicio', this.filtroDataInicio)
+      }
+      if (this.filtroDataFim) {
+        params.set('data_fim', this.filtroDataFim)
+      }
+      return params
+    },
+
+    async aplicarPeriodo (dataInicio: string | null, dataFim: string | null) {
+      this.filtroDataInicio = dataInicio
+      this.filtroDataFim = dataFim
+      const projeto = this.projetoSelecionado
+      if (!projeto) {
+        return
+      }
+
+      await Promise.all([
+        this.buscarMateriais(projeto.id, 1),
+        this.buscarHorasPorFuncionario(projeto.id),
+        this.buscarFuncionarios(projeto.id, 1),
+      ])
+    },
+
+    async aplicarFiltroFuncionario (funcionario: string | null) {
+      this.filtroFuncionario = funcionario
+      const projeto = this.projetoSelecionado
+      if (!projeto) {
+        return
+      }
+
+      await Promise.all([
+        this.buscarHorasPorFuncionario(projeto.id),
+        this.buscarFuncionarios(projeto.id, 1),
+      ])
+    },
+
+    async aplicarFiltroMaterial (material: MaterialDisponivel | null) {
+      this.filtroMaterial = material
+      const projeto = this.projetoSelecionado
+      if (!projeto) {
+        return
+      }
+      await this.buscarMateriais(projeto.id, 1)
+    },
+
     limpar () {
       this.projetoSelecionado = null
       this.resumo = null
       this.materiais = null
+      this.horasPorFuncionario = []
       this.funcionarios = null
+      this.filtroFuncionario = null
+      this.filtroMaterial = null
+      this.nomesFuncionarios = []
+      this.materiaisDisponiveis = []
+      this.carregandoMateriais = false
+      this.carregandoHoras = false
+      this.carregandoFuncionarios = false
     },
   },
 })

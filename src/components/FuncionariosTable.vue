@@ -2,7 +2,7 @@
   <div class="funcionarios-section">
     <div class="section-header">
       <div class="section-title">
-        <v-icon size="16" color="#F59E0B">mdi-account-group-outline</v-icon>
+        <v-icon color="#F59E0B" size="16">mdi-account-group-outline</v-icon>
         <span>Funcionários</span>
       </div>
       <span v-if="store.funcionarios" class="section-count">
@@ -11,13 +11,12 @@
     </div>
 
     <div v-if="!store.projetoSelecionado" class="empty-state">
-      <v-icon size="36" color="#9CA3AF">mdi-account-off-outline</v-icon>
+      <v-icon color="#9CA3AF" size="36">mdi-account-off-outline</v-icon>
       <span>Selecione um projeto para ver os funcionários</span>
     </div>
 
-   
     <div v-else-if="store.carregandoFuncionarios" class="empty-state">
-      <v-progress-circular indeterminate color="#F59E0B" size="26" width="2" />
+      <v-progress-circular color="#F59E0B" indeterminate size="26" width="2" />
       <span>Carregando funcionários...</span>
     </div>
 
@@ -40,7 +39,7 @@
               <td class="col-nome">
                 <div class="funcionario-nome">
                   <span class="funcionario-dot" />
-                  {{ funcionario.usuario }}
+                  {{ funcionario.funcionario }}
                 </div>
               </td>
               <td class="col-horas">
@@ -86,21 +85,21 @@
     </template>
 
     <div v-else class="empty-state">
-      <v-icon size="36" color="#9CA3AF">mdi-account-off-outline</v-icon>
+      <v-icon color="#9CA3AF" size="36">mdi-account-off-outline</v-icon>
       <span>Nenhum funcionário encontrado para este projeto</span>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useProjetoStore } from '@/stores/projeto'
+  import { useProjetoStore } from '@/stores/projeto'
 
-const store = useProjetoStore()
+  const store = useProjetoStore()
 
-async function mudarPagina(page: number) {
-  if (!store.projetoSelecionado) return
-  await store.buscarFuncionarios(store.projetoSelecionado.id, page)
-}
+  async function mudarPagina (page: number) {
+    if (!store.projetoSelecionado) return
+    await store.buscarFuncionarios(store.projetoSelecionado.id, page)
+  }
 </script>
 
 <style scoped>
