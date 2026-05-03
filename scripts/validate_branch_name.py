@@ -1,25 +1,28 @@
 #!/usr/bin/env python3
 
-import os
 import re
 import subprocess
 import sys
+import os
 
 ALLOWED_TYPES = ["feat", "fix", "docs", "chore", "refactor", "test", "style", "ci", "perf"]
 
+# tipo/descricao-com-hifen (opcionalmente com número de card: feat/42-descricao)
 BRANCH_PATTERN = re.compile(
     r"^(?P<type>[a-z]+)/(?P<desc>[a-z0-9][a-z0-9\-]*)$"
 )
 
 PROTECTED_BRANCHES = {"main", "master"}
 
-EXEMPT_BRANCHES = {"develop", "staging", "release"}
-
 
 def get_current_branch() -> str:
-    github_ref = os.environ.get("GITHUB_HEAD_REF")
-    if github_ref:
-        return github_ref
+    ci_branch = (
+        os.environ.get("GITHUB_HEAD_REF")   # branch do PR
+        or os.environ.get("GITHUB_REF_NAME") # branch do push
+    )
+    if ci_branch:
+        return ci_branch.strip()
+
     result = subprocess.run(
         ["git", "rev-parse", "--abbrev-ref", "HEAD"],
         capture_output=True,
@@ -31,15 +34,15 @@ def get_current_branch() -> str:
 def validate() -> None:
     branch = get_current_branch()
 
+    if branch in ("HEAD", ""):
+        print("[SKIP] Could not determine branch name, skipping validation.")
+        sys.exit(0)
+
     if branch in PROTECTED_BRANCHES:
         _fail(
             f"Direct commits to '{branch}' are not allowed.\n"
             "  Please create a feature branch: feat/your-description"
         )
-
-    if branch in EXEMPT_BRANCHES:
-        print(f"[OK] Branch '{branch}' is a long-lived branch, skipping name validation.")
-        return
 
     match = BRANCH_PATTERN.match(branch)
     if not match:
