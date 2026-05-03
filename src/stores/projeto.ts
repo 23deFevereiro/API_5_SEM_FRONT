@@ -33,7 +33,7 @@ type HorasFuncionario = {
 }
 
 type Funcionario = {
-  usuario: string
+  funcionario: string
   total_horas: number
   projetos: string[]
 }

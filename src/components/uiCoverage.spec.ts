@@ -125,6 +125,26 @@ describe('UI coverage components', () => {
     expect(store.aplicarPeriodo).toHaveBeenCalledWith(null, null)
   })
 
+  it('sincroniza os campos quando a store é atualizada externamente', async () => {
+    const store = useProjetoStore()
+    store.filtroDataInicio = null
+    store.filtroDataFim = null
+    store.aplicarPeriodo = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(FiltroPeriodoBotao, {
+      global: {
+        stubs: globalStubs,
+      },
+    })
+
+    // Simula reset externo da store
+    store.filtroDataInicio = '2025-05-01'
+    store.filtroDataFim = '2025-05-31'
+    await nextTick()
+
+    expect(wrapper.text()).not.toContain('Filtrar período')
+  })
+
   it('sincroniza e aplica os filtros de funcionário e material', async () => {
     const projetoStore = useProjetoStore()
     projetoStore.nomesFuncionarios = ['Ana', 'Bruno']
@@ -245,7 +265,7 @@ describe('UI coverage components', () => {
       page: 1,
       page_size: 10,
       total_pages: 2,
-      results: [{ usuario: 'Ana', total_horas: 6.5, projetos: ['P001'] }],
+      results: [{ funcionario: 'Ana', total_horas: 6.5, projetos: ['P001'] }],
     }
     store.buscarFuncionarios = vi.fn().mockResolvedValue(undefined)
 

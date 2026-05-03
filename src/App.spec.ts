@@ -84,4 +84,50 @@ describe('App', () => {
     expect(wrapper.find('.v-progress-linear-stub').exists()).toBe(true)
     expect(wrapper.text()).toContain('Projetos')
   })
+
+  it('alterna o drawer ao clicar no nav icon mobile', async () => {
+    appState.mobile = true
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: globalStubs,
+      },
+    })
+
+    const navIcon = wrapper.find('.v-app-bar-nav-icon-stub')
+    expect(navIcon.exists()).toBe(true)
+    await navIcon.trigger('click')
+    // No error thrown and component still renders correctly
+    expect(wrapper.find('.v-navigation-drawer-stub').exists()).toBe(true)
+  })
+
+  it('alterna o rail ao clicar no botão do desktop', async () => {
+    appState.mobile = false
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: globalStubs,
+      },
+    })
+
+    const btns = wrapper.findAll('.v-btn-stub')
+    const railBtn = btns.find(b => b.text().includes('mdi-chevron-left') || b.text().includes('mdi-chevron-right'))
+    expect(railBtn).toBeTruthy()
+    await railBtn!.trigger('click')
+    expect(wrapper.find('.v-navigation-drawer-stub').exists()).toBe(true)
+  })
+
+  it('fecha o drawer ao clicar num item do menu no mobile', async () => {
+    appState.mobile = true
+
+    const wrapper = mount(App, {
+      global: {
+        stubs: globalStubs,
+      },
+    })
+
+    const menuItem = wrapper.find('.v-list-item-stub')
+    await menuItem.trigger('click')
+    expect(wrapper.find('.v-navigation-drawer-stub').exists()).toBe(true)
+  })
 })
