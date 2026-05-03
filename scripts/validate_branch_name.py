@@ -13,6 +13,8 @@ BRANCH_PATTERN = re.compile(
 
 PROTECTED_BRANCHES = {"main", "master"}
 
+EXEMPT_BRANCHES = {"develop", "staging", "release"}
+
 
 def get_current_branch() -> str:
     github_ref = os.environ.get("GITHUB_HEAD_REF")
@@ -34,6 +36,10 @@ def validate() -> None:
             f"Direct commits to '{branch}' are not allowed.\n"
             "  Please create a feature branch: feat/your-description"
         )
+
+    if branch in EXEMPT_BRANCHES:
+        print(f"[OK] Branch '{branch}' is a long-lived branch, skipping name validation.")
+        return
 
     match = BRANCH_PATTERN.match(branch)
     if not match:
