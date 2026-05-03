@@ -270,3 +270,12 @@ describe('Integração: tabela de projetos paginada', () => {
     expect(store.tabelaProjetos).toBeNull()
   })
 })
+
+describe('buscarProgramas: retorno antecipado quando programa já selecionado', () => {
+  it('não faz requisição se o search bate com o programa já selecionado', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }
+    await store.buscarProgramas('Alpha')
+    expect(axios.get).not.toHaveBeenCalled()
+  })
+})

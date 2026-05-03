@@ -191,6 +191,71 @@ describe('chart coverage', () => {
     expect(instance?.destroy).toHaveBeenCalled()
   })
 
+  it('destrói o gráfico HorasFuncionarioChart no unmount quando chartInstance existe', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.horasPorFuncionario = [{ funcionario: 'Ana', total_horas: 8 }]
+
+    const wrapper = mount(HorasFuncionarioChart, {
+      global: { stubs: globalStubs },
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const instance = chartInstances.at(-1)
+    wrapper.unmount()
+
+    expect(instance?.destroy).toHaveBeenCalled()
+  })
+
+  it('reconstrói o BurnupHorasChart destruindo a instância anterior', async () => {
+    const store = useProjetoStore()
+    mount(BurnupHorasChart)
+    await nextTick()
+
+    store.burnupHoras = [
+      {
+        projeto_id: 1,
+        projeto: 'P001',
+        serie: [{ mes: '01/2025', horas: 5, horas_acumuladas: 5 }],
+      },
+    ]
+    await nextTick()
+
+    const firstInstance = chartInstances.at(-1)
+
+    store.burnupHoras = [
+      {
+        projeto_id: 2,
+        projeto: 'P002',
+        serie: [{ mes: '02/2025', horas: 3, horas_acumuladas: 3 }],
+      },
+    ]
+    await nextTick()
+
+    expect(firstInstance?.destroy).toHaveBeenCalled()
+    expect(ChartCtor).toHaveBeenCalledTimes(2)
+  })
+
+  it('mostra estado "sem programa" e estado vazio no ProgramaDonutChart', async () => {
+    const store = useProgramaStore()
+    store.carregandoDistribuicao = false
+    store.programaSelecionado = null
+
+    const wrapper = mount(ProgramaDonutChart, {
+      global: { stubs: globalStubs },
+    })
+
+    expect(wrapper.text()).toContain('Selecione um programa para visualizar')
+
+    store.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.distribuicaoStatus = { total: 0, status: [] }
+    await nextTick()
+
+    expect(wrapper.text()).toContain('Nenhum projeto encontrado')
+  })
+
   it('expõe as props corretas no wrapper ProgramaBurnupHorasChart', () => {
     const store = useProgramaStore()
     const wrapper = shallowMount(ProgramaBurnupHorasChart, {

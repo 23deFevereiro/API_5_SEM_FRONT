@@ -485,3 +485,14 @@ describe('Integração: buscarNomesFuncionarios / buscarMateriaisDisponiveis', (
     expect(store.materiaisDisponiveis).toEqual(materiais)
   })
 })
+
+describe('init', () => {
+  it('chama buscarOverview e buscarBurnupHoras ao inicializar', () => {
+    const store = useProjetoStore()
+    const spyOverview = vi.spyOn(store, 'buscarOverview').mockResolvedValue(undefined)
+    const spyBurnup = vi.spyOn(store, 'buscarBurnupHoras').mockResolvedValue(undefined)
+    store.init()
+    expect(spyOverview).toHaveBeenCalledTimes(1)
+    expect(spyBurnup).toHaveBeenCalledTimes(1)
+  })
+})

@@ -78,4 +78,91 @@ describe('ProjetosTable', () => {
 
     expect(store.buscarTabelaProjetos).toHaveBeenCalledWith(1, 1)
   })
+
+  it('exibe acao-amarelo e "Monitorar" quando desvioHoras > 0 e percentualDesvio em 1-14', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
+    store.tabelaProjetos = {
+      ...tabelaProjetosMock,
+      results: [
+        {
+          nome_projeto: 'Projeto M',
+          responsavel: 'Carlos',
+          status: 'Em desenvolvimento',
+          horas_estimadas: 10,
+          horas_realizadas: 11,
+          percentual_tarefas_concluidas: 50,
+          desvio_horas: 1,
+          percentual_desvio: 10,
+        },
+      ],
+    }
+
+    const wrapper = montar()
+    expect(wrapper.html()).toContain('acao-amarelo')
+    expect(wrapper.text()).toContain('Monitorar')
+  })
+
+  it('exibe acao-vermelho e "Revisar urgente" quando percentualDesvio >= 15', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
+    store.tabelaProjetos = {
+      ...tabelaProjetosMock,
+      results: [
+        {
+          nome_projeto: 'Projeto N',
+          responsavel: 'Bia',
+          status: 'Em testes',
+          horas_estimadas: 10,
+          horas_realizadas: 12,
+          percentual_tarefas_concluidas: 60,
+          desvio_horas: 2,
+          percentual_desvio: 20,
+        },
+      ],
+    }
+
+    const wrapper = montar()
+    expect(wrapper.html()).toContain('acao-vermelho')
+    expect(wrapper.text()).toContain('Revisar urgente')
+  })
+
+  it('exibe status-default para status desconhecido', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
+    store.tabelaProjetos = {
+      ...tabelaProjetosMock,
+      results: [
+        {
+          nome_projeto: 'Projeto X',
+          responsavel: 'Ze',
+          status: 'Desconhecido',
+          horas_estimadas: 5,
+          horas_realizadas: 5,
+          percentual_tarefas_concluidas: 100,
+          desvio_horas: 0,
+          percentual_desvio: 0,
+        },
+      ],
+    }
+
+    const wrapper = montar()
+    expect(wrapper.html()).toContain('status-default')
+  })
+
+  it('não chama buscarTabelaProjetos quando a página pedida está fora do intervalo', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
+    // page=1, total_pages=1 → Anterior pediria page 0 (< 1); Próxima pediria page 2 (> 1)
+    store.tabelaProjetos = { ...tabelaProjetosMock, page: 1, total_pages: 1 }
+    store.buscarTabelaProjetos = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = montar()
+    const [anterior, proxima] = wrapper.findAll('button')
+
+    await anterior.trigger('click')
+    await proxima.trigger('click')
+
+    expect(store.buscarTabelaProjetos).not.toHaveBeenCalled()
+  })
 })

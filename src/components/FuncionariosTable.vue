@@ -39,7 +39,7 @@
               <td class="col-nome">
                 <div class="funcionario-nome">
                   <span class="funcionario-dot" />
-                  {{ funcionario.usuario }}
+                  {{ funcionario.funcionario }}
                 </div>
               </td>
               <td class="col-horas">
