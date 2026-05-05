@@ -3,7 +3,7 @@
     :ao-montar="store.buscarBurnupCusto"
     bg-header="#D1FAE5"
     :carregando="carregandoBurnupCusto"
-    :codigo-selecionado="programaSelecionado?.codigo_programa ?? null"
+    :codigos-selecionados="programaSelecionado ? [programaSelecionado.codigo_programa] : null"
     cor-header="#10B981"
     cor-loading="#10B981"
     :dados="burnupCusto"

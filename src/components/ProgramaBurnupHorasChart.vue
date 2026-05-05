@@ -3,7 +3,7 @@
     :ao-montar="store.buscarBurnupHoras"
     bg-header="#DBEAFE"
     :carregando="carregandoBurnup"
-    :codigo-selecionado="programaSelecionado?.codigo_programa ?? null"
+    :codigos-selecionados="programaSelecionado ? [programaSelecionado.codigo_programa] : null"
     cor-header="#2563EB"
     cor-loading="#2563EB"
     :dados="burnupHoras"

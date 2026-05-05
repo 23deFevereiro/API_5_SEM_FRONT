@@ -2,7 +2,7 @@
   <BurnupChart
     bg-header="#EEF2FF"
     :carregando="store.carregandoBurnup"
-    :codigo-selecionado="null"
+    :codigos-selecionados="codigosSelecionados"
     cor-header="#6366F1"
     cor-loading="#6366F1"
     :dados="pivotado"
@@ -18,11 +18,20 @@
 </template>
 
 <script setup lang="ts">
+  import { storeToRefs } from 'pinia'
   import { computed } from 'vue'
+  import { useProgramaStore } from '@/stores/programa'
   import { useProjetoStore } from '@/stores/projeto'
   import BurnupChart from './BurnupChart.vue'
 
   const store = useProjetoStore()
+  const { programaSelecionado } = storeToRefs(useProgramaStore())
+
+  const codigosSelecionados = computed(() =>
+    programaSelecionado.value
+      ? store.projetos.map(p => p.codigo_projeto)
+      : null,
+  )
 
   type PivotPonto = { codigo_projeto: string, horas_acumuladas: number }
 

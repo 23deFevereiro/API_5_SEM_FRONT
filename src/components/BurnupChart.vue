@@ -42,7 +42,7 @@
 
   const props = defineProps<{
     dados: Grupo[] | null
-    codigoSelecionado: string | null
+    codigosSelecionados: string[] | null
     extratorChave: (ponto: T) => string
     carregando: boolean
     titulo: string
@@ -134,9 +134,10 @@
 
   function aplicarRealce () {
     if (!chartInstance.value) return
-    const codigoSelecionado = props.codigoSelecionado
+    const selecionados = props.codigosSelecionados
+    const temSelecao = !!selecionados && selecionados.length > 0
     for (const dataset of chartInstance.value.data.datasets) {
-      const realcado = !!codigoSelecionado && dataset.label === codigoSelecionado
+      const realcado = temSelecao && selecionados!.includes(dataset.label as string)
       dataset.borderColor = realcado ? COR_REALCE : COR_NEUTRA
       dataset.backgroundColor = realcado ? COR_REALCE : COR_NEUTRA
       dataset.borderWidth = realcado ? 3 : 1
@@ -154,7 +155,7 @@
     buildChart(novo)
   })
 
-  watch(() => props.codigoSelecionado, () => {
+  watch(() => props.codigosSelecionados, () => {
     aplicarRealce()
   })
 

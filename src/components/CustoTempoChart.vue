@@ -2,7 +2,7 @@
   <BurnupChart
     bg-header="#D1FAE5"
     :carregando="!overviewData"
-    :codigo-selecionado="projetoSelecionado?.codigo_projeto ?? null"
+    :codigos-selecionados="codigosSelecionados"
     cor-header="#10B981"
     cor-loading="#10B981"
     :dados="overviewData"
@@ -19,10 +19,20 @@
 
 <script setup lang="ts">
   import { storeToRefs } from 'pinia'
+  import { computed } from 'vue'
+  import { useProgramaStore } from '@/stores/programa'
   import { useProjetoStore } from '@/stores/projeto'
   import BurnupChart from './BurnupChart.vue'
 
-  const { overviewData, projetoSelecionado } = storeToRefs(useProjetoStore())
+  const store = useProjetoStore()
+  const { overviewData } = storeToRefs(store)
+  const { programaSelecionado } = storeToRefs(useProgramaStore())
+
+  const codigosSelecionados = computed(() =>
+    programaSelecionado.value
+      ? store.projetos.map(p => p.codigo_projeto)
+      : null,
+  )
 
   type CustoItem = { codigo_projeto: string, cost: number }
 
