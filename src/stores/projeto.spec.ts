@@ -170,12 +170,12 @@ describe('Integração: aplicarFiltroPorPrograma', () => {
     expect(urls.some(u => u.includes('/api/projetos/') && u.includes('programa_id=5'))).toBe(true)
   })
 
-  it('busca overview passando o programa_id recebido', async () => {
+  it('busca overview sem programa_id (exibe todos os projetos no grafico)', async () => {
     mockarRespostasDoFiltro()
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
     const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
-    expect(urls.some(u => u.includes('/api/projetos-overview') && u.includes('programa_id=5'))).toBe(true)
+    expect(urls.some(u => u.includes('/api/projetos-overview') && !u.includes('programa_id'))).toBe(true)
   })
 
   it('atualiza overviewData com o retorno filtrado', async () => {
