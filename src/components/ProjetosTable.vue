@@ -207,6 +207,9 @@
   padding: 32px 16px;
   color: #9CA3AF;
   font-size: 13px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
 }
 
 .table-wrapper {

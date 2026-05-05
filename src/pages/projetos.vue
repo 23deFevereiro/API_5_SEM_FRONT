@@ -26,6 +26,7 @@
 <script lang="ts" setup>
   import { storeToRefs } from 'pinia'
   import { onMounted } from 'vue'
+  import BurnupHorasChart from '@/components/BurnupHorasChart.vue'
   import CustoCard from '@/components/CustoCard.vue'
   import CustoTempoChart from '@/components/CustoTempoChart.vue'
   import FiltroPeriodoBotao from '@/components/FiltroPeriodoBotao.vue'
@@ -37,7 +38,6 @@
   import ProgramaSelector from '@/components/ProgramaSelector.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
   import { useProjetoStore } from '@/stores/projeto'
-  import BurnupHorasChart from '@/components/BurnupHorasChart.vue'
 
   const store = useProjetoStore()
   const { projetoSelecionado } = storeToRefs(store)
@@ -54,6 +54,9 @@
   padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .main-card__inner {
@@ -69,7 +72,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 16px;
-  margin-top: 16px;
   padding: 12px 16px;
   background: #F9FAFB;
   border-radius: 10px;

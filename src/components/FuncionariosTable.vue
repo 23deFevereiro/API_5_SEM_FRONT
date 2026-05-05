@@ -61,26 +61,29 @@
         </table>
       </div>
 
-      <div v-if="store.funcionarios.total_pages > 1" class="pagination">
-        <button
-          class="page-btn"
-          :disabled="store.funcionarios.page <= 1"
-          @click="mudarPagina(store.funcionarios.page - 1)"
-        >
-          <v-icon size="16">mdi-chevron-left</v-icon>
-        </button>
-        <div class="page-info">
-          <span class="page-current">{{ store.funcionarios.page }}</span>
-          <span class="page-sep">/</span>
-          <span class="page-total">{{ store.funcionarios.total_pages }}</span>
+      <div v-if="store.funcionarios.total_pages > 1" class="table-footer">
+        <span class="pagination-summary">
+          Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ store.funcionarios.count }}
+        </span>
+        <div class="pagination-controls">
+          <button
+            class="pagination-button"
+            :disabled="store.funcionarios.page <= 1"
+            type="button"
+            @click="mudarPagina(store.funcionarios.page - 1)"
+          >
+            Anterior
+          </button>
+          <span class="pagination-page">Página {{ store.funcionarios.page }} de {{ store.funcionarios.total_pages }}</span>
+          <button
+            class="pagination-button"
+            :disabled="store.funcionarios.page >= store.funcionarios.total_pages"
+            type="button"
+            @click="mudarPagina(store.funcionarios.page + 1)"
+          >
+            Próxima
+          </button>
         </div>
-        <button
-          class="page-btn"
-          :disabled="store.funcionarios.page >= store.funcionarios.total_pages"
-          @click="mudarPagina(store.funcionarios.page + 1)"
-        >
-          <v-icon size="16">mdi-chevron-right</v-icon>
-        </button>
       </div>
     </template>
 
@@ -92,9 +95,20 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { useProjetoStore } from '@/stores/projeto'
 
   const store = useProjetoStore()
+
+  const primeiroItem = computed(() => {
+    if (!store.funcionarios || store.funcionarios.count === 0) return 0
+    return (store.funcionarios.page - 1) * store.funcionarios.page_size + 1
+  })
+
+  const ultimoItem = computed(() => {
+    if (!store.funcionarios) return 0
+    return Math.min(store.funcionarios.page * store.funcionarios.page_size, store.funcionarios.count)
+  })
 
   async function mudarPagina (page: number) {
     if (!store.projetoSelecionado) return
@@ -104,87 +118,99 @@
 
 <style scoped>
 .funcionarios-section {
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  margin-top: 16px;
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-}
-
-.funcionarios-section:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 12px;
 }
 
 .section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
   color: #374151;
 }
 
 .section-count {
-  font-size: 13px;
-  color: #9CA3AF;
+  font-size: 12px;
+  color: #4B5563;
+  background: #F3F4F6;
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 40px 16px;
-  font-size: 13px;
+  gap: 8px;
+  padding: 32px 16px;
   color: #9CA3AF;
+  font-size: 13px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
 }
 
 .table-wrapper {
   overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
 }
 
 .funcionarios-table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 13px;
 }
 
 .funcionarios-table thead tr {
   background: #F9FAFB;
-  border-top: 1px solid #E5E7EB;
-  border-bottom: 1px solid #E5E7EB;
 }
 
 .funcionarios-table th {
-  font-size: 13px;
-  font-weight: 500;
-  color: #6B7280;
-  padding: 10px 16px;
+  padding: 10px 12px;
   text-align: left;
+  font-weight: 600;
+  color: #6B7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   white-space: nowrap;
-}
-
-.table-row:not(:last-child) td {
   border-bottom: 1px solid #E5E7EB;
 }
 
-.funcionarios-table td {
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #374151;
+.table-row {
+  border-bottom: 1px solid #F3F4F6;
+  transition: background 0.15s;
 }
 
-.col-nome     { width: 30%; }
-.col-horas    { width: 15%; }
-.col-projetos { width: 55%; }
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-row:hover {
+  background: #F9FAFB;
+}
+
+.funcionarios-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.col-nome     { min-width: 160px; }
+.col-horas    { min-width: 90px; }
+.col-projetos { min-width: 200px; }
 
 .funcionario-nome {
   display: flex;
@@ -228,53 +254,59 @@
   border-radius: 12px;
 }
 
-.pagination {
+.table-footer {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 12px;
   border-top: 1px solid #E5E7EB;
   background: #F9FAFB;
 }
 
-.page-btn {
+.pagination-summary,
+.pagination-page {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.pagination-controls {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: 1px solid #E5E7EB;
+  gap: 10px;
+}
+
+.pagination-button {
+  border: 1px solid #D1D5DB;
   background: #FFFFFF;
   color: #374151;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.page-btn:hover:not(:disabled) {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.pagination-button:hover:not(:disabled) {
+  background: #EEF2FF;
+  border-color: #C7D2FE;
+  color: #4338CA;
 }
 
-.page-btn:disabled {
-  opacity: 0.4;
+.pagination-button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.page-info {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-}
+@media (max-width: 768px) {
+  .table-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.page-current {
-  font-weight: 500;
-  color: #111827;
-}
-
-.page-sep,
-.page-total {
-  color: #9CA3AF;
+  .pagination-controls {
+    justify-content: space-between;
+  }
 }
 </style>
