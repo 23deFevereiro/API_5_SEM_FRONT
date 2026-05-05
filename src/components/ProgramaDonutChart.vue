@@ -49,8 +49,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { Chart, ArcElement, Tooltip, Legend, DoughnutController } from 'chart.js'
-  import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
+  import { ArcElement, Chart, DoughnutController, Legend, Tooltip } from 'chart.js'
+  import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useProgramaStore } from '@/stores/programa'
 
   Chart.register(ArcElement, Tooltip, Legend, DoughnutController)
@@ -107,6 +107,11 @@
       },
     })
   }
+
+  onMounted(async () => {
+    await nextTick()
+    renderizarGrafico()
+  })
 
   watch(
     () => store.distribuicaoStatus,
