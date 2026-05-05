@@ -1,129 +1,51 @@
 <template>
-  <div class="chart-wrapper">
-    <canvas ref="canvasRef" />
-  </div>
+  <BurnupChart
+    bg-header="#EEF2FF"
+    :carregando="store.carregandoBurnup"
+    :codigo-selecionado="null"
+    cor-header="#6366F1"
+    cor-loading="#6366F1"
+    :dados="pivotado"
+    :extrator-chave="extratorChave"
+    :extrator-valor="extratorValor"
+    :formatar-valor="formatarHoras"
+    icone-header="mdi-chart-line"
+    icone-vazio="mdi-chart-line"
+    texto-vazio="Nenhum registro de horas encontrado"
+    titulo="Burnup de Horas por Projeto"
+    titulo-eixo-y="Horas acumuladas"
+  />
 </template>
 
 <script setup lang="ts">
-  import { Chart } from 'chart.js'
-  import { ref, shallowRef, watch } from 'vue'
+  import { computed } from 'vue'
   import { useProjetoStore } from '@/stores/projeto'
+  import BurnupChart from './BurnupChart.vue'
 
   const store = useProjetoStore()
-  const canvasRef = ref<HTMLCanvasElement | null>(null)
 
-  const chartInstance = shallowRef<null | Chart>(null)
+  type PivotPonto = { codigo_projeto: string, horas_acumuladas: number }
 
-  function buildChart () {
-    if (!canvasRef.value) return
-    if (store.burnupHoras.length === 0) {
-      if (chartInstance.value) {
-        chartInstance.value.data.labels = []
-        chartInstance.value.data.datasets = []
-        chartInstance.value.update()
-      }
-      return
-    }
-
-    if (chartInstance.value) {
-      chartInstance.value.destroy()
-      chartInstance.value = null
-    }
-
-    const labels = Array.from(
-      new Set(
-        store.burnupHoras.flatMap(projeto =>
-          projeto.serie.map(ponto => ponto.mes),
-        ),
-      ),
-      // eslint-disable-next-line unicorn/no-array-sort
-    ).sort((a, b) => {
-      const [mesA, anoA] = a.split('/').map(Number)
-      const [mesB, anoB] = b.split('/').map(Number)
-      return anoA === anoB ? mesA - mesB : anoA - anoB
+  const pivotado = computed(() => {
+    if (store.burnupHoras.length === 0) return []
+    const mesesSet = new Set(store.burnupHoras.flatMap(p => p.serie.map(pt => pt.mes)))
+    const meses = [...mesesSet].toSorted((a, b) => {
+      const [ma, ya] = a.split('/').map(Number)
+      const [mb, yb] = b.split('/').map(Number)
+      return ya === yb ? ma - mb : ya - yb
     })
+    return meses.map(mes => ({
+      date_str: mes,
+      values: store.burnupHoras
+        .map(p => {
+          const ponto = p.serie.find(pt => pt.mes === mes)
+          return ponto ? { codigo_projeto: p.projeto, horas_acumuladas: ponto.horas_acumuladas } : null
+        })
+        .filter(Boolean) as PivotPonto[],
+    }))
+  })
 
-    const projects: any = {}
-
-    for (const projeto of store.burnupHoras) {
-      projects[projeto.projeto] = {
-        label: projeto.projeto,
-        data: Array.from({ length: labels.length }).fill(null),
-        spanGaps: true,
-      }
-
-      for (const ponto of projeto.serie) {
-        const index = labels.indexOf(ponto.mes)
-
-        if (index !== -1) {
-          projects[projeto.projeto].data[index] = Number(ponto.horas_acumuladas)
-        }
-      }
-    }
-
-    const datasets = Object.values(projects) as any[]
-
-    chartInstance.value = new Chart(canvasRef.value, {
-      type: 'line',
-      data: {
-        labels,
-        datasets,
-      },
-      options: {
-        responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          tooltip: {
-            callbacks: {
-              label: function (context: any) {
-                const valor = Number(context.parsed.y ?? 0).toLocaleString('pt-BR', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 1,
-                })
-
-                return `${context.dataset.label}: ${valor}h acumuladas`
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Mês',
-            },
-          },
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Horas investidas',
-            },
-          },
-        },
-      },
-    })
-  }
-
-  watch(
-    () => store.burnupHoras,
-    () => {
-      buildChart()
-    },
-    { deep: true },
-  )
+  const extratorChave = (p: PivotPonto) => p.codigo_projeto
+  const extratorValor = (p: PivotPonto) => p.horas_acumuladas
+  const formatarHoras = (v: number) => `${v.toFixed(1)}h`
 </script>
-
-<style scoped>
-.chart-wrapper {
-  padding: 8px 16px 20px;
-  height: 380px;
-  width: 100%;
-}
-</style>

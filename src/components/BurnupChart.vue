@@ -23,8 +23,7 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="T extends { codigo_programa: string, nome_programa: string }">
-  import type { Programa } from '@/stores/programa'
+<script setup lang="ts" generic="T">
   import {
     CategoryScale,
     Chart,
@@ -43,7 +42,8 @@
 
   const props = defineProps<{
     dados: Grupo[] | null
-    programaSelecionado: Programa | null
+    codigoSelecionado: string | null
+    extratorChave: (ponto: T) => string
     carregando: boolean
     titulo: string
     iconeHeader: string
@@ -81,14 +81,15 @@
 
     for (const [monthIndex, month] of raw.entries()) {
       for (const v of month.values) {
-        if (!programas[v.codigo_programa]) {
-          programas[v.codigo_programa] = {
-            label: v.codigo_programa,
+        const chave = props.extratorChave(v)
+        if (!programas[chave]) {
+          programas[chave] = {
+            label: chave,
             data: Array.from({ length: raw.length }).fill(null) as (number | null)[],
             spanGaps: true,
           }
         }
-        programas[v.codigo_programa].data[monthIndex] = props.extratorValor(v)
+        programas[chave].data[monthIndex] = props.extratorValor(v)
       }
     }
 
@@ -133,7 +134,7 @@
 
   function aplicarRealce () {
     if (!chartInstance.value) return
-    const codigoSelecionado = props.programaSelecionado?.codigo_programa
+    const codigoSelecionado = props.codigoSelecionado
     for (const dataset of chartInstance.value.data.datasets) {
       const realcado = !!codigoSelecionado && dataset.label === codigoSelecionado
       dataset.borderColor = realcado ? COR_REALCE : COR_NEUTRA
@@ -153,7 +154,7 @@
     buildChart(novo)
   })
 
-  watch(() => props.programaSelecionado, () => {
+  watch(() => props.codigoSelecionado, () => {
     aplicarRealce()
   })
 

@@ -2,8 +2,8 @@
   <div class="main-card">
     <ProgramaSelector />
     <div class="charts-row">
-      <CustoTempoChart />
       <BurnupHorasChart />
+      <CustoTempoChart />
     </div>
     <div class="main-card__inner">
       <ProjetoSelector />
@@ -97,11 +97,10 @@
   }
 }
 .charts-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   width: 100%;
-  margin-bottom: 24px;
 }
 
 @media (max-width: 768px) {
