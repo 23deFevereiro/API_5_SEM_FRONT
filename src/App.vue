@@ -130,6 +130,7 @@
 .page-shell {
   padding: 24px 32px;
   max-width: 1200px;
+  margin: 0 auto;
 }
 
 .page-title {
