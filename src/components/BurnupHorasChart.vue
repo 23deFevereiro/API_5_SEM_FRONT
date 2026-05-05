@@ -38,12 +38,12 @@
   const pivotado = computed(() => {
     if (store.burnupHoras.length === 0) return []
     const mesesSet = new Set(store.burnupHoras.flatMap(p => p.serie.map(pt => pt.mes)))
-    const meses = [...mesesSet].toSorted((a, b) => {
+    const meses = [...mesesSet].sort((a: string, b: string) => {
       const [ma, ya] = a.split('/').map(Number)
       const [mb, yb] = b.split('/').map(Number)
       return ya === yb ? ma - mb : ya - yb
     })
-    return meses.map(mes => ({
+    return meses.map((mes: string) => ({
       date_str: mes,
       values: store.burnupHoras
         .map(p => {
