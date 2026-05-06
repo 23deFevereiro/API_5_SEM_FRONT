@@ -155,19 +155,6 @@
   color: #374151;
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 32px 16px;
-  color: #9CA3AF;
-  font-size: 13px;
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-}
-
 .chart-wrapper {
   border-radius: 8px;
   border: 1px solid #E5E7EB;

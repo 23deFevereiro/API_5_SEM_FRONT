@@ -223,5 +223,8 @@
   padding: 48px 16px;
   font-size: 13px;
   color: #9CA3AF;
+  background: none;
+  border: none;
+  border-radius: 0;
 }
 </style>
