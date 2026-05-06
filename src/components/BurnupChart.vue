@@ -1,6 +1,6 @@
 <template>
   <div class="burnup-section">
-    <div class="section-header">
+    <div class="header">
       <div class="card-icon" :style="{ background: bgHeader }">
         <v-icon :color="corHeader" size="16">{{ iconeHeader }}</v-icon>
       </div>
@@ -185,7 +185,7 @@
   flex-direction: column;
 }
 
-.section-header {
+.header {
   display: flex;
   align-items: center;
   gap: 8px;
