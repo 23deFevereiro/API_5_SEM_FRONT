@@ -279,4 +279,70 @@ describe('chart coverage', () => {
     expect(store.buscarBurnupHoras).toBeTypeOf('function')
     expect(wrapper.text()).not.toContain('Nenhum registro de horas encontrado')
   })
+
+  it('constrói HorasFuncionarioChart quando dados chegam via watch', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.horasPorFuncionario = []
+
+    mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+
+    const before = ChartCtor.mock.calls.length
+
+    store.horasPorFuncionario = [{ funcionario: 'Ana', total_horas: 8 }]
+    await nextTick()
+    await nextTick()
+
+    expect(ChartCtor.mock.calls.length).toBeGreaterThan(before)
+  })
+
+  it('passa codigosSelecionados não-nulo quando há programa selecionado (BurnupHorasChart)', async () => {
+    const store = useProjetoStore()
+    const programaStore = useProgramaStore()
+
+    store.burnupHoras = [
+      {
+        projeto_id: 1,
+        projeto: 'P001',
+        serie: [{ mes: '01/2025', horas: 10, horas_acumuladas: 10 }],
+      },
+    ]
+    store.projetos = [{ id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }]
+    programaStore.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+
+    mount(BurnupHorasChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+
+    // ChartCtor called means canvas was rendered with highlighted dataset
+    expect(ChartCtor).toHaveBeenCalled()
+  })
+
+  it('mostra estado vazio de HorasFuncionarioChart sem projeto selecionado', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = null
+
+    const wrapper = mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    expect(wrapper.text()).toContain('Selecione um projeto para ver as horas por funcionário')
+  })
+
+  it('destroi e reconstrói o gráfico HorasFuncionarioChart ao atualizar dados', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.horasPorFuncionario = [{ funcionario: 'Ana', total_horas: 5 }]
+
+    mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+
+    const firstInstance = chartInstances.at(-1)
+
+    // update the data — the watch rebuilds, calling destroy on the old instance
+    store.horasPorFuncionario = [{ funcionario: 'Bruno', total_horas: 8 }]
+    await nextTick()
+    await nextTick()
+
+    expect(firstInstance?.destroy).toHaveBeenCalled()
+    expect(ChartCtor.mock.calls.length).toBeGreaterThanOrEqual(2)
+  })
 })

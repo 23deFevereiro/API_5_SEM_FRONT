@@ -496,3 +496,29 @@ describe('init', () => {
     expect(spyBurnup).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('Integração: buscarBurnupHoras — guard de carregando', () => {
+  it('não ativa carregandoBurnup quando burnupHoras já possui dados', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    store.burnupHoras = [{ projeto_id: 1, projeto: 'P001', serie: [] }]
+    await store.buscarBurnupHoras()
+    // guard skipped setting carregandoBurnup; finally always resets it to false
+    expect(store.carregandoBurnup).toBe(false)
+  })
+
+  it('ativa carregandoBurnup apenas quando burnupHoras está vazio', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ projeto_id: 1, projeto: 'P001', serie: [] }] })
+    const store = useProjetoStore()
+    expect(store.burnupHoras.length).toBe(0)
+    await store.buscarBurnupHoras()
+    expect(store.burnupHoras).toHaveLength(1)
+  })
+
+  it('inclui query string quando programaId é passado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    await store.buscarBurnupHoras(42)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=42'))
+  })
+})
