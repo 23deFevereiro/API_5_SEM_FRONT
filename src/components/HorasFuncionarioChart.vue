@@ -140,21 +140,6 @@
   width: 100%;
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
-}
-
 .chart-wrapper {
   border-radius: 8px;
   border: 1px solid #E5E7EB;
