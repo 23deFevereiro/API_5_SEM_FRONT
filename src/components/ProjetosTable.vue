@@ -15,7 +15,7 @@
       <span>Selecione um programa para ver os projetos</span>
     </div>
 
-    <div v-else-if="store.carregandoTabela" class="empty-state">
+    <div v-else-if="store.carregandoTabela && projetos.length === 0" class="empty-state">
       <v-progress-circular color="#6366F1" indeterminate size="26" width="2" />
       <span>Carregando projetos...</span>
     </div>
@@ -25,63 +25,69 @@
       <span>Nenhum projeto encontrado para este programa</span>
     </div>
 
-    <div v-else class="table-wrapper">
-      <table class="projetos-table">
-        <thead>
-          <tr>
-            <th class="col-nome">Nome do Projeto</th>
-            <th class="col-responsavel">Responsável</th>
-            <th class="col-status">Status</th>
-            <th class="col-horas">Horas Est.</th>
-            <th class="col-horas">Horas Real.</th>
-            <th class="col-tarefas">Tarefas Conc. (%)</th>
-            <th class="col-desvio">Desvio (h)</th>
-            <th class="col-acao">Ação</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(projeto, i) in projetos"
-            :key="i"
-            class="table-row"
-          >
-            <td class="col-nome">
-              <div class="projeto-nome">
-                <span class="projeto-dot" />
-                {{ projeto.nome_projeto }}
-              </div>
-            </td>
-            <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
-            <td class="col-status">
-              <span class="status-badge" :class="statusClass(projeto.status)">
-                {{ projeto.status }}
-              </span>
-            </td>
-            <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
-            <td class="col-horas">{{ projeto.horas_realizadas.toFixed(1) }}h</td>
-            <td class="col-tarefas">
-              <div class="tarefas-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: projeto.percentual_tarefas_concluidas + '%' }"
-                  />
+    <div v-else class="table-wrapper" :class="{ 'table-wrapper--loading': store.carregandoTabela }">
+      <div class="table-scroll">
+        <table class="projetos-table">
+          <thead>
+            <tr>
+              <th class="col-nome">Nome do Projeto</th>
+              <th class="col-responsavel">Responsável</th>
+              <th class="col-status">Status</th>
+              <th class="col-horas">Horas Est.</th>
+              <th class="col-horas">Horas Real.</th>
+              <th class="col-tarefas">Tarefas Conc. (%)</th>
+              <th class="col-desvio">Desvio (h)</th>
+              <th class="col-data">Data Última Atividade</th>
+              <th class="col-dias">Dias desde Última Atividade</th>
+              <th class="col-acao">Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(projeto, i) in projetos"
+              :key="i"
+              class="table-row"
+            >
+              <td class="col-nome">
+                <div class="projeto-nome">
+                  <span class="projeto-dot" />
+                  {{ projeto.nome_projeto }}
                 </div>
-                <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
-              </div>
-            </td>
-            <td class="col-desvio" :class="{ 'desvio-positivo': projeto.desvio_horas > 0, 'desvio-negativo': projeto.desvio_horas < 0 }">
-              {{ projeto.desvio_horas > 0 ? '+' : '' }}{{ projeto.desvio_horas.toFixed(1) }}h
-            </td>
-            <td class="col-acao">
-              <div class="acao-badge" :class="acaoClass(projeto.desvio_horas, projeto.percentual_desvio)">
-                <span class="acao-dot" />
-                <span>{{ acaoLabel(projeto.desvio_horas, projeto.percentual_desvio) }}</span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+              <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
+              <td class="col-status">
+                <span class="status-badge" :class="statusClass(projeto.status)">
+                  {{ projeto.status }}
+                </span>
+              </td>
+              <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
+              <td class="col-horas">{{ projeto.horas_realizadas.toFixed(1) }}h</td>
+              <td class="col-tarefas">
+                <div class="tarefas-progress">
+                  <div class="progress-bar">
+                    <div
+                      class="progress-fill"
+                      :style="{ width: projeto.percentual_tarefas_concluidas + '%' }"
+                    />
+                  </div>
+                  <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
+                </div>
+              </td>
+              <td class="col-desvio">
+                {{ projeto.desvio_horas > 0 ? '+' : '' }}{{ projeto.desvio_horas.toFixed(1) }}h
+              </td>
+              <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
+              <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
+              <td class="col-acao">
+                <div class="acao-badge" :class="acaoClass(projeto.desvio_horas, projeto.percentual_desvio)">
+                  <span class="acao-dot" />
+                  <span>{{ acaoLabel(projeto.desvio_horas, projeto.percentual_desvio) }}</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div class="table-footer">
         <span class="pagination-summary">
@@ -145,12 +151,17 @@
 
   function statusClass (status: string): string {
     const map: Record<string, string> = {
-      'Planejamento': 'status-planejamento',
-      'Em desenvolvimento': 'status-desenvolvimento',
-      'Em testes': 'status-testes',
-      'Concluído': 'status-concluido',
+      'Concluído no prazo': 'status-concluido',
+      'Em andamento': 'status-desenvolvimento',
+      'Atrasado': 'status-atrasado',
+      'Suspenso': 'status-suspenso',
     }
     return map[status] ?? 'status-default'
+  }
+
+  function formatarData (iso: string): string {
+    const [year, month, day] = iso.split('-')
+    return `${day}/${month}/${year}`
   }
 
   function acaoClass (desvioHoras: number, percentualDesvio: number): string {
@@ -242,24 +253,24 @@
   white-space: nowrap;
 }
 
-.status-planejamento {
+.status-desenvolvimento {
   background: #EFF6FF;
   color: #1D4ED8;
-}
-
-.status-desenvolvimento {
-  background: #FEF3C7;
-  color: #92400E;
-}
-
-.status-testes {
-  background: #EDE9FE;
-  color: #7C3AED;
 }
 
 .status-concluido {
   background: #ECFDF5;
   color: #047857;
+}
+
+.status-atrasado {
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.status-suspenso {
+  background: #FFF7ED;
+  color: #C2410C;
 }
 
 .status-default {
@@ -297,18 +308,15 @@
   text-align: right;
 }
 
-/* Desvio */
-.desvio-positivo {
-  color: #DC2626;
-  font-weight: 600;
+.table-wrapper--loading {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
-.desvio-negativo {
-  color: #059669;
-  font-weight: 600;
+.table-scroll {
+  overflow-x: auto;
 }
 
-/* Ação badges */
 .acao-badge {
   display: inline-flex;
   align-items: center;
@@ -354,12 +362,13 @@
   background: #EF4444;
 }
 
-/* Column widths */
 .col-nome { min-width: 160px; }
 .col-responsavel { min-width: 120px; }
-.col-status { min-width: 120px; }
-.col-horas { min-width: 90px; text-align: right; }
+.col-status { min-width: 140px; }
+.col-horas { min-width: 90px }
 .col-tarefas { min-width: 140px; }
-.col-desvio { min-width: 90px; text-align: right; }
+.col-desvio { min-width: 90px; font-weight: 600; }
+.col-data { min-width: 130px; }
+.col-dias { min-width: 130px; }
 .col-acao { min-width: 160px; }
 </style>

@@ -63,6 +63,8 @@ export type TabelaProjeto = {
   percentual_tarefas_concluidas: number
   desvio_horas: number
   percentual_desvio: number
+  data_ultima_atividade: string | null
+  dias_desde_ultima_atividade: number | null
 }
 
 export type TabelaProjetosPaginada = {
