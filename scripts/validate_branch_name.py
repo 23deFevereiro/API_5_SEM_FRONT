@@ -7,7 +7,6 @@ import os
 
 ALLOWED_TYPES = ["feat", "fix", "docs", "chore", "refactor", "test", "style", "ci", "perf"]
 
-# tipo/descricao-com-hifen (opcionalmente com número de card: feat/42-descricao)
 BRANCH_PATTERN = re.compile(
     r"^(?P<type>[a-z]+)/(?P<desc>[a-z0-9][a-z0-9\-]*)$"
 )
@@ -18,8 +17,8 @@ EXEMPT_BRANCHES = {"develop", "staging", "release"}
 
 def get_current_branch() -> str:
     ci_branch = (
-        os.environ.get("GITHUB_HEAD_REF")   # branch do PR
-        or os.environ.get("GITHUB_REF_NAME") # branch do push
+        os.environ.get("GITHUB_HEAD_REF")
+        or os.environ.get("GITHUB_REF_NAME")
     )
     if ci_branch:
         return ci_branch.strip()

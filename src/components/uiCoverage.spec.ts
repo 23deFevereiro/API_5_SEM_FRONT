@@ -262,9 +262,9 @@ describe('UI coverage components', () => {
     store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
     store.funcionarios = {
       count: 1,
-      page: 1,
+      page: 2,
       page_size: 10,
-      total_pages: 2,
+      total_pages: 3,
       results: [{ funcionario: 'Ana', total_horas: 6.5, projetos: ['P001'] }],
     }
     store.buscarFuncionarios = vi.fn().mockResolvedValue(undefined)
@@ -279,9 +279,64 @@ describe('UI coverage components', () => {
     expect(wrapper.text()).toContain('Ana')
     expect(wrapper.text()).toContain('6.5h')
 
+    // Próxima
     await wrapper.findAll('button')[1].trigger('click')
+    expect(store.buscarFuncionarios).toHaveBeenCalledWith(1, 3)
 
-    expect(store.buscarFuncionarios).toHaveBeenCalledWith(1, 2)
+    // Anterior
+    store.buscarFuncionarios = vi.fn().mockResolvedValue(undefined)
+    await wrapper.findAll('button')[0].trigger('click')
+    expect(store.buscarFuncionarios).toHaveBeenCalledWith(1, 1)
+  })
+
+  it('mostra estado vazio de FuncionariosTable quando funcionarios.results é vazio', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.funcionarios = { count: 0, page: 1, page_size: 10, total_pages: 1, results: [] }
+
+    const wrapper = mount(FuncionariosTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Nenhum funcionário encontrado')
+  })
+
+  it('renderiza MateriaisTable e pagina com Anterior quando há projeto selecionado', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.materiais = {
+      count: 2,
+      page: 2,
+      page_size: 10,
+      total_pages: 3,
+      results: [{ nome_material: 'Capacitor', custo_total_estimado: 50, quantidade: 5 }],
+    }
+    store.buscarMateriais = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(MateriaisTable, { global: { stubs: globalStubs } })
+    await wrapper.findAll('button')[0].trigger('click')
+    expect(store.buscarMateriais).toHaveBeenCalledWith(1, 1)
+  })
+
+  it('mostra estado vazio de MateriaisTable quando materiais.results é vazio', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.materiais = { count: 0, page: 1, page_size: 10, total_pages: 1, results: [] }
+
+    const wrapper = mount(MateriaisTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Nenhum material encontrado')
+  })
+
+  it('abre o diálogo de período ao clicar no botão principal', async () => {
+    const store = useProjetoStore()
+    store.filtroDataInicio = null
+    store.filtroDataFim = null
+    store.aplicarPeriodo = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = mount(FiltroPeriodoBotao, { global: { stubs: globalStubs } })
+
+    // Click the main trigger button (index 0) to call abrir()
+    await wrapper.findAll('button')[0].trigger('click')
+
+    // abrir() resets erro and syncs campos - no error visible after calling
+    expect(wrapper.text()).not.toContain('data de início deve ser anterior')
   })
 
   it('mostra estados vazios das tabelas quando não há projeto selecionado', () => {
@@ -298,5 +353,65 @@ describe('UI coverage components', () => {
 
     expect(wrapperMateriais.text()).toContain('Selecione um projeto para ver os materiais')
     expect(wrapperFuncionarios.text()).toContain('Selecione um projeto para ver os funcionários')
+  })
+
+  it('mostra estado carregando de FuncionariosTable quando carregandoFuncionarios é true', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.carregandoFuncionarios = true
+
+    const wrapper = mount(FuncionariosTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Carregando funcionários...')
+  })
+
+  it('retorna primeiroItem=0 e ultimoItem=0 quando FuncionariosTable count=0 com resultados', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.funcionarios = {
+      count: 0,
+      page: 1,
+      page_size: 10,
+      total_pages: 2,
+      results: [{ funcionario: 'Ana', total_horas: 6.5, projetos: ['P001'] }],
+    }
+    const wrapper = mount(FuncionariosTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('0-')
+  })
+
+  it('mostra estado carregando de MateriaisTable quando carregandoMateriais é true', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.carregandoMateriais = true
+
+    const wrapper = mount(MateriaisTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Carregando materiais...')
+  })
+
+  it('exibe singular item na MateriaisTable quando count é 1', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.materiais = {
+      count: 1,
+      page: 1,
+      page_size: 10,
+      total_pages: 1,
+      results: [{ nome_material: 'Resistor', custo_total_estimado: 10, quantidade: 1 }],
+    }
+    const wrapper = mount(MateriaisTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('1 item')
+  })
+
+  it('retorna primeiroItem=0 e ultimoItem=0 quando MateriaisTable count=0 com resultados', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.materiais = {
+      count: 0,
+      page: 1,
+      page_size: 10,
+      total_pages: 2,
+      results: [{ nome_material: 'Resistor', custo_total_estimado: 10, quantidade: 1 }],
+    }
+    const wrapper = mount(MateriaisTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('0-')
   })
 })

@@ -1,6 +1,6 @@
 <template>
   <div class="burnup-section">
-    <div class="section-header">
+    <div class="header">
       <div class="card-icon" :style="{ background: bgHeader }">
         <v-icon :color="corHeader" size="16">{{ iconeHeader }}</v-icon>
       </div>
@@ -23,8 +23,7 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="T extends { codigo_programa: string, nome_programa: string }">
-  import type { Programa } from '@/stores/programa'
+<script setup lang="ts" generic="T">
   import {
     CategoryScale,
     Chart,
@@ -43,7 +42,8 @@
 
   const props = defineProps<{
     dados: Grupo[] | null
-    programaSelecionado: Programa | null
+    codigosSelecionados: string[] | null
+    extratorChave: (ponto: T) => string
     carregando: boolean
     titulo: string
     iconeHeader: string
@@ -81,14 +81,15 @@
 
     for (const [monthIndex, month] of raw.entries()) {
       for (const v of month.values) {
-        if (!programas[v.codigo_programa]) {
-          programas[v.codigo_programa] = {
-            label: v.codigo_programa,
+        const chave = props.extratorChave(v)
+        if (!programas[chave]) {
+          programas[chave] = {
+            label: chave,
             data: Array.from({ length: raw.length }).fill(null) as (number | null)[],
             spanGaps: true,
           }
         }
-        programas[v.codigo_programa].data[monthIndex] = props.extratorValor(v)
+        programas[chave].data[monthIndex] = props.extratorValor(v)
       }
     }
 
@@ -133,9 +134,10 @@
 
   function aplicarRealce () {
     if (!chartInstance.value) return
-    const codigoSelecionado = props.programaSelecionado?.codigo_programa
+    const selecionados = props.codigosSelecionados
+    const temSelecao = !!selecionados && selecionados.length > 0
     for (const dataset of chartInstance.value.data.datasets) {
-      const realcado = !!codigoSelecionado && dataset.label === codigoSelecionado
+      const realcado = temSelecao && selecionados!.includes(dataset.label as string)
       dataset.borderColor = realcado ? COR_REALCE : COR_NEUTRA
       dataset.backgroundColor = realcado ? COR_REALCE : COR_NEUTRA
       dataset.borderWidth = realcado ? 3 : 1
@@ -153,7 +155,7 @@
     buildChart(novo)
   })
 
-  watch(() => props.programaSelecionado, () => {
+  watch(() => props.codigosSelecionados, () => {
     aplicarRealce()
   })
 
@@ -183,7 +185,7 @@
   flex-direction: column;
 }
 
-.section-header {
+.header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -221,5 +223,8 @@
   padding: 48px 16px;
   font-size: 13px;
   color: #9CA3AF;
+  background: none;
+  border: none;
+  border-radius: 0;
 }
 </style>

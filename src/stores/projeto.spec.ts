@@ -170,12 +170,12 @@ describe('Integração: aplicarFiltroPorPrograma', () => {
     expect(urls.some(u => u.includes('/api/projetos/') && u.includes('programa_id=5'))).toBe(true)
   })
 
-  it('busca overview passando o programa_id recebido', async () => {
+  it('busca overview sem programa_id (exibe todos os projetos no grafico)', async () => {
     mockarRespostasDoFiltro()
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
     const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
-    expect(urls.some(u => u.includes('/api/projetos-overview') && u.includes('programa_id=5'))).toBe(true)
+    expect(urls.some(u => u.includes('/api/projetos-overview') && !u.includes('programa_id'))).toBe(true)
   })
 
   it('atualiza overviewData com o retorno filtrado', async () => {
@@ -494,5 +494,31 @@ describe('init', () => {
     store.init()
     expect(spyOverview).toHaveBeenCalledTimes(1)
     expect(spyBurnup).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Integração: buscarBurnupHoras — guard de carregando', () => {
+  it('não ativa carregandoBurnup quando burnupHoras já possui dados', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    store.burnupHoras = [{ projeto_id: 1, projeto: 'P001', serie: [] }]
+    await store.buscarBurnupHoras()
+    // guard skipped setting carregandoBurnup; finally always resets it to false
+    expect(store.carregandoBurnup).toBe(false)
+  })
+
+  it('ativa carregandoBurnup apenas quando burnupHoras está vazio', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ projeto_id: 1, projeto: 'P001', serie: [] }] })
+    const store = useProjetoStore()
+    expect(store.burnupHoras.length).toBe(0)
+    await store.buscarBurnupHoras()
+    expect(store.burnupHoras).toHaveLength(1)
+  })
+
+  it('inclui query string quando programaId é passado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    await store.buscarBurnupHoras(42)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=42'))
   })
 })

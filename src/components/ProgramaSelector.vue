@@ -70,7 +70,6 @@
   flex-direction: column;
   gap: 8px;
   min-width: 280px;
-  margin-bottom: 16px;
 }
 
 .selector-label {

@@ -134,46 +134,16 @@
 
 <style scoped>
 .horas-section {
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  margin-top: 24px;
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-}
-
-.horas-section:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 16px 12px;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-}
-
-.empty-state {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 40px 16px;
-  font-size: 13px;
-  color: #9CA3AF;
+  gap: 12px;
+  width: 100%;
 }
 
 .chart-wrapper {
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
   padding: 8px 16px 20px;
   height: 280px;
 }

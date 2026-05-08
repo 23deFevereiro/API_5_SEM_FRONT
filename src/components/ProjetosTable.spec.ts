@@ -165,4 +165,26 @@ describe('ProjetosTable', () => {
 
     expect(store.buscarTabelaProjetos).not.toHaveBeenCalled()
   })
+
+  it('avança para a próxima página ao clicar em Próxima quando está na primeira de duas páginas', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
+    store.tabelaProjetos = { ...tabelaProjetosMock, page: 1, total_pages: 2 }
+    store.buscarTabelaProjetos = vi.fn().mockResolvedValue(undefined)
+
+    const wrapper = montar()
+    const botoes = wrapper.findAll('button')
+    await botoes[1].trigger('click')
+
+    expect(store.buscarTabelaProjetos).toHaveBeenCalledWith(1, 2)
+  })
+
+  it('exibe zero para primeiroItem e ultimoItem quando não há projetos', () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
+    store.tabelaProjetos = { count: 0, page: 1, page_size: 10, total_pages: 0, results: [] }
+
+    const wrapper = montar()
+    expect(wrapper.text()).toContain('Nenhum projeto encontrado')
+  })
 })

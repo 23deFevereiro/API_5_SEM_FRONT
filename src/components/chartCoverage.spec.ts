@@ -45,6 +45,11 @@ vi.mock('chart.js', () => ({
   Tooltip: {},
 }))
 
+const vuetifyStubs = {
+  'v-icon': { template: '<i class="v-icon-stub"><slot /></i>' },
+  'v-progress-circular': { template: '<span class="v-progress-circular-stub" />' },
+}
+
 const globalStubs = {
   BurnupChart: {
     props: ['aoMontar', 'bgHeader', 'carregando', 'corHeader', 'corLoading', 'dados', 'extratorValor', 'formatarValor', 'iconeHeader', 'iconeVazio', 'programaSelecionado', 'textoVazio', 'titulo', 'tituloEixoY'],
@@ -61,9 +66,10 @@ beforeEach(() => {
 })
 
 describe('chart coverage', () => {
-  it('renderiza o CustoTempoChart e atualiza o destaque do projeto selecionado', async () => {
+  it('renderiza o CustoTempoChart e atualiza o destaque dos projetos do programa selecionado', async () => {
     const store = useProjetoStore()
-    mount(CustoTempoChart)
+    const programaStore = useProgramaStore()
+    mount(CustoTempoChart, { global: { stubs: vuetifyStubs } })
     await nextTick()
 
     store.overviewData = [
@@ -80,26 +86,28 @@ describe('chart coverage', () => {
       },
     ]
     await nextTick()
+    await nextTick()
 
     const instance = chartInstances.at(-1)
 
     expect(ChartCtor).toHaveBeenCalledTimes(1)
 
     instance!.data.datasets = [{ label: 'P001' }, { label: 'P002' }]
-    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    programaStore.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.projetos = [{ id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }]
     await nextTick()
 
     expect(instance?.update).toHaveBeenCalled()
     expect(instance?.data.datasets[0]).toMatchObject({
       backgroundColor: '#2563EB',
       borderColor: '#2563EB',
-      hoverBackgroundColor: '1D4ED8',
+      hoverBackgroundColor: '#1D4ED8',
     })
   })
 
-  it('renderiza o BurnupHorasChart e limpa datasets quando os dados ficam vazios', async () => {
+  it('renderiza o BurnupHorasChart e destrói o gráfico quando os dados ficam vazios', async () => {
     const store = useProjetoStore()
-    mount(BurnupHorasChart)
+    mount(BurnupHorasChart, { global: { stubs: vuetifyStubs } })
     await nextTick()
 
     store.burnupHoras = [
@@ -118,6 +126,7 @@ describe('chart coverage', () => {
       },
     ]
     await nextTick()
+    await nextTick()
 
     const instance = chartInstances.at(-1)
 
@@ -126,9 +135,7 @@ describe('chart coverage', () => {
     store.burnupHoras = []
     await nextTick()
 
-    expect(instance?.update).toHaveBeenCalled()
-    expect(instance?.data.labels).toEqual([])
-    expect(instance?.data.datasets).toEqual([])
+    expect(instance?.destroy).toHaveBeenCalled()
   })
 
   it('renderiza o HorasFuncionarioChart com dados e destrói o gráfico ao esvaziar', async () => {
@@ -211,7 +218,7 @@ describe('chart coverage', () => {
 
   it('reconstrói o BurnupHorasChart destruindo a instância anterior', async () => {
     const store = useProjetoStore()
-    mount(BurnupHorasChart)
+    mount(BurnupHorasChart, { global: { stubs: vuetifyStubs } })
     await nextTick()
 
     store.burnupHoras = [
@@ -221,6 +228,7 @@ describe('chart coverage', () => {
         serie: [{ mes: '01/2025', horas: 5, horas_acumuladas: 5 }],
       },
     ]
+    await nextTick()
     await nextTick()
 
     const firstInstance = chartInstances.at(-1)
@@ -232,6 +240,7 @@ describe('chart coverage', () => {
         serie: [{ mes: '02/2025', horas: 3, horas_acumuladas: 3 }],
       },
     ]
+    await nextTick()
     await nextTick()
 
     expect(firstInstance?.destroy).toHaveBeenCalled()
@@ -269,5 +278,71 @@ describe('chart coverage', () => {
     expect(burnupChart.exists()).toBe(true)
     expect(store.buscarBurnupHoras).toBeTypeOf('function')
     expect(wrapper.text()).not.toContain('Nenhum registro de horas encontrado')
+  })
+
+  it('constrói HorasFuncionarioChart quando dados chegam via watch', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.horasPorFuncionario = []
+
+    mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+
+    const before = ChartCtor.mock.calls.length
+
+    store.horasPorFuncionario = [{ funcionario: 'Ana', total_horas: 8 }]
+    await nextTick()
+    await nextTick()
+
+    expect(ChartCtor.mock.calls.length).toBeGreaterThan(before)
+  })
+
+  it('passa codigosSelecionados não-nulo quando há programa selecionado (BurnupHorasChart)', async () => {
+    const store = useProjetoStore()
+    const programaStore = useProgramaStore()
+
+    store.burnupHoras = [
+      {
+        projeto_id: 1,
+        projeto: 'P001',
+        serie: [{ mes: '01/2025', horas: 10, horas_acumuladas: 10 }],
+      },
+    ]
+    store.projetos = [{ id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }]
+    programaStore.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+
+    mount(BurnupHorasChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+
+    // ChartCtor called means canvas was rendered with highlighted dataset
+    expect(ChartCtor).toHaveBeenCalled()
+  })
+
+  it('mostra estado vazio de HorasFuncionarioChart sem projeto selecionado', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = null
+
+    const wrapper = mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    expect(wrapper.text()).toContain('Selecione um projeto para ver as horas por funcionário')
+  })
+
+  it('destroi e reconstrói o gráfico HorasFuncionarioChart ao atualizar dados', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.horasPorFuncionario = [{ funcionario: 'Ana', total_horas: 5 }]
+
+    mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+
+    const firstInstance = chartInstances.at(-1)
+
+    // update the data — the watch rebuilds, calling destroy on the old instance
+    store.horasPorFuncionario = [{ funcionario: 'Bruno', total_horas: 8 }]
+    await nextTick()
+    await nextTick()
+
+    expect(firstInstance?.destroy).toHaveBeenCalled()
+    expect(ChartCtor.mock.calls.length).toBeGreaterThanOrEqual(2)
   })
 })

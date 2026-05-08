@@ -279,3 +279,32 @@ describe('buscarProgramas: retorno antecipado quando programa já selecionado', 
     expect(axios.get).not.toHaveBeenCalled()
   })
 })
+
+describe('Unitário: limpar', () => {
+  it('limpa programaSelecionado, resumo, distribuicaoStatus e tabelaProjetos', () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Alpha' }
+    store.resumo = { custo_estimado: 1000, custo_real: 900, horas_estimadas: 40, horas_realizadas: 35, total_projetos: 3 }
+    store.distribuicaoStatus = { total: 3, status: [] }
+    store.tabelaProjetos = tabelaProjetosMock
+    store.limpar()
+    expect(store.programaSelecionado).toBeNull()
+    expect(store.resumo).toBeNull()
+    expect(store.distribuicaoStatus).toBeNull()
+    expect(store.tabelaProjetos).toBeNull()
+  })
+})
+
+describe('Unitário: tabelaProjetosItens getter', () => {
+  it('retorna array vazio quando tabelaProjetos é null', () => {
+    const store = useProgramaStore()
+    expect(store.tabelaProjetosItens).toEqual([])
+  })
+
+  it('retorna results quando tabelaProjetos está preenchido', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
+    const store = useProgramaStore()
+    await store.buscarTabelaProjetos(1)
+    expect(store.tabelaProjetosItens).toEqual(tabelaProjetosMock.results)
+  })
+})
