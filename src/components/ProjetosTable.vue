@@ -30,16 +30,24 @@
         <table class="projetos-table">
           <thead>
             <tr>
-              <th class="col-nome">Nome do Projeto</th>
-              <th class="col-responsavel">Responsável</th>
-              <th class="col-status">Status</th>
+              <th class="col-nome col-sortable" @click="ordenar('nome_projeto')">
+                Nome do Projeto <span class="sort-icon">{{ sortIcon('nome_projeto') }}</span>
+              </th>
+              <th class="col-responsavel col-sortable" @click="ordenar('responsavel')">
+                Responsável <span class="sort-icon">{{ sortIcon('responsavel') }}</span>
+              </th>
+              <th class="col-status col-sortable" @click="ordenar('status')">
+                Status <span class="sort-icon">{{ sortIcon('status') }}</span>
+              </th>
               <th class="col-horas">Horas Est.</th>
               <th class="col-horas">Horas Real.</th>
               <th class="col-tarefas">Tarefas Conc. (%)</th>
               <th class="col-desvio">Desvio (h)</th>
               <th class="col-data">Data Última Atividade</th>
               <th class="col-dias">Dias desde Última Atividade</th>
-              <th class="col-acao">Ação</th>
+              <th class="col-acao col-sortable" @click="ordenar('acao')">
+                Ação <span class="sort-icon">{{ sortIcon('acao') }}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -85,20 +93,24 @@
               <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
               <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
               <td class="col-acao">
-                <div
-                  v-if="acaoLabel(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo) === null"
-                  class="acao-badge"
-                  :class="acaoClass(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo)"
-                >
-                  <v-icon size="16">mdi-check-circle</v-icon>
-                </div>
-                <div
-                  v-else
-                  class="acao-badge"
-                  :class="acaoClass(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo)"
-                >
-                  <span class="acao-dot" />
-                  <span>{{ acaoLabel(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo) }}</span>
+                <div class="acao-badge" :class="acaoBadgeClass(projeto.acao)">
+                  <template v-if="projeto.acao.startsWith('check')">
+                    <v-icon size="16">mdi-check-circle</v-icon>
+                  </template>
+                  <template v-else-if="projeto.acao === 'suspenso'">
+                    <span>—</span>
+                  </template>
+                  <template v-else-if="projeto.acao === 'corrigir-status'">
+                    <span class="acao-dot" />
+                    <span>Corrigir status</span>
+                  </template>
+                  <template v-else-if="projeto.acao === 'outro'">
+                    <v-icon size="16">mdi-help-circle-outline</v-icon>
+                  </template>
+                  <template v-else>
+                    <span class="acao-dot" />
+                    <span>Priorizar</span>
+                  </template>
                 </div>
               </td>
             </tr>
@@ -136,7 +148,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { useProgramaStore } from '@/stores/programa'
 
   const store = useProgramaStore()
@@ -166,6 +178,17 @@
     await store.buscarTabelaProjetos(store.programaSelecionado.id, page)
   }
 
+  async function ordenar (campo: string) {
+    if (!store.programaSelecionado) return
+    const novaDir = store.tabelaSortBy === campo && store.tabelaSortDir === 'asc' ? 'desc' : 'asc'
+    await store.buscarTabelaProjetos(store.programaSelecionado.id, 1, campo, novaDir)
+  }
+
+  function sortIcon (campo: string): string {
+    if (store.tabelaSortBy !== campo) return '⇅'
+    return store.tabelaSortDir === 'asc' ? '↑' : '↓'
+  }
+
   function statusClass (status: string): string {
     const map: Record<string, string> = {
       'Planejamento': 'status-planejamento',
@@ -181,33 +204,18 @@
     return `${day}/${month}/${year}`
   }
 
-  function acaoClass (totalTarefas: number, tarefasConcluidas: number, dentroDoPrazo: boolean): string {
-    const todasConcluidas = totalTarefas > 0 && tarefasConcluidas === totalTarefas
-    const nenhumaConcluida = tarefasConcluidas === 0
-
-    if (todasConcluidas) {
-      return dentroDoPrazo ? 'acao-verde' : 'acao-vermelho'
+  function acaoBadgeClass (acao: string): string {
+    const map: Record<string, string> = {
+      'check-verde': 'acao-verde',
+      'check-amarelo': 'acao-amarelo',
+      'check-vermelho': 'acao-vermelho',
+      'priorizar-verde': 'acao-verde',
+      'priorizar-vermelho': 'acao-vermelho',
+      'corrigir-status': 'acao-laranja',
+      'suspenso': 'acao-neutro',
+      'outro': 'acao-azul',
     }
-    if (nenhumaConcluida) {
-      return dentroDoPrazo ? 'acao-laranja' : 'acao-vermelho'
-    }
-    // parcialmente concluídas
-    return dentroDoPrazo ? 'acao-amarelo' : 'acao-amarelo'
-  }
-
-  // returns null when there's nothing to do (show icon only)
-  function acaoLabel (totalTarefas: number, tarefasConcluidas: number, dentroDoPrazo: boolean): string | null {
-    const todasConcluidas = totalTarefas > 0 && tarefasConcluidas === totalTarefas
-
-    if (todasConcluidas) {
-      return null
-    }
-    const nenhumaConcluida = tarefasConcluidas === 0
-    if (nenhumaConcluida) {
-      return 'Priorizar'
-    }
-    // parcialmente concluídas
-    return dentroDoPrazo ? 'Atenção' : 'Priorizar'
+    return map[acao] ?? 'acao-azul'
   }
 </script>
 
@@ -407,6 +415,36 @@
 
 .acao-vermelho .acao-dot {
   background: #EF4444;
+}
+
+.acao-neutro {
+  background: #F3F4F6;
+  color: #6B7280;
+}
+
+.acao-azul {
+  background: #EEF2FF;
+  color: #3730A3;
+}
+
+.acao-azul :deep(.v-icon) {
+  color: #6366F1;
+}
+
+.col-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.col-sortable:hover {
+  color: #374151;
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.6;
 }
 
 .col-nome { min-width: 160px; }

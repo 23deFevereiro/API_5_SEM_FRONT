@@ -66,6 +66,7 @@ export type TabelaProjeto = {
   data_ultima_atividade: string | null
   dias_desde_ultima_atividade: number | null
   sem_horas_registradas: boolean
+  acao: string
 }
 
 export type TabelaProjetosPaginada = {
@@ -90,6 +91,8 @@ export const useProgramaStore = defineStore('programa', {
     carregandoBurnupCusto: false,
     tabelaProjetos: null as TabelaProjetosPaginada | null,
     carregandoTabela: false,
+    tabelaSortBy: 'nome_projeto' as string,
+    tabelaSortDir: 'asc' as 'asc' | 'desc',
   }),
 
   getters: {
@@ -150,10 +153,17 @@ export const useProgramaStore = defineStore('programa', {
       }
     },
 
-    async buscarTabelaProjetos (programaId: number, page = 1) {
+    async buscarTabelaProjetos (programaId: number, page = 1, sortBy?: string, sortDir?: 'asc' | 'desc') {
+      if (sortBy !== undefined) this.tabelaSortBy = sortBy
+      if (sortDir !== undefined) this.tabelaSortDir = sortDir
       this.carregandoTabela = true
       try {
-        const response = await axios.get(apiUrl(`/api/programas/${programaId}/tabela-projetos/?page=${page}`))
+        const params = new URLSearchParams({
+          page: String(page),
+          sort_by: this.tabelaSortBy,
+          sort_dir: this.tabelaSortDir,
+        })
+        const response = await axios.get(apiUrl(`/api/programas/${programaId}/tabela-projetos/?${params}`))
         this.tabelaProjetos = response.data
         return response.data as TabelaProjetosPaginada
       } finally {
