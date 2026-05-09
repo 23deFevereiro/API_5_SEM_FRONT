@@ -10,102 +10,139 @@
       </span>
     </div>
 
-    <div v-if="!store.programaSelecionado" class="empty-state">
-      <v-icon color="#9CA3AF" size="36">mdi-folder-off-outline</v-icon>
-      <span>Selecione um programa para ver os projetos</span>
-    </div>
+    <div class="content-area">
+      <div v-if="!store.programaSelecionado" class="empty-state">
+        <v-icon color="#9CA3AF" size="36">mdi-folder-off-outline</v-icon>
+        <span>Selecione um programa para ver os projetos</span>
+      </div>
 
-    <div v-else-if="store.carregandoTabela" class="empty-state">
-      <v-progress-circular color="#6366F1" indeterminate size="26" width="2" />
-      <span>Carregando projetos...</span>
-    </div>
+      <div v-else-if="store.carregandoTabela && projetos.length === 0" class="empty-state">
+        <v-progress-circular color="#6366F1" indeterminate size="26" width="2" />
+        <span>Carregando projetos...</span>
+      </div>
 
-    <div v-else-if="projetos.length === 0" class="empty-state">
-      <v-icon color="#9CA3AF" size="36">mdi-folder-alert-outline</v-icon>
-      <span>Nenhum projeto encontrado para este programa</span>
-    </div>
+      <div v-else-if="projetos.length === 0" class="empty-state">
+        <v-icon color="#9CA3AF" size="36">mdi-folder-alert-outline</v-icon>
+        <span>Nenhum projeto encontrado para este programa</span>
+      </div>
 
-    <div v-else class="table-wrapper">
-      <table class="projetos-table">
-        <thead>
-          <tr>
-            <th class="col-nome">Nome do Projeto</th>
-            <th class="col-responsavel">Responsável</th>
-            <th class="col-status">Status</th>
-            <th class="col-horas">Horas Est.</th>
-            <th class="col-horas">Horas Real.</th>
-            <th class="col-tarefas">Tarefas Conc. (%)</th>
-            <th class="col-desvio">Desvio (h)</th>
-            <th class="col-acao">Ação</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(projeto, i) in projetos"
-            :key="i"
-            class="table-row"
-          >
-            <td class="col-nome">
-              <div class="projeto-nome">
-                <span class="projeto-dot" />
-                {{ projeto.nome_projeto }}
-              </div>
-            </td>
-            <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
-            <td class="col-status">
-              <span class="status-badge" :class="statusClass(projeto.status)">
-                {{ projeto.status }}
-              </span>
-            </td>
-            <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
-            <td class="col-horas">{{ projeto.horas_realizadas.toFixed(1) }}h</td>
-            <td class="col-tarefas">
-              <div class="tarefas-progress">
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill"
-                    :style="{ width: projeto.percentual_tarefas_concluidas + '%' }"
-                  />
-                </div>
-                <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
-              </div>
-            </td>
-            <td class="col-desvio" :class="{ 'desvio-positivo': projeto.desvio_horas > 0, 'desvio-negativo': projeto.desvio_horas < 0 }">
-              {{ projeto.desvio_horas > 0 ? '+' : '' }}{{ projeto.desvio_horas.toFixed(1) }}h
-            </td>
-            <td class="col-acao">
-              <div class="acao-badge" :class="acaoClass(projeto.desvio_horas, projeto.percentual_desvio)">
-                <span class="acao-dot" />
-                <span>{{ acaoLabel(projeto.desvio_horas, projeto.percentual_desvio) }}</span>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else class="table-wrapper" :class="{ 'table-wrapper--loading': store.carregandoTabela }">
+        <div class="table-scroll">
+          <table class="projetos-table">
+            <thead>
+              <tr>
+                <th class="col-nome col-sortable" @click="ordenar('nome_projeto')">
+                  Nome do Projeto <span class="sort-icon">{{ sortIcon('nome_projeto') }}</span>
+                </th>
+                <th class="col-responsavel col-sortable" @click="ordenar('responsavel')">
+                  Responsável <span class="sort-icon">{{ sortIcon('responsavel') }}</span>
+                </th>
+                <th class="col-status col-sortable" @click="ordenar('status')">
+                  Status <span class="sort-icon">{{ sortIcon('status') }}</span>
+                </th>
+                <th class="col-horas">Horas Est.</th>
+                <th class="col-horas">Horas Real.</th>
+                <th class="col-tarefas">Tarefas Conc. (%)</th>
+                <th class="col-desvio">Desvio (h)</th>
+                <th class="col-data">Data Última Atividade</th>
+                <th class="col-dias">Dias desde Última Atividade</th>
+                <th class="col-acao col-sortable" @click="ordenar('acao')">
+                  Ação <span class="sort-icon">{{ sortIcon('acao') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(projeto, i) in projetos"
+                :key="i"
+                class="table-row"
+              >
+                <td class="col-nome">
+                  <div class="projeto-nome">
+                    <span class="projeto-dot" />
+                    {{ projeto.nome_projeto }}
+                  </div>
+                </td>
+                <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
+                <td class="col-status">
+                  <span class="status-badge" :class="statusClass(projeto.status)">
+                    {{ projeto.status || '—' }}
+                  </span>
+                </td>
+                <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
+                <td class="col-horas">{{ projeto.horas_realizadas.toFixed(1) }}h</td>
+                <td class="col-tarefas">
+                  <div class="tarefas-progress">
+                    <div class="progress-bar">
+                      <div
+                        class="progress-fill"
+                        :style="{ width: projeto.percentual_tarefas_concluidas + '%' }"
+                      />
+                    </div>
+                    <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
+                    <v-tooltip v-if="projeto.sem_horas_registradas" content-class="tooltip-sem-horas" location="top">
+                      <template #activator="{ props: tooltipProps }">
+                        <v-icon v-bind="tooltipProps" color="#F59E0B" size="14">mdi-alert-circle-outline</v-icon>
+                      </template>
+                      Existem tarefas, mas as horas não foram registradas
+                    </v-tooltip>
+                  </div>
+                </td>
+                <td class="col-desvio">
+                  {{ projeto.desvio_horas > 0 ? '+' : '' }}{{ projeto.desvio_horas.toFixed(1) }}h
+                </td>
+                <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
+                <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
+                <td class="col-acao">
+                  <div class="acao-badge" :class="acaoBadgeClass(projeto.acao)">
+                    <template v-if="projeto.acao.startsWith('check')">
+                      <v-icon size="16">mdi-check-circle</v-icon>
+                    </template>
+                    <template v-else-if="projeto.acao === 'suspenso'">
+                      <span>—</span>
+                    </template>
+                    <template v-else-if="projeto.acao === 'corrigir-status'">
+                      <span class="acao-dot" />
+                      <span>Corrigir status</span>
+                    </template>
+                    <template v-else-if="projeto.acao === 'outro'">
+                      <v-icon size="16">mdi-help-circle-outline</v-icon>
+                    </template>
+                    <template v-else>
+                      <span class="acao-dot" />
+                      <span>Priorizar</span>
+                    </template>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-      <div class="table-footer">
-        <span class="pagination-summary">
-          Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ totalProjetos }}
-        </span>
+        <div class="table-footer">
+          <span class="pagination-summary">
+            Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ totalProjetos }}
+          </span>
 
-        <div class="pagination-controls">
-          <button
-            class="pagination-button"
-            :disabled="store.carregandoTabela || paginaAtual <= 1"
-            type="button"
-            @click="trocarPagina(paginaAtual - 1)"
-          >
-            Anterior
-          </button>
-          <span class="pagination-page">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
-          <button
-            class="pagination-button"
-            :disabled="store.carregandoTabela || paginaAtual >= totalPaginas"
-            type="button"
-            @click="trocarPagina(paginaAtual + 1)"
-          >
-            Próxima
-          </button>
+          <div class="pagination-controls">
+            <button
+              class="pagination-button"
+              :disabled="store.carregandoTabela || paginaAtual <= 1"
+              type="button"
+              @click="trocarPagina(paginaAtual - 1)"
+            >
+              Anterior
+            </button>
+            <span class="pagination-page">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
+            <button
+              class="pagination-button"
+              :disabled="store.carregandoTabela || paginaAtual >= totalPaginas"
+              type="button"
+              @click="trocarPagina(paginaAtual + 1)"
+            >
+              Próxima
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -143,32 +180,63 @@
     await store.buscarTabelaProjetos(store.programaSelecionado.id, page)
   }
 
+  async function ordenar (campo: string) {
+    if (!store.programaSelecionado) return
+    const novaDir = store.tabelaSortBy === campo && store.tabelaSortDir === 'asc' ? 'desc' : 'asc'
+    await store.buscarTabelaProjetos(store.programaSelecionado.id, 1, campo, novaDir)
+  }
+
+  function sortIcon (campo: string): string {
+    if (store.tabelaSortBy !== campo) return '⇅'
+    return store.tabelaSortDir === 'asc' ? '↑' : '↓'
+  }
+
   function statusClass (status: string): string {
     const map: Record<string, string> = {
       'Planejamento': 'status-planejamento',
-      'Em desenvolvimento': 'status-desenvolvimento',
-      'Em testes': 'status-testes',
+      'Em andamento': 'status-desenvolvimento',
+      'Suspenso': 'status-suspenso',
       'Concluído': 'status-concluido',
     }
     return map[status] ?? 'status-default'
   }
 
-  function acaoClass (desvioHoras: number, percentualDesvio: number): string {
-    if (desvioHoras <= 0) return 'acao-verde'
-    if (percentualDesvio <= 5) return 'acao-verde'
-    if (percentualDesvio < 15) return 'acao-amarelo'
-    return 'acao-vermelho'
+  function formatarData (iso: string): string {
+    const [year, month, day] = iso.split('-')
+    return `${day}/${month}/${year}`
   }
 
-  function acaoLabel (desvioHoras: number, percentualDesvio: number): string {
-    if (desvioHoras <= 0) return 'Manter funcionamento'
-    if (percentualDesvio <= 5) return 'Manter funcionamento'
-    if (percentualDesvio < 15) return 'Monitorar'
-    return 'Revisar urgente'
+  function acaoBadgeClass (acao: string): string {
+    const map: Record<string, string> = {
+      'check-verde': 'acao-verde',
+      'check-amarelo': 'acao-amarelo',
+      'check-vermelho': 'acao-vermelho',
+      'priorizar-verde': 'acao-verde',
+      'priorizar-vermelho': 'acao-vermelho',
+      'corrigir-status': 'acao-laranja',
+      'suspenso': 'acao-neutro',
+      'outro': 'acao-azul',
+    }
+    return map[acao] ?? 'acao-azul'
   }
 </script>
 
 <style scoped>
+.content-area {
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-area .empty-state {
+  flex: 1;
+  justify-content: center;
+}
+
+.table-wrapper {
+  flex: 1;
+}
+
 .projetos-section {
   display: flex;
   flex-direction: column;
@@ -232,7 +300,6 @@
   flex-shrink: 0;
 }
 
-/* Status badges */
 .status-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -243,18 +310,13 @@
 }
 
 .status-planejamento {
-  background: #EFF6FF;
-  color: #1D4ED8;
+  background: #EEF2FF;
+  color: #4338CA;
 }
 
 .status-desenvolvimento {
-  background: #FEF3C7;
-  color: #92400E;
-}
-
-.status-testes {
-  background: #EDE9FE;
-  color: #7C3AED;
+  background: #EFF6FF;
+  color: #1D4ED8;
 }
 
 .status-concluido {
@@ -262,12 +324,21 @@
   color: #047857;
 }
 
+.status-atrasado {
+  background: #FEF2F2;
+  color: #B91C1C;
+}
+
+.status-suspenso {
+  background: #FFF7ED;
+  color: #C2410C;
+}
+
 .status-default {
   background: #F3F4F6;
   color: #4B5563;
 }
 
-/* Progress bar */
 .tarefas-progress {
   display: flex;
   align-items: center;
@@ -276,7 +347,8 @@
 }
 
 .progress-bar {
-  flex: 1;
+  width: 60px;
+  flex-shrink: 0;
   height: 6px;
   background: #E5E7EB;
   border-radius: 999px;
@@ -297,18 +369,15 @@
   text-align: right;
 }
 
-/* Desvio */
-.desvio-positivo {
-  color: #DC2626;
-  font-weight: 600;
+.table-wrapper--loading {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
-.desvio-negativo {
-  color: #059669;
-  font-weight: 600;
+.table-scroll {
+  overflow-x: auto;
 }
 
-/* Ação badges */
 .acao-badge {
   display: inline-flex;
   align-items: center;
@@ -345,6 +414,15 @@
   background: #F59E0B;
 }
 
+.acao-laranja {
+  background: #FFF7ED;
+  color: #C2410C;
+}
+
+.acao-laranja .acao-dot {
+  background: #F97316;
+}
+
 .acao-vermelho {
   background: #FEF2F2;
   color: #B91C1C;
@@ -354,12 +432,49 @@
   background: #EF4444;
 }
 
-/* Column widths */
+.acao-neutro {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+
+.acao-azul {
+  background: #EEF2FF;
+  color: #3730A3;
+}
+
+.acao-azul :deep(.v-icon) {
+  color: #6366F1;
+}
+
+.col-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.col-sortable:hover {
+  color: #374151;
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
 .col-nome { min-width: 160px; }
 .col-responsavel { min-width: 120px; }
-.col-status { min-width: 120px; }
-.col-horas { min-width: 90px; text-align: right; }
+.col-status { min-width: 140px; }
+.col-horas { min-width: 90px }
 .col-tarefas { min-width: 140px; }
-.col-desvio { min-width: 90px; text-align: right; }
+.col-desvio { min-width: 90px; font-weight: 600; }
+.col-data { min-width: 130px; }
+.col-dias { min-width: 130px; }
 .col-acao { min-width: 160px; }
+
+:deep(.tooltip-sem-horas) {
+  background: #1F2937 !important;
+  color: #F9FAFB !important;
+  font-size: 12px;
+}
 </style>

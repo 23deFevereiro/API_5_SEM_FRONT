@@ -18,6 +18,7 @@
     </div>
 
     <div v-else class="chart-wrapper">
+      <div ref="legendRef" class="chart-legend" />
       <canvas ref="canvasRef" />
     </div>
   </div>
@@ -63,12 +64,35 @@
   const COR_REALCE_HOVER = '#1D4ED8'
 
   const canvasRef = ref<HTMLCanvasElement | null>(null)
+  const legendRef = ref<HTMLDivElement | null>(null)
   const chartInstance = shallowRef<Chart | null>(null)
 
   function destruirGrafico () {
     if (chartInstance.value) {
       chartInstance.value.destroy()
       chartInstance.value = null
+    }
+    if (legendRef.value) legendRef.value.innerHTML = ''
+  }
+
+  function buildLegend () {
+    if (!legendRef.value || !chartInstance.value) return
+    legendRef.value.innerHTML = ''
+    legendRef.value.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px 16px;padding:8px 0 4px;'
+
+    for (const ds of chartInstance.value.data.datasets) {
+      const item = document.createElement('div')
+      item.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;font-family:inherit;'
+
+      const box = document.createElement('span')
+      box.style.cssText = `display:inline-block;width:20px;height:8px;border-radius:2px;flex-shrink:0;background:${ds.borderColor as string};`
+
+      const label = document.createElement('span')
+      label.textContent = ds.label ?? ''
+
+      item.append(box)
+      item.append(label)
+      legendRef.value.append(item)
     }
   }
 
@@ -111,7 +135,7 @@
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { position: 'top' },
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: ctx => `${ctx.dataset.label}: ${props.formatarValor(Number(ctx.parsed.y ?? 0))}`,
@@ -130,6 +154,7 @@
     })
 
     aplicarRealce()
+    buildLegend()
   }
 
   function aplicarRealce () {
@@ -144,6 +169,7 @@
       ;(dataset as { hoverBackgroundColor?: string }).hoverBackgroundColor = realcado ? COR_REALCE_HOVER : COR_NEUTRA
     }
     chartInstance.value.update()
+    buildLegend()
   }
 
   watch(() => props.dados, async novo => {
@@ -211,7 +237,22 @@
 
 .chart-wrapper {
   padding: 12px 16px 20px;
-  height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-wrapper canvas {
+  display: block;
+  height: 300px !important;
+  width: 100%;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 24px;
 }
 
 .empty-state {

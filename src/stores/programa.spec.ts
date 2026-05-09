@@ -263,11 +263,65 @@ describe('Integração: tabela de projetos paginada', () => {
     expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/programas/7/tabela-projetos/?page=3'))
   })
 
+  it('inclui sort_by e sort_dir padrão na query string', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
+    const store = useProgramaStore()
+    await store.buscarTabelaProjetos(1)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('sort_by=nome_projeto'))
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('sort_dir=asc'))
+  })
+
+  it('atualiza tabelaSortBy e tabelaSortDir quando passados explicitamente', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
+    const store = useProgramaStore()
+    await store.buscarTabelaProjetos(1, 1, 'acao', 'desc')
+    expect(store.tabelaSortBy).toBe('acao')
+    expect(store.tabelaSortDir).toBe('desc')
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('sort_by=acao'))
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('sort_dir=desc'))
+  })
+
+  it('não altera tabelaSortBy/Dir quando sortBy/sortDir são undefined', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
+    const store = useProgramaStore()
+    store.tabelaSortBy = 'status'
+    store.tabelaSortDir = 'desc'
+    await store.buscarTabelaProjetos(1, 2)
+    expect(store.tabelaSortBy).toBe('status')
+    expect(store.tabelaSortDir).toBe('desc')
+  })
+
+  it('finaliza com carregandoTabela false após resposta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
+    const store = useProgramaStore()
+    await store.buscarTabelaProjetos(1)
+    expect(store.carregandoTabela).toBe(false)
+  })
+
+  it('finaliza com carregandoTabela false mesmo em caso de erro', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('erro'))
+    const store = useProgramaStore()
+    await expect(store.buscarTabelaProjetos(1)).rejects.toThrow('erro')
+    expect(store.carregandoTabela).toBe(false)
+  })
+
   it('limpa a tabela ao remover o programa selecionado', async () => {
     const store = useProgramaStore()
     store.tabelaProjetos = tabelaProjetosMock
     await store.selecionarPrograma(null)
     expect(store.tabelaProjetos).toBeNull()
+  })
+})
+
+describe('Unitário: tabelaSortBy e tabelaSortDir iniciais', () => {
+  it('inicia com tabelaSortBy = "nome_projeto"', () => {
+    const store = useProgramaStore()
+    expect(store.tabelaSortBy).toBe('nome_projeto')
+  })
+
+  it('inicia com tabelaSortDir = "asc"', () => {
+    const store = useProgramaStore()
+    expect(store.tabelaSortDir).toBe('asc')
   })
 })
 
