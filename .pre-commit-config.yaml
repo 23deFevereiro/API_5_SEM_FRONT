@@ -1,0 +1,42 @@
+repos:
+  # ── Hooks gerais ────────────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: no-commit-to-branch
+        args: [--branch, main, --branch, master]
+
+  # ── ESLint + Prettier via npm (usa scripts do package.json) ─────────────────
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint
+        language: system
+        entry: npm run lint
+        files: \.(js|ts|vue)$
+        pass_filenames: true
+
+
+  # ── Validação da mensagem de commit ─────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: validate-commit-msg
+        name: Validate commit message format
+        language: python
+        entry: python scripts/validate_commit_msg.py
+        stages: [commit-msg]
+        always_run: true
+
+  # ── Validação do nome da branch ──────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: validate-branch-name
+        name: Validate branch name format
+        language: python
+        entry: python scripts/validate_branch_name.py
+        stages: [pre-commit]
+        always_run: true
