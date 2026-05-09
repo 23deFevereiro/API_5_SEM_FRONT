@@ -71,6 +71,12 @@
                     />
                   </div>
                   <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
+                  <v-tooltip v-if="projeto.sem_horas_registradas" content-class="tooltip-sem-horas" location="top">
+                    <template #activator="{ props: tooltipProps }">
+                      <v-icon v-bind="tooltipProps" color="#F59E0B" size="14">mdi-alert-circle-outline</v-icon>
+                    </template>
+                    Existem tarefas, mas as horas não foram registradas
+                  </v-tooltip>
                 </div>
               </td>
               <td class="col-desvio">
@@ -318,7 +324,8 @@
 }
 
 .progress-bar {
-  flex: 1;
+  width: 60px;
+  flex-shrink: 0;
   height: 6px;
   background: #E5E7EB;
   border-radius: 999px;
@@ -411,4 +418,10 @@
 .col-data { min-width: 130px; }
 .col-dias { min-width: 130px; }
 .col-acao { min-width: 160px; }
+
+:deep(.tooltip-sem-horas) {
+  background: #1F2937 !important;
+  color: #F9FAFB !important;
+  font-size: 12px;
+}
 </style>
