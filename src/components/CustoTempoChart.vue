@@ -1,116 +1,42 @@
 <template>
-  <div class="chart-wrapper">
-    <canvas ref="canvasRef" />
-  </div>
+  <BurnupChart
+    bg-header="#D1FAE5"
+    :carregando="!overviewData"
+    :codigos-selecionados="codigosSelecionados"
+    cor-header="#10B981"
+    cor-loading="#10B981"
+    :dados="overviewData"
+    :extrator-chave="extratorChave"
+    :extrator-valor="extratorValor"
+    :formatar-valor="formatarMoeda"
+    icone-header="mdi-currency-usd"
+    icone-vazio="mdi-currency-usd-off"
+    texto-vazio="Nenhum registro de custo encontrado"
+    titulo="Burnup de Custo por Projeto"
+    titulo-eixo-y="Custo (R$)"
+  />
 </template>
 
 <script setup lang="ts">
-  import { Chart } from 'chart.js'
   import { storeToRefs } from 'pinia'
-  import { ref, shallowRef, watch } from 'vue'
+  import { computed } from 'vue'
+  import { useProgramaStore } from '@/stores/programa'
   import { useProjetoStore } from '@/stores/projeto'
+  import BurnupChart from './BurnupChart.vue'
 
   const store = useProjetoStore()
-  const { overviewData, projetoSelecionado } = storeToRefs(store)
-  const canvasRef = ref<HTMLCanvasElement | null>(null)
+  const { overviewData } = storeToRefs(store)
+  const { programaSelecionado } = storeToRefs(useProgramaStore())
 
-  const chartInstance = shallowRef<null | Chart>(null)
+  const codigosSelecionados = computed(() =>
+    programaSelecionado.value
+      ? store.projetos.map(p => p.codigo_projeto)
+      : null,
+  )
 
-  function buildChart (raw: any) {
-    if (!canvasRef.value || !overviewData.value) return
-    // get all months
-    const labels = raw.map((item: any) => item.date_str)
+  type CustoItem = { codigo_projeto: string, cost: number }
 
-    // get unique projects
-    const projects: any = {}
-
-    for (const [monthIndex, month] of raw.entries()) {
-      for (const v of month.values) {
-        if (!projects[v.codigo_projeto]) {
-          projects[v.codigo_projeto] = {
-            label: v.codigo_projeto,
-            data: Array.from({ length: raw.length }).fill(null),
-            spanGaps: true,
-          }
-        }
-
-        projects[v.codigo_projeto].data[monthIndex] = v.cost
-      }
-    }
-
-    const datasets = Object.values(projects)
-
-    const chartData = {
-      labels,
-      datasets,
-    }
-
-    chartInstance.value = new Chart(canvasRef.value, {
-      type: 'line',
-      data: chartData,
-      options: {
-        responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            position: 'top',
-          },
-          tooltip: {
-            callbacks: {
-              label: function (context: any) {
-                return `${context.dataset.label}: R$ ${context.parsed.y.toLocaleString()}`
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Mês',
-            },
-          },
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Custo (R$)',
-            },
-          },
-        },
-      },
-    })
-  }
-
-  function updateChart () {
-    if (!chartInstance.value) return
-    for (const dataset of chartInstance.value.data.datasets) {
-      const selected = projetoSelecionado.value?.codigo_projeto === dataset.label
-      dataset.borderColor = selected ? '#2563EB' : undefined
-      dataset.backgroundColor = selected ? '#2563EB' : undefined
-      dataset.hoverBackgroundColor = selected ? '1D4ED8' : undefined
-    }
-    chartInstance.value.update()
-  }
-
-  watch([overviewData], () => {
-    if (!overviewData.value) return
-    buildChart(overviewData.value)
-  })
-
-  watch([projetoSelecionado], () => {
-    if (!chartInstance.value) return
-    updateChart()
-  })
-
+  const extratorChave = (v: CustoItem) => v.codigo_projeto
+  const extratorValor = (v: CustoItem) => v.cost
+  const formatarMoeda = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 </script>
-
-<style lang="scss" scoped>
-.chart-wrapper {
-  padding: 8px 16px 20px;
-  height: 380px;
-}
-</style>

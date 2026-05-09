@@ -8,20 +8,20 @@
 
     <v-navigation-drawer
       v-model="drawer"
-      :rail="!mobile && rail"
-      :temporary="mobile"
       color="#1E293B"
       dark
+      :rail="!mobile && rail"
+      :temporary="mobile"
     >
       <div class="sidebar-header">
-        <v-icon v-if="!rail || mobile" size="28" color="white" class="mr-2">mdi-chart-box-outline</v-icon>
+        <v-icon v-if="!rail || mobile" class="mr-2" color="white" size="28">mdi-chart-box-outline</v-icon>
         <span v-if="!rail || mobile" class="sidebar-title">Lunae</span>
         <v-btn
           v-if="!mobile"
-          variant="text"
+          color="white"
           :icon="rail ? 'mdi-chevron-right' : 'mdi-chevron-left'"
           size="small"
-          color="white"
+          variant="text"
           @click="rail = !rail"
         />
       </div>
@@ -32,12 +32,12 @@
         <v-list-item
           v-for="item in menuItems"
           :key="item.route"
-          :to="item.route"
-          :prepend-icon="item.icon"
-          :title="item.title"
-          rounded="lg"
-          color="white"
           class="sidebar-item"
+          color="white"
+          :prepend-icon="item.icon"
+          rounded="lg"
+          :title="item.title"
+          :to="item.route"
           @click="mobile && (drawer = false)"
         />
       </v-list>
@@ -46,10 +46,10 @@
     <v-main>
       <v-progress-linear
         v-if="isLoading"
-        indeterminate
+        class="global-loader"
         color="primary"
         height="3"
-        class="global-loader"
+        indeterminate
       />
       <div class="page-shell">
         <h1 v-if="!mobile" class="page-title">{{ currentPageTitle }}</h1>
@@ -60,10 +60,6 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
-  import { useRoute } from 'vue-router'
-  import { useDisplay } from 'vuetify'
-  import { useProjetoStore } from '@/stores/projeto'
   import {
     BarController,
     BarElement,
@@ -76,6 +72,10 @@
     PointElement,
     Tooltip,
   } from 'chart.js'
+  import { computed, ref } from 'vue'
+  import { useRoute } from 'vue-router'
+  import { useDisplay } from 'vuetify'
+  import { useProjetoStore } from '@/stores/projeto'
 
   Chart.register(LineController, LineElement, PointElement, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
 
@@ -130,6 +130,7 @@
 .page-shell {
   padding: 24px 32px;
   max-width: 1200px;
+  margin: 0 auto;
 }
 
 .page-title {
