@@ -10,137 +10,139 @@
       </span>
     </div>
 
-    <div v-if="!store.programaSelecionado" class="empty-state">
-      <v-icon color="#9CA3AF" size="36">mdi-folder-off-outline</v-icon>
-      <span>Selecione um programa para ver os projetos</span>
-    </div>
-
-    <div v-else-if="store.carregandoTabela && projetos.length === 0" class="empty-state">
-      <v-progress-circular color="#6366F1" indeterminate size="26" width="2" />
-      <span>Carregando projetos...</span>
-    </div>
-
-    <div v-else-if="projetos.length === 0" class="empty-state">
-      <v-icon color="#9CA3AF" size="36">mdi-folder-alert-outline</v-icon>
-      <span>Nenhum projeto encontrado para este programa</span>
-    </div>
-
-    <div v-else class="table-wrapper" :class="{ 'table-wrapper--loading': store.carregandoTabela }">
-      <div class="table-scroll">
-        <table class="projetos-table">
-          <thead>
-            <tr>
-              <th class="col-nome col-sortable" @click="ordenar('nome_projeto')">
-                Nome do Projeto <span class="sort-icon">{{ sortIcon('nome_projeto') }}</span>
-              </th>
-              <th class="col-responsavel col-sortable" @click="ordenar('responsavel')">
-                Responsável <span class="sort-icon">{{ sortIcon('responsavel') }}</span>
-              </th>
-              <th class="col-status col-sortable" @click="ordenar('status')">
-                Status <span class="sort-icon">{{ sortIcon('status') }}</span>
-              </th>
-              <th class="col-horas">Horas Est.</th>
-              <th class="col-horas">Horas Real.</th>
-              <th class="col-tarefas">Tarefas Conc. (%)</th>
-              <th class="col-desvio">Desvio (h)</th>
-              <th class="col-data">Data Última Atividade</th>
-              <th class="col-dias">Dias desde Última Atividade</th>
-              <th class="col-acao col-sortable" @click="ordenar('acao')">
-                Ação <span class="sort-icon">{{ sortIcon('acao') }}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(projeto, i) in projetos"
-              :key="i"
-              class="table-row"
-            >
-              <td class="col-nome">
-                <div class="projeto-nome">
-                  <span class="projeto-dot" />
-                  {{ projeto.nome_projeto }}
-                </div>
-              </td>
-              <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
-              <td class="col-status">
-                <span class="status-badge" :class="statusClass(projeto.status)">
-                  {{ projeto.status || '—' }}
-                </span>
-              </td>
-              <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
-              <td class="col-horas">{{ projeto.horas_realizadas.toFixed(1) }}h</td>
-              <td class="col-tarefas">
-                <div class="tarefas-progress">
-                  <div class="progress-bar">
-                    <div
-                      class="progress-fill"
-                      :style="{ width: projeto.percentual_tarefas_concluidas + '%' }"
-                    />
-                  </div>
-                  <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
-                  <v-tooltip v-if="projeto.sem_horas_registradas" content-class="tooltip-sem-horas" location="top">
-                    <template #activator="{ props: tooltipProps }">
-                      <v-icon v-bind="tooltipProps" color="#F59E0B" size="14">mdi-alert-circle-outline</v-icon>
-                    </template>
-                    Existem tarefas, mas as horas não foram registradas
-                  </v-tooltip>
-                </div>
-              </td>
-              <td class="col-desvio">
-                {{ projeto.desvio_horas > 0 ? '+' : '' }}{{ projeto.desvio_horas.toFixed(1) }}h
-              </td>
-              <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
-              <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
-              <td class="col-acao">
-                <div class="acao-badge" :class="acaoBadgeClass(projeto.acao)">
-                  <template v-if="projeto.acao.startsWith('check')">
-                    <v-icon size="16">mdi-check-circle</v-icon>
-                  </template>
-                  <template v-else-if="projeto.acao === 'suspenso'">
-                    <span>—</span>
-                  </template>
-                  <template v-else-if="projeto.acao === 'corrigir-status'">
-                    <span class="acao-dot" />
-                    <span>Corrigir status</span>
-                  </template>
-                  <template v-else-if="projeto.acao === 'outro'">
-                    <v-icon size="16">mdi-help-circle-outline</v-icon>
-                  </template>
-                  <template v-else>
-                    <span class="acao-dot" />
-                    <span>Priorizar</span>
-                  </template>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="content-area">
+      <div v-if="!store.programaSelecionado" class="empty-state">
+        <v-icon color="#9CA3AF" size="36">mdi-folder-off-outline</v-icon>
+        <span>Selecione um programa para ver os projetos</span>
       </div>
 
-      <div class="table-footer">
-        <span class="pagination-summary">
-          Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ totalProjetos }}
-        </span>
+      <div v-else-if="store.carregandoTabela && projetos.length === 0" class="empty-state">
+        <v-progress-circular color="#6366F1" indeterminate size="26" width="2" />
+        <span>Carregando projetos...</span>
+      </div>
 
-        <div class="pagination-controls">
-          <button
-            class="pagination-button"
-            :disabled="store.carregandoTabela || paginaAtual <= 1"
-            type="button"
-            @click="trocarPagina(paginaAtual - 1)"
-          >
-            Anterior
-          </button>
-          <span class="pagination-page">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
-          <button
-            class="pagination-button"
-            :disabled="store.carregandoTabela || paginaAtual >= totalPaginas"
-            type="button"
-            @click="trocarPagina(paginaAtual + 1)"
-          >
-            Próxima
-          </button>
+      <div v-else-if="projetos.length === 0" class="empty-state">
+        <v-icon color="#9CA3AF" size="36">mdi-folder-alert-outline</v-icon>
+        <span>Nenhum projeto encontrado para este programa</span>
+      </div>
+
+      <div v-else class="table-wrapper" :class="{ 'table-wrapper--loading': store.carregandoTabela }">
+        <div class="table-scroll">
+          <table class="projetos-table">
+            <thead>
+              <tr>
+                <th class="col-nome col-sortable" @click="ordenar('nome_projeto')">
+                  Nome do Projeto <span class="sort-icon">{{ sortIcon('nome_projeto') }}</span>
+                </th>
+                <th class="col-responsavel col-sortable" @click="ordenar('responsavel')">
+                  Responsável <span class="sort-icon">{{ sortIcon('responsavel') }}</span>
+                </th>
+                <th class="col-status col-sortable" @click="ordenar('status')">
+                  Status <span class="sort-icon">{{ sortIcon('status') }}</span>
+                </th>
+                <th class="col-horas">Horas Est.</th>
+                <th class="col-horas">Horas Real.</th>
+                <th class="col-tarefas">Tarefas Conc. (%)</th>
+                <th class="col-desvio">Desvio (h)</th>
+                <th class="col-data">Data Última Atividade</th>
+                <th class="col-dias">Dias desde Última Atividade</th>
+                <th class="col-acao col-sortable" @click="ordenar('acao')">
+                  Ação <span class="sort-icon">{{ sortIcon('acao') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(projeto, i) in projetos"
+                :key="i"
+                class="table-row"
+              >
+                <td class="col-nome">
+                  <div class="projeto-nome">
+                    <span class="projeto-dot" />
+                    {{ projeto.nome_projeto }}
+                  </div>
+                </td>
+                <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
+                <td class="col-status">
+                  <span class="status-badge" :class="statusClass(projeto.status)">
+                    {{ projeto.status || '—' }}
+                  </span>
+                </td>
+                <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
+                <td class="col-horas">{{ projeto.horas_realizadas.toFixed(1) }}h</td>
+                <td class="col-tarefas">
+                  <div class="tarefas-progress">
+                    <div class="progress-bar">
+                      <div
+                        class="progress-fill"
+                        :style="{ width: projeto.percentual_tarefas_concluidas + '%' }"
+                      />
+                    </div>
+                    <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
+                    <v-tooltip v-if="projeto.sem_horas_registradas" content-class="tooltip-sem-horas" location="top">
+                      <template #activator="{ props: tooltipProps }">
+                        <v-icon v-bind="tooltipProps" color="#F59E0B" size="14">mdi-alert-circle-outline</v-icon>
+                      </template>
+                      Existem tarefas, mas as horas não foram registradas
+                    </v-tooltip>
+                  </div>
+                </td>
+                <td class="col-desvio">
+                  {{ projeto.desvio_horas > 0 ? '+' : '' }}{{ projeto.desvio_horas.toFixed(1) }}h
+                </td>
+                <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
+                <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
+                <td class="col-acao">
+                  <div class="acao-badge" :class="acaoBadgeClass(projeto.acao)">
+                    <template v-if="projeto.acao.startsWith('check')">
+                      <v-icon size="16">mdi-check-circle</v-icon>
+                    </template>
+                    <template v-else-if="projeto.acao === 'suspenso'">
+                      <span>—</span>
+                    </template>
+                    <template v-else-if="projeto.acao === 'corrigir-status'">
+                      <span class="acao-dot" />
+                      <span>Corrigir status</span>
+                    </template>
+                    <template v-else-if="projeto.acao === 'outro'">
+                      <v-icon size="16">mdi-help-circle-outline</v-icon>
+                    </template>
+                    <template v-else>
+                      <span class="acao-dot" />
+                      <span>Priorizar</span>
+                    </template>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-footer">
+          <span class="pagination-summary">
+            Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ totalProjetos }}
+          </span>
+
+          <div class="pagination-controls">
+            <button
+              class="pagination-button"
+              :disabled="store.carregandoTabela || paginaAtual <= 1"
+              type="button"
+              @click="trocarPagina(paginaAtual - 1)"
+            >
+              Anterior
+            </button>
+            <span class="pagination-page">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
+            <button
+              class="pagination-button"
+              :disabled="store.carregandoTabela || paginaAtual >= totalPaginas"
+              type="button"
+              @click="trocarPagina(paginaAtual + 1)"
+            >
+              Próxima
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -220,6 +222,21 @@
 </script>
 
 <style scoped>
+.content-area {
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-area .empty-state {
+  flex: 1;
+  justify-content: center;
+}
+
+.table-wrapper {
+  flex: 1;
+}
+
 .projetos-section {
   display: flex;
   flex-direction: column;
@@ -283,7 +300,6 @@
   flex-shrink: 0;
 }
 
-/* Status badges */
 .status-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -323,7 +339,6 @@
   color: #4B5563;
 }
 
-/* Progress bar */
 .tarefas-progress {
   display: flex;
   align-items: center;
