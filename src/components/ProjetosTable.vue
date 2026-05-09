@@ -150,7 +150,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue'
+  import { computed } from 'vue'
   import { useProgramaStore } from '@/stores/programa'
 
   const store = useProgramaStore()
@@ -434,7 +434,7 @@
 
 .acao-neutro {
   background: #F3F4F6;
-  color: #6B7280;
+  color: #4B5563;
 }
 
 .acao-azul {
