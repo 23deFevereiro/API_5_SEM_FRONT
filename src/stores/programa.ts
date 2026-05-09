@@ -91,8 +91,8 @@ export const useProgramaStore = defineStore('programa', {
     carregandoBurnupCusto: false,
     tabelaProjetos: null as TabelaProjetosPaginada | null,
     carregandoTabela: false,
-    tabelaSortBy: 'nome_projeto' as string,
-    tabelaSortDir: 'asc' as 'asc' | 'desc',
+    tabelaSortBy: 'nome_projeto',
+    tabelaSortDir: 'asc',
   }),
 
   getters: {
