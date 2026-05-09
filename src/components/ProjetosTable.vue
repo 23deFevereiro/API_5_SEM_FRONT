@@ -57,7 +57,7 @@
               <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
               <td class="col-status">
                 <span class="status-badge" :class="statusClass(projeto.status)">
-                  {{ projeto.status }}
+                  {{ projeto.status || '—' }}
                 </span>
               </td>
               <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
@@ -79,9 +79,20 @@
               <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
               <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
               <td class="col-acao">
-                <div class="acao-badge" :class="acaoClass(projeto.desvio_horas, projeto.percentual_desvio)">
+                <div
+                  v-if="acaoLabel(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo) === null"
+                  class="acao-badge"
+                  :class="acaoClass(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo)"
+                >
+                  <v-icon size="16">mdi-check-circle</v-icon>
+                </div>
+                <div
+                  v-else
+                  class="acao-badge"
+                  :class="acaoClass(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo)"
+                >
                   <span class="acao-dot" />
-                  <span>{{ acaoLabel(projeto.desvio_horas, projeto.percentual_desvio) }}</span>
+                  <span>{{ acaoLabel(projeto.total_tarefas, projeto.tarefas_concluidas, projeto.dentro_do_prazo) }}</span>
                 </div>
               </td>
             </tr>
@@ -151,10 +162,10 @@
 
   function statusClass (status: string): string {
     const map: Record<string, string> = {
-      'Concluído no prazo': 'status-concluido',
+      'Planejamento': 'status-planejamento',
       'Em andamento': 'status-desenvolvimento',
-      'Atrasado': 'status-atrasado',
       'Suspenso': 'status-suspenso',
+      'Concluído': 'status-concluido',
     }
     return map[status] ?? 'status-default'
   }
@@ -164,18 +175,33 @@
     return `${day}/${month}/${year}`
   }
 
-  function acaoClass (desvioHoras: number, percentualDesvio: number): string {
-    if (desvioHoras <= 0) return 'acao-verde'
-    if (percentualDesvio <= 5) return 'acao-verde'
-    if (percentualDesvio < 15) return 'acao-amarelo'
-    return 'acao-vermelho'
+  function acaoClass (totalTarefas: number, tarefasConcluidas: number, dentroDoPrazo: boolean): string {
+    const todasConcluidas = totalTarefas > 0 && tarefasConcluidas === totalTarefas
+    const nenhumaConcluida = tarefasConcluidas === 0
+
+    if (todasConcluidas) {
+      return dentroDoPrazo ? 'acao-verde' : 'acao-vermelho'
+    }
+    if (nenhumaConcluida) {
+      return dentroDoPrazo ? 'acao-laranja' : 'acao-vermelho'
+    }
+    // parcialmente concluídas
+    return dentroDoPrazo ? 'acao-amarelo' : 'acao-amarelo'
   }
 
-  function acaoLabel (desvioHoras: number, percentualDesvio: number): string {
-    if (desvioHoras <= 0) return 'Manter funcionamento'
-    if (percentualDesvio <= 5) return 'Manter funcionamento'
-    if (percentualDesvio < 15) return 'Monitorar'
-    return 'Revisar urgente'
+  // returns null when there's nothing to do (show icon only)
+  function acaoLabel (totalTarefas: number, tarefasConcluidas: number, dentroDoPrazo: boolean): string | null {
+    const todasConcluidas = totalTarefas > 0 && tarefasConcluidas === totalTarefas
+
+    if (todasConcluidas) {
+      return null
+    }
+    const nenhumaConcluida = tarefasConcluidas === 0
+    if (nenhumaConcluida) {
+      return 'Priorizar'
+    }
+    // parcialmente concluídas
+    return dentroDoPrazo ? 'Atenção' : 'Priorizar'
   }
 </script>
 
@@ -251,6 +277,11 @@
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.status-planejamento {
+  background: #EEF2FF;
+  color: #4338CA;
 }
 
 .status-desenvolvimento {
@@ -351,6 +382,15 @@
 
 .acao-amarelo .acao-dot {
   background: #F59E0B;
+}
+
+.acao-laranja {
+  background: #FFF7ED;
+  color: #C2410C;
+}
+
+.acao-laranja .acao-dot {
+  background: #F97316;
 }
 
 .acao-vermelho {
