@@ -18,13 +18,28 @@ export type LeadTimePonto = {
   data_pedido: string
 }
 
+export type AlertaMaterial = {
+  material: string
+  dias_para_pedir: number
+  lead_time_min: number
+  fornecedor: string
+  dias_cobertura: number
+}
+
+export type AlertasMateriais = {
+  criticos: AlertaMaterial[]
+  atencao: AlertaMaterial[]
+}
+
 export const usePlanejamentoStore = defineStore('planejamento', {
   state: () => ({
     materiais: [] as MaterialCompra[],
     materialSelecionado: null as MaterialCompra | null,
     leadTimeData: [] as LeadTimePonto[],
+    alertas: { criticos: [], atencao: [] } as AlertasMateriais,
     carregandoMateriais: false,
     carregandoLeadTime: false,
+    carregandoAlertas: false,
   }),
 
   actions: {
@@ -55,6 +70,16 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     limpar () {
       this.materialSelecionado = null
       this.leadTimeData = []
+    },
+
+    async buscarAlertas () {
+      this.carregandoAlertas = true
+      try {
+        const response = await axios.get(apiUrl('/api/compras/alertas/'))
+        this.alertas = response.data
+      } finally {
+        this.carregandoAlertas = false
+      }
     },
   },
 })
