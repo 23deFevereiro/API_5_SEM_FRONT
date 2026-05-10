@@ -45,8 +45,6 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-// ─── UNITÁRIOS ───────────────────────────────────────────────────────────────
-
 describe('Unitário: limpar', () => {
   it('limpa o projeto selecionado', () => {
     const store = useProjetoStore()
@@ -98,8 +96,6 @@ describe('Unitário: estado inicial', () => {
     expect(store.horasPorFuncionario).toEqual([])
   })
 })
-
-// ─── INTEGRAÇÃO ──────────────────────────────────────────────────────────────
 
 describe('Integração: buscarProjetos', () => {
   it('popula o estado com projetos retornados pela API', async () => {
@@ -159,9 +155,6 @@ function mockarRespostasDoFiltro (
 }
 
 describe('Integração: aplicarFiltroPorPrograma', () => {
-  // aplicarFiltroPorPrograma dispara 2 GETs em paralelo via Promise.all (projetos e overview, nessa ordem).
-  // Este helper centraliza o setup dos dois mocks pra evitar duplicação entre os testes.
-
   it('busca projetos passando o programa_id recebido', async () => {
     mockarRespostasDoFiltro()
     const store = useProjetoStore()
@@ -330,8 +323,6 @@ describe('Integração: selecionarProjeto', () => {
   })
 })
 
-// ─── FILTROS SECUNDÁRIOS (período, funcionário, material) ─────────────────
-
 describe('Integração: filtro de período na URL', () => {
   it('buscarMateriais inclui data_inicio e data_fim quando setados', async () => {
     vi.mocked(axios.get).mockResolvedValueOnce({ data: materiaisMock })
@@ -410,7 +401,6 @@ describe('Integração: aplicarPeriodo', () => {
     expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
     expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
     expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
-    // resumo \u00e9 agregado absoluto do projeto, n\u00e3o muda com per\u00edodo
     expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
   })
 })
@@ -503,7 +493,6 @@ describe('Integração: buscarBurnupHoras — guard de carregando', () => {
     const store = useProjetoStore()
     store.burnupHoras = [{ projeto_id: 1, projeto: 'P001', serie: [] }]
     await store.buscarBurnupHoras()
-    // guard skipped setting carregandoBurnup; finally always resets it to false
     expect(store.carregandoBurnup).toBe(false)
   })
 

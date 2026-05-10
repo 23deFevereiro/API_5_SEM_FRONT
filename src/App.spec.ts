@@ -97,7 +97,6 @@ describe('App', () => {
     const navIcon = wrapper.find('.v-app-bar-nav-icon-stub')
     expect(navIcon.exists()).toBe(true)
     await navIcon.trigger('click')
-    // No error thrown and component still renders correctly
     expect(wrapper.find('.v-navigation-drawer-stub').exists()).toBe(true)
   })
 

@@ -165,3 +165,54 @@ describe('Integração: selecionarMaterial', () => {
     expect(store.leadTimeData).toEqual(leadTimeMock)
   })
 })
+
+const alertasMock = {
+  criticos: [
+    { material: 'Sensor', dias_para_pedir: 3, lead_time_min: 2, fornecedor: 'F1', dias_cobertura: 5 },
+  ],
+  atencao: [
+    { material: 'Resistor', dias_para_pedir: 40, lead_time_min: 10, fornecedor: 'F2', dias_cobertura: 50 },
+  ],
+}
+
+describe('Unitário: estado inicial — alertas', () => {
+  it('inicia com alertas vazios', () => {
+    const store = usePlanejamentoStore()
+    expect(store.alertas).toEqual({ criticos: [], atencao: [] })
+  })
+
+  it('inicia com carregandoAlertas false', () => {
+    const store = usePlanejamentoStore()
+    expect(store.carregandoAlertas).toBe(false)
+  })
+})
+
+describe('Integração: buscarAlertas', () => {
+  it('busca alertas da API e armazena no state', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas()
+    expect(store.alertas).toEqual(alertasMock)
+  })
+
+  it('chama a url correta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas()
+    expect(vi.mocked(axios.get).mock.calls[0][0]).toContain('/api/compras/alertas/')
+  })
+
+  it('desliga carregandoAlertas após sucesso', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas()
+    expect(store.carregandoAlertas).toBe(false)
+  })
+
+  it('desliga carregandoAlertas após erro', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('fail'))
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas().catch(() => {})
+    expect(store.carregandoAlertas).toBe(false)
+  })
+})

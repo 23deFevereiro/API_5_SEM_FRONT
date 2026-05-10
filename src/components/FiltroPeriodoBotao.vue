@@ -70,7 +70,6 @@
     return `${d}/${m}/${y}`
   }
 
-  // mant\u00e9m os campos em sincronia quando a store \u00e9 atualizada externamente (ex.: reset)
   watch(() => [store.filtroDataInicio, store.filtroDataFim], ([i, f]) => {
     inicio.value = i
     fim.value = f

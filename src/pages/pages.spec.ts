@@ -26,6 +26,8 @@ const globalStubs = {
   FuncionariosTable: { template: '<div class="funcionarios-table-stub" />' },
   HorasFuncionarioChart: { template: '<div class="horas-funcionario-chart-stub" />' },
   LeadTimeChart: { template: '<div class="lead-time-chart-stub" />' },
+  MateriaisAtencaoCard: { template: '<div class="materiais-atencao-card-stub" />' },
+  MateriaisCriticosCard: { template: '<div class="materiais-criticos-card-stub" />' },
   MaterialFilterSelector: { props: ['disabled'], template: '<div class="material-filter-stub" :data-disabled="disabled" />' },
   MaterialSelector: { template: '<div class="material-selector-stub" />' },
   MateriaisTable: { template: '<div class="materiais-table-stub" />' },
