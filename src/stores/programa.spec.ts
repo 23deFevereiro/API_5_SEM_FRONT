@@ -70,6 +70,16 @@ describe('Unitário: estado inicial', () => {
     const store = useProgramaStore()
     expect(store.carregandoBurnupCusto).toBe(false)
   })
+
+  it('inicia com horasPorProjeto vazio', () => {
+    const store = useProgramaStore()
+    expect(store.horasPorProjeto).toEqual([])
+  })
+
+  it('inicia com carregandoHorasProjeto false', () => {
+    const store = useProgramaStore()
+    expect(store.carregandoHorasProjeto).toBe(false)
+  })
 })
 
 describe('Unitário: selecionarPrograma', () => {
@@ -81,6 +91,7 @@ describe('Unitário: selecionarPrograma', () => {
       }})
       .mockResolvedValueOnce({ data: { total: 0, status: [] } })
       .mockResolvedValueOnce({ data: tabelaProjetosMock })
+      .mockResolvedValueOnce({ data: [] })
     const store = useProgramaStore()
     await store.selecionarPrograma(programaMock)
     expect(store.programaSelecionado).toEqual(programaMock)
@@ -310,6 +321,55 @@ describe('Integração: tabela de projetos paginada', () => {
     store.tabelaProjetos = tabelaProjetosMock
     await store.selecionarPrograma(null)
     expect(store.tabelaProjetos).toBeNull()
+  })
+})
+
+describe('Integração: buscarHorasPorProjeto', () => {
+  const horasMock = [
+    { nome_projeto: 'Projeto A', horas_realizadas: 10 },
+    { nome_projeto: 'Projeto B', horas_realizadas: 0 },
+  ]
+
+  it('popula horasPorProjeto com a resposta da API', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: horasMock })
+    const store = useProgramaStore()
+    await store.buscarHorasPorProjeto(1)
+    expect(store.horasPorProjeto).toEqual(horasMock)
+  })
+
+  it('chama o endpoint correto com o programaId', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarHorasPorProjeto(7)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/programas/7/horas-por-projeto/'))
+  })
+
+  it('finaliza com carregandoHorasProjeto false após resposta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarHorasPorProjeto(1)
+    expect(store.carregandoHorasProjeto).toBe(false)
+  })
+
+  it('finaliza com carregandoHorasProjeto false mesmo em caso de erro', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('erro'))
+    const store = useProgramaStore()
+    await expect(store.buscarHorasPorProjeto(1)).rejects.toThrow('erro')
+    expect(store.carregandoHorasProjeto).toBe(false)
+  })
+
+  it('aceita resposta vazia', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProgramaStore()
+    await store.buscarHorasPorProjeto(1)
+    expect(store.horasPorProjeto).toEqual([])
+  })
+
+  it('limpa horasPorProjeto ao selecionar null', async () => {
+    const store = useProgramaStore()
+    store.horasPorProjeto = horasMock
+    await store.selecionarPrograma(null)
+    expect(store.horasPorProjeto).toEqual([])
   })
 })
 

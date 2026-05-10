@@ -7,9 +7,12 @@
       <ProgramaCards />
     </div>
     <div class="main-card__charts">
+      <ProjetosBarChart />
       <ProgramaDonutChart />
     </div>
-    <ProjetosTable />
+    <div class="main-card__bottom">
+      <ProjetosTable />
+    </div>
   </div>
 </template>
 
@@ -19,6 +22,7 @@
   import ProgramaCards from '@/components/ProgramaCards.vue'
   import ProgramaDonutChart from '@/components/ProgramaDonutChart.vue'
   import ProgramaSelector from '@/components/ProgramaSelector.vue'
+  import ProjetosBarChart from '@/components/ProjetosBarChart.vue'
   import ProjetosTable from '@/components/ProjetosTable.vue'
 </script>
 
@@ -44,9 +48,14 @@
 
 .main-card__charts {
   display: flex;
+  gap: 24px;
+}
+
+.main-card__bottom {
+  display: flex;
   flex-direction: row;
   gap: 24px;
-  flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 @media (max-width: 768px) {
@@ -55,6 +64,10 @@
   }
 
   .main-card__charts {
+    flex-direction: column;
+  }
+
+  .main-card__bottom {
     flex-direction: column;
   }
 }
