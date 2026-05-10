@@ -1,54 +1,55 @@
 <template>
-  <div class="donut-card">
-    <div class="donut-card__header">
-      <div class="card-icon" style="background: #FEF3C7;">
+  <div class="donut-section">
+    <div class="section-header">
+      <div class="section-title">
         <v-icon color="#EAB308" size="16">mdi-chart-donut</v-icon>
-      </div>
-      <span class="donut-card__title">Status dos Projetos</span>
-    </div>
-
-    <div class="donut-card__body">
-      <div v-if="store.carregandoDistribuicao" class="donut-card__state">
-        <v-progress-circular color="#3B82F6" indeterminate size="40" />
-        <span class="donut-card__state-text">Carregando...</span>
-      </div>
-
-      <div v-else-if="!store.programaSelecionado" class="donut-card__state">
-        <v-icon color="#9CA3AF" size="40">mdi-chart-donut</v-icon>
-        <span class="donut-card__state-text">Selecione um programa para visualizar</span>
-      </div>
-
-      <div v-else-if="!store.distribuicaoStatus || store.distribuicaoStatus.total === 0" class="donut-card__state">
-        <v-icon color="#9CA3AF" size="40">mdi-folder-off-outline</v-icon>
-        <span class="donut-card__state-text">Nenhum projeto encontrado para este programa</span>
-      </div>
-
-      <div v-else class="donut-card__content">
-        <div class="donut-card__chart-wrapper">
-          <canvas ref="canvasRef" />
-          <div class="donut-card__center">
-            <span class="donut-card__total-number">{{ store.distribuicaoStatus.total }}</span>
-            <span class="donut-card__total-label">projetos</span>
-          </div>
-        </div>
-
-        <div class="donut-card__legend">
-          <div
-            v-for="item in store.distribuicaoStatus.status"
-            :key="item.status"
-            class="legend-item"
-          >
-            <span class="legend-dot" :style="{ background: item.cor }" />
-            <span class="legend-status">{{ item.status }}</span>
-            <span class="legend-values">
-              {{ item.quantidade }} <span class="legend-percent">({{ item.percentual }}%)</span>
-            </span>
-          </div>
-        </div>
+        <span>Status dos Projetos</span>
       </div>
     </div>
-  </div>
-</template>
+
+    <div class="donut-card">
+      <div class="donut-card__body">
+        <div v-if="store.carregandoDistribuicao" class="donut-card__state">
+          <v-progress-circular color="#3B82F6" indeterminate size="40" />
+          <span class="donut-card__state-text">Carregando...</span>
+        </div>
+
+        <div v-else-if="!store.programaSelecionado" class="donut-card__state">
+          <v-icon color="#9CA3AF" size="40">mdi-chart-donut</v-icon>
+          <span class="donut-card__state-text">Selecione um programa para visualizar</span>
+        </div>
+
+        <div v-else-if="!store.distribuicaoStatus || store.distribuicaoStatus.total === 0" class="donut-card__state">
+          <v-icon color="#9CA3AF" size="40">mdi-folder-off-outline</v-icon>
+          <span class="donut-card__state-text">Nenhum projeto encontrado para este programa</span>
+        </div>
+
+        <div v-else class="donut-card__content">
+          <div class="donut-card__chart-wrapper">
+            <canvas ref="canvasRef" />
+            <div class="donut-card__center">
+              <span class="donut-card__total-number">{{ store.distribuicaoStatus.total }}</span>
+              <span class="donut-card__total-label">projetos</span>
+            </div>
+          </div>
+
+          <div class="donut-card__legend">
+            <div
+              v-for="item in store.distribuicaoStatus.status"
+              :key="item.status"
+              class="legend-item"
+            >
+              <span class="legend-dot" :style="{ background: item.cor }" />
+              <span class="legend-status">{{ item.status }}</span>
+              <span class="legend-values">
+                {{ item.quantidade }} <span class="legend-percent">({{ item.percentual }}%)</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></template>
 
 <script lang="ts" setup>
   import { ArcElement, Chart, DoughnutController, Legend, Tooltip } from 'chart.js'
@@ -130,6 +131,26 @@
 </script>
 
 <style scoped>
+.donut-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
 .donut-card {
   background: #F9FAFB;
   border: 1px solid #E5E7EB;
@@ -137,35 +158,12 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 260px;
   transition: box-shadow 0.2s ease;
+  min-width: 250px;
 }
 
 .donut-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.donut-card__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card-icon {
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.donut-card__title {
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
 }
 
 .donut-card__body {

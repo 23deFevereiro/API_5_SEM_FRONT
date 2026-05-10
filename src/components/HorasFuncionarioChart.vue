@@ -29,107 +29,16 @@
 </template>
 
 <script lang="ts" setup>
-  import {
-    BarController,
-    BarElement,
-    CategoryScale,
-    Chart,
-    Legend,
-    LinearScale,
-    Tooltip,
-  } from 'chart.js'
-  import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+  import { useBarChart } from '@/composables/useBarChart'
   import { useProjetoStore } from '@/stores/projeto'
 
-  Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend)
-
   const store = useProjetoStore()
-  const canvasRef = ref<HTMLCanvasElement | null>(null)
-  let chartInstance: Chart | null = null
 
-  function buildChart () {
-    if (!canvasRef.value) return
-
-    if (chartInstance) {
-      chartInstance.destroy()
-      chartInstance = null
-    }
-
-    const labels = store.horasPorFuncionario.map(d => d.funcionario)
-    const data = store.horasPorFuncionario.map(d => d.total_horas)
-
-    chartInstance = new Chart(canvasRef.value, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Horas dedicadas',
-            data,
-            backgroundColor: '#2563EB',
-            borderRadius: 6,
-            borderSkipped: false,
-            hoverBackgroundColor: '#1D4ED8',
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => ` ${ctx.parsed.y?.toFixed(1)}h`,
-            },
-          },
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              color: '#6B7280',
-              font: { size: 12 },
-            },
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: '#F3F4F6' },
-            ticks: {
-              color: '#6B7280',
-              font: { size: 12 },
-              callback: val => `${val}h`,
-            },
-          },
-        },
-      },
-    })
-  }
-
-  watch(
+  const { canvasRef } = useBarChart(
     () => store.horasPorFuncionario,
-    async novoValor => {
-      if (novoValor.length > 0) {
-        await nextTick()
-        buildChart()
-      } else if (chartInstance) {
-        chartInstance.destroy()
-        chartInstance = null
-      }
-    },
+    () => store.horasPorFuncionario.map(d => d.funcionario),
+    () => store.horasPorFuncionario.map(d => d.total_horas),
   )
-
-  onMounted(() => {
-    if (store.horasPorFuncionario.length > 0) {
-      buildChart()
-    }
-  })
-
-  onBeforeUnmount(() => {
-    if (chartInstance) {
-      chartInstance.destroy()
-    }
-  })
 </script>
 
 <style scoped>
