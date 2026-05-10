@@ -194,3 +194,119 @@ describe('useBarChart — eixos', () => {
     expect(config.data.labels).toEqual(['Projeto Alpha', 'Projeto Beta'])
   })
 })
+
+function makeMockCtx () {
+  return {
+    save: vi.fn(),
+    restore: vi.fn(),
+    beginPath: vi.fn(),
+    fill: vi.fn(),
+    roundRect: vi.fn(),
+    fillText: vi.fn(),
+    fillStyle: '' as string,
+    font: '' as string,
+    textAlign: '' as string,
+    textBaseline: '' as string,
+  }
+}
+
+function makeMockChart (values: number[], barProps = { x: 50, y: 100, width: 30 }) {
+  const ctx = makeMockCtx()
+  return {
+    ctx,
+    data: {
+      datasets: [{ data: values }],
+    },
+    getDatasetMeta: vi.fn(() => ({
+      data: values.map(() => ({
+        getProps: vi.fn(() => barProps),
+      })),
+    })),
+  }
+}
+
+describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
+  async function getPlugin (values: number[]) {
+    const source = ref<Entry[]>(values.map((v, i) => ({ label: `L${i}`, value: v })))
+    mount(makeComp(source))
+    await nextTick()
+    return chartInstances.at(-1)!.config.plugins[0]
+  }
+
+  it('não desenha nada quando todos os valores são não-zero', async () => {
+    const plugin = await getPlugin([5, 10])
+    const chart = makeMockChart([5, 10])
+    plugin.afterDatasetsDraw(chart)
+    expect(chart.ctx.save).not.toHaveBeenCalled()
+  })
+
+  it('chama ctx.save e ctx.restore para cada barra com valor zero', async () => {
+    const plugin = await getPlugin([0])
+    const chart = makeMockChart([0])
+    plugin.afterDatasetsDraw(chart)
+    expect(chart.ctx.save).toHaveBeenCalledTimes(1)
+    expect(chart.ctx.restore).toHaveBeenCalledTimes(1)
+  })
+
+  it('desenha o texto "0h" acima da barra zero', async () => {
+    const plugin = await getPlugin([0])
+    const chart = makeMockChart([0], { x: 50, y: 100, width: 30 })
+    plugin.afterDatasetsDraw(chart)
+    expect(chart.ctx.fillText).toHaveBeenCalledWith('0h', 50, expect.any(Number))
+  })
+
+  it('chama ctx.beginPath e ctx.fill para a faixa da barra zero', async () => {
+    const plugin = await getPlugin([0])
+    const chart = makeMockChart([0])
+    plugin.afterDatasetsDraw(chart)
+    expect(chart.ctx.beginPath).toHaveBeenCalled()
+    expect(chart.ctx.fill).toHaveBeenCalled()
+  })
+
+  it('chama ctx.roundRect com a posição e dimensão corretas', async () => {
+    const plugin = await getPlugin([0])
+    const chart = makeMockChart([0], { x: 60, y: 200, width: 40 })
+    plugin.afterDatasetsDraw(chart)
+    // bx = x - width/2 = 60 - 20 = 40, by = y - barH/2 = 200 - 2 = 198, width = 40, barH = 4
+    expect(chart.ctx.roundRect).toHaveBeenCalledWith(40, 198, 40, 4, 3)
+  })
+
+  it('só desenha nas barras zero quando há mistura de valores', async () => {
+    const plugin = await getPlugin([5, 0, 3])
+    const chart = makeMockChart([5, 0, 3])
+    plugin.afterDatasetsDraw(chart)
+    expect(chart.ctx.save).toHaveBeenCalledTimes(1)
+    expect(chart.ctx.fillText).toHaveBeenCalledTimes(1)
+  })
+
+  it('desenha em todas as barras quando todos os valores são zero', async () => {
+    const plugin = await getPlugin([0, 0])
+    const chart = makeMockChart([0, 0])
+    plugin.afterDatasetsDraw(chart)
+    expect(chart.ctx.save).toHaveBeenCalledTimes(2)
+    expect(chart.ctx.fillText).toHaveBeenCalledTimes(2)
+  })
+
+  it('define fillStyle correto para a faixa e para o texto', async () => {
+    const plugin = await getPlugin([0])
+    const chart = makeMockChart([0])
+    const fillStyles: string[] = []
+    Object.defineProperty(chart.ctx, 'fillStyle', {
+      get: () => fillStyles.at(-1) ?? '',
+      set: (v: string) => fillStyles.push(v),
+    })
+    plugin.afterDatasetsDraw(chart)
+    expect(fillStyles[0]).toBe('#E5E7EB')
+    expect(fillStyles[1]).toBe('#9CA3AF')
+  })
+
+  it('não lança erro quando meta.data está vazio', async () => {
+    const plugin = await getPlugin([1])
+    const chart = {
+      ctx: makeMockCtx(),
+      data: { datasets: [{ data: [] as number[] }] },
+      getDatasetMeta: vi.fn(() => ({ data: [] })),
+    }
+    expect(() => plugin.afterDatasetsDraw(chart)).not.toThrow()
+  })
+})
