@@ -231,7 +231,7 @@ async function getPlugin (values: number[]) {
   const source = ref<Entry[]>(values.map((v, i) => ({ label: `L${i}`, value: v })))
   mount(makeComp(source))
   await nextTick()
-  return chartInstances[chartInstances.length - 1].config.plugins[0]
+  return chartInstances.at(-1)?.config.plugins[0]
 }
 
 describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
