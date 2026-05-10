@@ -7,6 +7,7 @@ import CustoTempoChart from './CustoTempoChart.vue'
 import HorasFuncionarioChart from './HorasFuncionarioChart.vue'
 import ProgramaBurnupHorasChart from './ProgramaBurnupHorasChart.vue'
 import ProgramaDonutChart from './ProgramaDonutChart.vue'
+import ProjetosBarChart from './ProjetosBarChart.vue'
 import { useProgramaStore } from '@/stores/programa'
 import { useProjetoStore } from '@/stores/projeto'
 
@@ -344,5 +345,54 @@ describe('chart coverage', () => {
 
     expect(firstInstance?.destroy).toHaveBeenCalled()
     expect(ChartCtor.mock.calls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('renderiza o ProjetosBarChart e cria o gráfico quando há dados', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.horasPorProjeto = [
+      { nome_projeto: 'Projeto A', horas_realizadas: 10 },
+      { nome_projeto: 'Projeto B', horas_realizadas: 0 },
+    ]
+
+    const wrapper = mount(ProjetosBarChart, { global: { stubs: globalStubs } })
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.find('canvas').exists()).toBe(true)
+    expect(ChartCtor).toHaveBeenCalledTimes(1)
+  })
+
+  it('destrói o gráfico ProjetosBarChart quando horasPorProjeto fica vazio', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.horasPorProjeto = [{ nome_projeto: 'Projeto A', horas_realizadas: 5 }]
+
+    mount(ProjetosBarChart, { global: { stubs: globalStubs } })
+    await nextTick()
+    await nextTick()
+
+    const instance = chartInstances.at(-1)
+
+    store.horasPorProjeto = []
+    await nextTick()
+    await nextTick()
+
+    expect(instance?.destroy).toHaveBeenCalled()
+  })
+
+  it('destrói o gráfico ProjetosBarChart no unmount', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.horasPorProjeto = [{ nome_projeto: 'Projeto A', horas_realizadas: 8 }]
+
+    const wrapper = mount(ProjetosBarChart, { global: { stubs: globalStubs } })
+    await nextTick()
+    await nextTick()
+
+    const instance = chartInstances.at(-1)
+    wrapper.unmount()
+
+    expect(instance?.destroy).toHaveBeenCalled()
   })
 })
