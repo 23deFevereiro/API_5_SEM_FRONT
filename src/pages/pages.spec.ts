@@ -25,7 +25,9 @@ const globalStubs = {
   FuncionarioFilterSelector: { props: ['disabled'], template: '<div class="funcionario-filter-stub" :data-disabled="disabled" />' },
   FuncionariosTable: { template: '<div class="funcionarios-table-stub" />' },
   HorasFuncionarioChart: { template: '<div class="horas-funcionario-chart-stub" />' },
+  LeadTimeChart: { template: '<div class="lead-time-chart-stub" />' },
   MaterialFilterSelector: { props: ['disabled'], template: '<div class="material-filter-stub" :data-disabled="disabled" />' },
+  MaterialSelector: { template: '<div class="material-selector-stub" />' },
   MateriaisTable: { template: '<div class="materiais-table-stub" />' },
   ProgramaBurnupCustoChart: { template: '<div class="programa-burnup-custo-chart-stub" />' },
   ProgramaBurnupHorasChart: { template: '<div class="programa-burnup-horas-chart-stub" />' },
@@ -108,7 +110,7 @@ describe('pages coverage', () => {
       },
     })
 
-    expect(planejamentoWrapper.text()).toContain('Em breve')
+    expect(planejamentoWrapper.find('.main-card').exists()).toBe(true)
     expect(notFoundWrapper.text()).toContain('404')
     expect(notFoundWrapper.text()).toContain('Página não encontrada')
     expect(notFoundWrapper.text()).toContain('/programas')

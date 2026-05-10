@@ -8,9 +8,11 @@ import FuncionarioFilterSelector from './FuncionarioFilterSelector.vue'
 import FuncionariosTable from './FuncionariosTable.vue'
 import MateriaisTable from './MateriaisTable.vue'
 import MaterialFilterSelector from './MaterialFilterSelector.vue'
+import MaterialSelector from './MaterialSelector.vue'
 import ProgramaCards from './ProgramaCards.vue'
 import ProgramaSelector from './ProgramaSelector.vue'
 import ProjetoSelector from './ProjetoSelector.vue'
+import { usePlanejamentoStore } from '@/stores/planejamento'
 import { useProgramaStore } from '@/stores/programa'
 import { useProjetoStore } from '@/stores/projeto'
 
@@ -413,5 +415,35 @@ describe('UI coverage components', () => {
     }
     const wrapper = mount(MateriaisTable, { global: { stubs: globalStubs } })
     expect(wrapper.text()).toContain('0-')
+  })
+
+  it('MaterialSelector: chama buscarMateriais no mount', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarMateriais = vi.fn().mockResolvedValue(undefined)
+    mount(MaterialSelector, { global: { stubs: globalStubs } })
+    await nextTick()
+    expect(store.buscarMateriais).toHaveBeenCalled()
+  })
+
+  it('MaterialSelector: seleciona material ao emitir update:modelValue', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarMateriais = vi.fn().mockResolvedValue(undefined)
+    store.selecionarMaterial = vi.fn().mockResolvedValue(undefined)
+    const wrapper = mount(MaterialSelector, { global: { stubs: globalStubs } })
+    await nextTick()
+    const autocomplete = wrapper.getComponent(VAutocompleteStub)
+    autocomplete.vm.$emit('update:modelValue', { id: 2, codigo_material: 'M002', descricao: 'Resistor' })
+    expect(store.selecionarMaterial).toHaveBeenCalledWith({ id: 2, codigo_material: 'M002', descricao: 'Resistor' })
+  })
+
+  it('MaterialSelector: chama selecionarMaterial com null ao limpar', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarMateriais = vi.fn().mockResolvedValue(undefined)
+    store.selecionarMaterial = vi.fn().mockResolvedValue(undefined)
+    const wrapper = mount(MaterialSelector, { global: { stubs: globalStubs } })
+    await nextTick()
+    const autocomplete = wrapper.getComponent(VAutocompleteStub)
+    autocomplete.vm.$emit('update:modelValue', null)
+    expect(store.selecionarMaterial).toHaveBeenCalledWith(null)
   })
 })
