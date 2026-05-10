@@ -74,7 +74,7 @@
   border-radius: 8px;
   border: 1px solid #E5E7EB;
   background: #F9FAFB;
-  color: #9CA3AF;
+  color: #4B5563;
   font-size: 13px;
   text-align: center;
   padding: 16px;

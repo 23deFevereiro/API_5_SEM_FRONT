@@ -117,7 +117,7 @@ export function useBarChart (
   watch(
     source,
     async novoValor => {
-      if ((novoValor as unknown[]).length > 0) {
+      if (novoValor.length > 0) {
         await nextTick()
         build()
       } else if (chartInstance) {

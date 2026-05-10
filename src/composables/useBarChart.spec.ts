@@ -30,9 +30,9 @@ function makeComp (sourceRef: ReturnType<typeof ref<Entry[]>>) {
   return defineComponent({
     setup () {
       const { canvasRef } = useBarChart(
-        () => sourceRef.value as unknown[],
-        () => (sourceRef.value as Entry[]).map(d => d.label),
-        () => (sourceRef.value as Entry[]).map(d => d.value),
+        () => sourceRef.value,
+        () => sourceRef.value.map(d => d.label),
+        () => sourceRef.value.map(d => d.value),
       )
       return { canvasRef }
     },
@@ -210,7 +210,9 @@ function makeMockCtx () {
   }
 }
 
-function makeMockChart (values: number[], barProps = { x: 50, y: 100, width: 30 }) {
+const DEFAULT_BAR_PROPS = { x: 50, y: 100, width: 30 }
+
+function makeMockChart (values: number[], barProps = DEFAULT_BAR_PROPS) {
   const ctx = makeMockCtx()
   return {
     ctx,
@@ -225,14 +227,14 @@ function makeMockChart (values: number[], barProps = { x: 50, y: 100, width: 30 
   }
 }
 
-describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
-  async function getPlugin (values: number[]) {
-    const source = ref<Entry[]>(values.map((v, i) => ({ label: `L${i}`, value: v })))
-    mount(makeComp(source))
-    await nextTick()
-    return chartInstances.at(-1)!.config.plugins[0]
-  }
+async function getPlugin (values: number[]) {
+  const source = ref<Entry[]>(values.map((v, i) => ({ label: `L${i}`, value: v })))
+  mount(makeComp(source))
+  await nextTick()
+  return chartInstances.at(-1)!.config.plugins[0]
+}
 
+describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
   it('não desenha nada quando todos os valores são não-zero', async () => {
     const plugin = await getPlugin([5, 10])
     const chart = makeMockChart([5, 10])
@@ -267,7 +269,6 @@ describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
     const plugin = await getPlugin([0])
     const chart = makeMockChart([0], { x: 60, y: 200, width: 40 })
     plugin.afterDatasetsDraw(chart)
-    // bx = x - width/2 = 60 - 20 = 40, by = y - barH/2 = 200 - 2 = 198, width = 40, barH = 4
     expect(chart.ctx.roundRect).toHaveBeenCalledWith(40, 198, 40, 4, 3)
   })
 
@@ -302,9 +303,10 @@ describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
 
   it('não lança erro quando meta.data está vazio', async () => {
     const plugin = await getPlugin([1])
+    const emptyData: number[] = []
     const chart = {
       ctx: makeMockCtx(),
-      data: { datasets: [{ data: [] as number[] }] },
+      data: { datasets: [{ data: emptyData }] },
       getDatasetMeta: vi.fn(() => ({ data: [] })),
     }
     expect(() => plugin.afterDatasetsDraw(chart)).not.toThrow()
