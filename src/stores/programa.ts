@@ -77,6 +77,11 @@ export type TabelaProjetosPaginada = {
   results: TabelaProjeto[]
 }
 
+export type HorasProjeto = {
+  nome_projeto: string
+  horas_realizadas: number
+}
+
 export const useProgramaStore = defineStore('programa', {
   state: () => ({
     programas: [] as Programa[],
@@ -93,6 +98,8 @@ export const useProgramaStore = defineStore('programa', {
     carregandoTabela: false,
     tabelaSortBy: 'nome_projeto',
     tabelaSortDir: 'asc',
+    horasPorProjeto: [] as HorasProjeto[],
+    carregandoHorasProjeto: false,
   }),
 
   getters: {
@@ -118,6 +125,7 @@ export const useProgramaStore = defineStore('programa', {
       this.resumo = null
       this.distribuicaoStatus = null
       this.tabelaProjetos = null
+      this.horasPorProjeto = []
 
       if (!programa) {
         return
@@ -132,6 +140,8 @@ export const useProgramaStore = defineStore('programa', {
           axios.get(apiUrl(`/api/programas/${programa.id}/distribuicao-status/`)),
           this.buscarTabelaProjetos(programa.id),
         ])
+
+        await this.buscarHorasPorProjeto(programa.id)
 
         this.resumo = {
           total_projetos: Number(resumoRes.data.total_projetos),
@@ -150,6 +160,16 @@ export const useProgramaStore = defineStore('programa', {
       } finally {
         this.carregando = false
         this.carregandoDistribuicao = false
+      }
+    },
+
+    async buscarHorasPorProjeto (programaId: number) {
+      this.carregandoHorasProjeto = true
+      try {
+        const response = await axios.get(apiUrl(`/api/programas/${programaId}/horas-por-projeto/`))
+        this.horasPorProjeto = response.data
+      } finally {
+        this.carregandoHorasProjeto = false
       }
     },
 
