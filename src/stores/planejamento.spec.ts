@@ -16,7 +16,7 @@ const leadTimeMock = [
     fornecedor: 'Fornecedor Alpha',
     lead_time: 15,
     valor_unidade: 10.5,
-    valor_total: 105.0,
+    valor_total: 105,
     status: 'Entregue',
     categoria_status: 'Concluído',
     data_pedido: '2024-01-15',
