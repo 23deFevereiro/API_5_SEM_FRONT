@@ -5,9 +5,11 @@ import { nextTick } from 'vue'
 import BurnupHorasChart from './BurnupHorasChart.vue'
 import CustoTempoChart from './CustoTempoChart.vue'
 import HorasFuncionarioChart from './HorasFuncionarioChart.vue'
+import LeadTimeChart from './LeadTimeChart.vue'
 import ProgramaBurnupHorasChart from './ProgramaBurnupHorasChart.vue'
 import ProgramaDonutChart from './ProgramaDonutChart.vue'
 import ProjetosBarChart from './ProjetosBarChart.vue'
+import { usePlanejamentoStore } from '@/stores/planejamento'
 import { useProgramaStore } from '@/stores/programa'
 import { useProjetoStore } from '@/stores/projeto'
 
@@ -43,6 +45,7 @@ vi.mock('chart.js', () => ({
   LineController: {},
   LineElement: {},
   PointElement: {},
+  ScatterController: {},
   Tooltip: {},
 }))
 
@@ -393,6 +396,88 @@ describe('chart coverage', () => {
     const instance = chartInstances.at(-1)
     wrapper.unmount()
 
+    expect(instance?.destroy).toHaveBeenCalled()
+  })
+
+  it('LeadTimeChart: mostra estado vazio sem material selecionado', () => {
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    expect(wrapper.text()).toContain('Selecione um material para visualizar o lead time')
+    expect(wrapper.find('canvas').exists()).toBe(false)
+  })
+
+  it('LeadTimeChart: mostra estado carregando', () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.carregandoLeadTime = true
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    expect(wrapper.text()).toContain('Carregando dados')
+    expect(wrapper.find('canvas').exists()).toBe(false)
+  })
+
+  it('LeadTimeChart: mostra estado vazio quando leadTimeData está vazio após seleção', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.carregandoLeadTime = false
+    store.leadTimeData = []
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    expect(wrapper.text()).toContain('Nenhum dado de lead time encontrado')
+    expect(wrapper.find('canvas').exists()).toBe(false)
+  })
+
+  it('LeadTimeChart: renderiza canvas e cria o gráfico quando há dados', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.carregandoLeadTime = false
+    store.leadTimeData = [
+      { fornecedor: 'F1', lead_time: 10, valor_unidade: 50, valor_total: 500,
+        status: 'Entregue', categoria_status: 'Concluído', data_pedido: '2024-01-01' },
+      { fornecedor: 'F2', lead_time: 20, valor_unidade: 100, valor_total: 1000,
+        status: 'Aberto', categoria_status: 'Pendente', data_pedido: '2024-02-01' },
+      { fornecedor: 'F3', lead_time: 5, valor_unidade: 30, valor_total: 150,
+        status: 'Cancelado', categoria_status: 'Cancelado', data_pedido: '2024-03-01' },
+      { fornecedor: 'F4', lead_time: 8, valor_unidade: 20, valor_total: 80,
+        status: 'Enviado', categoria_status: 'Desconhecido', data_pedido: '2024-04-01' },
+    ]
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+    expect(wrapper.find('canvas').exists()).toBe(true)
+    expect(ChartCtor).toHaveBeenCalled()
+  })
+
+  it('LeadTimeChart: destrói e reconstrói o gráfico quando leadTimeData muda', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.leadTimeData = [
+      { fornecedor: 'F1', lead_time: 10, valor_unidade: 50, valor_total: 500,
+        status: 'Entregue', categoria_status: 'Concluído', data_pedido: '2024-01-01' },
+    ]
+    mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+    const firstInstance = chartInstances.at(-1)
+    store.leadTimeData = [
+      { fornecedor: 'F2', lead_time: 15, valor_unidade: 80, valor_total: 800,
+        status: 'Aberto', categoria_status: 'Pendente', data_pedido: '2024-05-01' },
+    ]
+    await nextTick()
+    await nextTick()
+    expect(firstInstance?.destroy).toHaveBeenCalled()
+  })
+
+  it('LeadTimeChart: destrói o gráfico no unmount', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.leadTimeData = [
+      { fornecedor: 'F1', lead_time: 10, valor_unidade: 50, valor_total: 500,
+        status: 'Entregue', categoria_status: 'Concluído', data_pedido: '2024-01-01' },
+    ]
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+    const instance = chartInstances.at(-1)
+    wrapper.unmount()
     expect(instance?.destroy).toHaveBeenCalled()
   })
 })

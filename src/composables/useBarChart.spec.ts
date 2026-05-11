@@ -235,11 +235,12 @@ async function getPlugin (values: number[]) {
 }
 
 describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
-  it('não desenha nada quando todos os valores são não-zero', async () => {
+  it('não desenha faixa zero para barras com valor não-zero', async () => {
     const plugin = await getPlugin([5, 10])
     const chart = makeMockChart([5, 10])
     plugin.afterDatasetsDraw(chart)
-    expect(chart.ctx.save).not.toHaveBeenCalled()
+    expect(chart.ctx.beginPath).not.toHaveBeenCalled()
+    expect(chart.ctx.fill).not.toHaveBeenCalled()
   })
 
   it('chama ctx.save e ctx.restore para cada barra com valor zero', async () => {
@@ -272,12 +273,12 @@ describe('useBarChart — zeroBarPlugin.afterDatasetsDraw', () => {
     expect(chart.ctx.roundRect).toHaveBeenCalledWith(40, 198, 40, 4, 3)
   })
 
-  it('só desenha nas barras zero quando há mistura de valores', async () => {
+  it('só desenha faixa zero nas barras zero quando há mistura de valores', async () => {
     const plugin = await getPlugin([5, 0, 3])
     const chart = makeMockChart([5, 0, 3])
     plugin.afterDatasetsDraw(chart)
-    expect(chart.ctx.save).toHaveBeenCalledTimes(1)
-    expect(chart.ctx.fillText).toHaveBeenCalledTimes(1)
+    expect(chart.ctx.beginPath).toHaveBeenCalledTimes(1)
+    expect(chart.ctx.fillText).toHaveBeenCalledTimes(3)
   })
 
   it('desenha em todas as barras quando todos os valores são zero', async () => {

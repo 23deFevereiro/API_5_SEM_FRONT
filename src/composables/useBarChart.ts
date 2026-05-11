@@ -28,25 +28,34 @@ export function useBarChart (
 
       meta.data.forEach((bar, index) => {
         const value = (dataset.data[index] as number) ?? 0
-        if (value !== 0) return
-
         const { x, y, width } = bar.getProps(['x', 'y', 'width'], true)
-        const barH = 4
 
-        ctx.save()
-        ctx.fillStyle = '#E5E7EB'
-        const bx = x - width / 2
-        const by = y - barH / 2
-        ctx.beginPath()
-        ctx.roundRect(bx, by, width, barH, 3)
-        ctx.fill()
+        if (value === 0) {
+          const barH = 4
+          const bx = x - width / 2
+          const by = y - barH / 2
 
-        ctx.fillStyle = '#9CA3AF'
-        ctx.font = '10px sans-serif'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'bottom'
-        ctx.fillText('0h', x, by - 2)
-        ctx.restore()
+          ctx.save()
+          ctx.fillStyle = '#E5E7EB'
+          ctx.beginPath()
+          ctx.roundRect(bx, by, width, barH, 3)
+          ctx.fill()
+
+          ctx.fillStyle = '#9CA3AF'
+          ctx.font = '10px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'bottom'
+          ctx.fillText('0h', x, by - 2)
+          ctx.restore()
+        } else {
+          ctx.save()
+          ctx.fillStyle = '#374151'
+          ctx.font = 'bold 11px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'bottom'
+          ctx.fillText(`${value.toFixed(1)}h`, x, y - 4)
+          ctx.restore()
+        }
       })
     },
   }
@@ -96,8 +105,13 @@ export function useBarChart (
             ticks: {
               color: '#6B7280',
               font: { size: 12 },
-              maxRotation: 30,
-              minRotation: 0,
+              autoSkip: false,
+              maxRotation: 45,
+              minRotation: 45,
+              callback (val) {
+                const label = (this as { getLabelForValue: (v: unknown) => string }).getLabelForValue(val)
+                return label.length > 14 ? `${label.substring(0, 13)}…` : label
+              },
             },
           },
           y: {
@@ -109,6 +123,9 @@ export function useBarChart (
               callback: val => `${val}h`,
             },
           },
+        },
+        layout: {
+          padding: { top: 20 },
         },
       },
     })
