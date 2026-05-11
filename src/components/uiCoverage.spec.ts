@@ -467,13 +467,13 @@ describe('UI coverage components', () => {
     store.buscarAlertas = vi.fn()
     store.carregandoAlertas = false
     store.alertas = {
-      criticos: [{ material: 'Sensor', dias_para_pedir: 5, lead_time_min: 2, fornecedor: 'Fornecedor A', dias_cobertura: 7 }],
+      criticos: [{ material: 'Sensor', dias_para_pedir: 15, lead_time_min: 2, fornecedor: 'Fornecedor A', dias_cobertura: 17 }],
       atencao: [],
     }
     const wrapper = mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
     expect(wrapper.text()).toContain('Sensor')
-    expect(wrapper.text()).toContain('Estoque para 7 dias')
-    expect(wrapper.text()).toContain('pedir em 5 dias')
+    expect(wrapper.text()).toContain('Estoque para 17 dias')
+    expect(wrapper.text()).toContain('pedir em 15 dias')
     expect(wrapper.text()).toContain('Fornecedor A')
   })
 
