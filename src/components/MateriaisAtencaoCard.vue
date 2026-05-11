@@ -3,7 +3,15 @@
     <div class="alerta-card__header">
       <v-icon color="#D97706" size="16">mdi-alert</v-icon>
       <span class="alerta-card__title">Materiais em Atenção</span>
-      <span class="alerta-card__badge alerta-card__badge--atencao">31–60 dias</span>
+      <span class="alerta-card__badge alerta-card__badge--atencao">{{ store.criticoMax + 1 }}–{{ store.atencaoMax }} dias</span>
+      <input
+        class="alerta-card__input"
+        :min="store.criticoMax + 2"
+        title="Máximo de dias para atenção"
+        type="number"
+        :value="store.atencaoMax"
+        @change="store.setAtencaoMax(Number(($event.target as HTMLInputElement).value))"
+      >
     </div>
 
     <div v-if="store.carregandoAlertas" class="alerta-card__empty">
@@ -25,8 +33,12 @@
         <v-icon color="#D97706" size="14">mdi-circle-small</v-icon>
         <span class="alerta-card__item-text">
           <strong>{{ item.material }}</strong>
-          —
-          {{ item.dias_para_pedir }} {{ item.dias_para_pedir === 1 ? 'dia' : 'dias' }} para pedir
+          <br>
+          <span class="alerta-card__cobertura">
+            Estoque para {{ item.dias_cobertura }} {{ item.dias_cobertura === 1 ? 'dia' : 'dias' }}
+          </span>
+          · pedir em
+          {{ item.dias_para_pedir }} {{ item.dias_para_pedir === 1 ? 'dia' : 'dias' }}
           com {{ item.fornecedor }}
         </span>
       </li>
@@ -109,5 +121,27 @@
 
 .alerta-card__item-text {
   flex: 1;
+}
+
+.alerta-card__cobertura {
+  color: #6B7280;
+  font-size: 12px;
+}
+
+.alerta-card__input {
+  width: 52px;
+  border: 1px solid #FDE68A;
+  border-radius: 6px;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400E;
+  text-align: center;
+  background: transparent;
+  outline: none;
+}
+
+.alerta-card__input:focus {
+  border-color: #D97706;
 }
 </style>

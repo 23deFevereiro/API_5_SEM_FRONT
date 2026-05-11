@@ -37,6 +37,8 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     materialSelecionado: null as MaterialCompra | null,
     leadTimeData: [] as LeadTimePonto[],
     alertas: { criticos: [], atencao: [] } as AlertasMateriais,
+    criticoMax: 30,
+    atencaoMax: 60,
     carregandoMateriais: false,
     carregandoLeadTime: false,
     carregandoAlertas: false,
@@ -75,11 +77,24 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     async buscarAlertas () {
       this.carregandoAlertas = true
       try {
-        const response = await axios.get(apiUrl('/api/compras/alertas/'))
+        const response = await axios.get(apiUrl('/api/compras/alertas/'), {
+          params: { critico_max: this.criticoMax, atencao_max: this.atencaoMax },
+        })
         this.alertas = response.data
       } finally {
         this.carregandoAlertas = false
       }
+    },
+
+    setCriticoMax (valor: number) {
+      this.criticoMax = Math.max(1, valor)
+      this.atencaoMax = this.criticoMax + 30
+      this.buscarAlertas()
+    },
+
+    setAtencaoMax (valor: number) {
+      this.atencaoMax = Math.max(this.criticoMax + 1, valor)
+      this.buscarAlertas()
     },
   },
 })

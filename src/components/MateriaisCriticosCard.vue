@@ -3,7 +3,15 @@
     <div class="alerta-card__header">
       <v-icon color="#DC2626" size="16">mdi-alert-circle</v-icon>
       <span class="alerta-card__title">Materiais Críticos</span>
-      <span class="alerta-card__badge alerta-card__badge--critico">0–30 dias</span>
+      <span class="alerta-card__badge alerta-card__badge--critico">0–{{ store.criticoMax }} dias</span>
+      <input
+        class="alerta-card__input"
+        min="1"
+        title="Máximo de dias para crítico"
+        type="number"
+        :value="store.criticoMax"
+        @change="store.setCriticoMax(Number(($event.target as HTMLInputElement).value))"
+      >
     </div>
 
     <div v-if="store.carregandoAlertas" class="alerta-card__empty">
@@ -25,12 +33,16 @@
         <v-icon color="#DC2626" size="14">mdi-circle-small</v-icon>
         <span class="alerta-card__item-text">
           <strong>{{ item.material }}</strong>
-          —
-          <span v-if="item.dias_para_pedir <= 0" class="alerta-card__urgente">
+          <br>
+          <span class="alerta-card__cobertura">
+            Estoque para {{ item.dias_cobertura }} {{ item.dias_cobertura === 1 ? 'dia' : 'dias' }}
+          </span>
+          ·
+          <span v-if="item.dias_para_pedir <= 10" class="alerta-card__urgente">
             Pedido urgente
           </span>
           <span v-else>
-            {{ item.dias_para_pedir }} {{ item.dias_para_pedir === 1 ? 'dia' : 'dias' }} para pedir
+            pedir em {{ item.dias_para_pedir }} {{ item.dias_para_pedir === 1 ? 'dia' : 'dias' }}
           </span>
           com {{ item.fornecedor }}
         </span>
@@ -124,5 +136,27 @@
 .alerta-card__urgente {
   color: #DC2626;
   font-weight: 700;
+}
+
+.alerta-card__cobertura {
+  color: #6B7280;
+  font-size: 12px;
+}
+
+.alerta-card__input {
+  width: 52px;
+  border: 1px solid #FECACA;
+  border-radius: 6px;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #DC2626;
+  text-align: center;
+  background: transparent;
+  outline: none;
+}
+
+.alerta-card__input:focus {
+  border-color: #DC2626;
 }
 </style>
