@@ -11,6 +11,13 @@ COMMIT_PATTERN = re.compile(
     r": (?P<msg>.+)$"
 )
 
+SKIP_PREFIXES = (
+    "Merge pull request",
+    "Merge branch",
+    "Merge remote-tracking branch",
+    "Revert ",
+)
+
 MAX_FIRST_LINE = 72
 
 
@@ -24,9 +31,14 @@ def validate(commit_msg_file: str) -> None:
 
     first_line = content_lines[0].rstrip()
 
+    if any(first_line.startswith(prefix) for prefix in SKIP_PREFIXES):
+        print(f"[SKIP] Auto-generated commit, skipping: {first_line}")
+        sys.exit(0)
+
     if len(first_line) > MAX_FIRST_LINE:
         _fail(
-            f"First line too long ({len(first_line)} chars). Max: {MAX_FIRST_LINE}.\n"
+            f"First line too long ({len(first_line)} chars). "
+            f"Max: {MAX_FIRST_LINE}.\n"
             f"  Got: {first_line}"
         )
 
