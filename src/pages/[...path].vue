@@ -1,10 +1,16 @@
 <template>
   <div class="not-found">
-    <v-icon size="80" color="#9CA3AF">mdi-alert-circle-outline</v-icon>
+    <v-icon color="#9CA3AF" size="80">mdi-alert-circle-outline</v-icon>
     <h2 class="not-found__code">404</h2>
-    <p class="not-found__text">Pagina nao encontrada</p>
-    <v-btn color="primary" variant="flat" to="/programas" prepend-icon="mdi-arrow-left" class="mt-4">
-      Voltar ao inicio
+    <p class="not-found__text">Página não encontrada</p>
+    <v-btn
+      class="mt-4"
+      color="primary"
+      prepend-icon="mdi-arrow-left"
+      to="/programas"
+      variant="flat"
+    >
+      Voltar ao início
     </v-btn>
   </div>
 </template>
