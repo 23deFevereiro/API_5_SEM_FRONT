@@ -158,7 +158,6 @@ export const useProjetoStore = defineStore('projeto', {
 
     async selecionarProjeto (projeto: Projeto) {
       this.projetoSelecionado = projeto
-      // Acordado: per\u00edodo persiste entre projetos; funcion\u00e1rio/material resetam.
       this.filtroFuncionario = null
       this.filtroMaterial = null
       this.carregando = true

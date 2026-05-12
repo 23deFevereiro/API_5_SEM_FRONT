@@ -319,7 +319,6 @@ describe('chart coverage', () => {
     await nextTick()
     await nextTick()
 
-    // ChartCtor called means canvas was rendered with highlighted dataset
     expect(ChartCtor).toHaveBeenCalled()
   })
 
@@ -341,7 +340,6 @@ describe('chart coverage', () => {
 
     const firstInstance = chartInstances.at(-1)
 
-    // update the data — the watch rebuilds, calling destroy on the old instance
     store.horasPorFuncionario = [{ funcionario: 'Bruno', total_horas: 8 }]
     await nextTick()
     await nextTick()

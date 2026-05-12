@@ -6,6 +6,8 @@ import CustoCard from './CustoCard.vue'
 import FiltroPeriodoBotao from './FiltroPeriodoBotao.vue'
 import FuncionarioFilterSelector from './FuncionarioFilterSelector.vue'
 import FuncionariosTable from './FuncionariosTable.vue'
+import MateriaisAtencaoCard from './MateriaisAtencaoCard.vue'
+import MateriaisCriticosCard from './MateriaisCriticosCard.vue'
 import MateriaisTable from './MateriaisTable.vue'
 import MaterialFilterSelector from './MaterialFilterSelector.vue'
 import MaterialSelector from './MaterialSelector.vue'
@@ -139,7 +141,6 @@ describe('UI coverage components', () => {
       },
     })
 
-    // Simula reset externo da store
     store.filtroDataInicio = '2025-05-01'
     store.filtroDataFim = '2025-05-31'
     await nextTick()
@@ -281,11 +282,9 @@ describe('UI coverage components', () => {
     expect(wrapper.text()).toContain('Ana')
     expect(wrapper.text()).toContain('6.5h')
 
-    // Próxima
     await wrapper.findAll('button')[1].trigger('click')
     expect(store.buscarFuncionarios).toHaveBeenCalledWith(1, 3)
 
-    // Anterior
     store.buscarFuncionarios = vi.fn().mockResolvedValue(undefined)
     await wrapper.findAll('button')[0].trigger('click')
     expect(store.buscarFuncionarios).toHaveBeenCalledWith(1, 1)
@@ -334,10 +333,8 @@ describe('UI coverage components', () => {
 
     const wrapper = mount(FiltroPeriodoBotao, { global: { stubs: globalStubs } })
 
-    // Click the main trigger button (index 0) to call abrir()
     await wrapper.findAll('button')[0].trigger('click')
 
-    // abrir() resets erro and syncs campos - no error visible after calling
     expect(wrapper.text()).not.toContain('data de início deve ser anterior')
   })
 
@@ -445,5 +442,144 @@ describe('UI coverage components', () => {
     const autocomplete = wrapper.getComponent(VAutocompleteStub)
     autocomplete.vm.$emit('update:modelValue', null)
     expect(store.selecionarMaterial).toHaveBeenCalledWith(null)
+  })
+
+  it('MateriaisCriticosCard: mostra estado carregando', () => {
+    const store = usePlanejamentoStore()
+    store.buscarAlertas = vi.fn()
+    store.carregandoAlertas = true
+    const wrapper = mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Carregando')
+    expect(wrapper.find('.v-progress-circular-stub').exists()).toBe(true)
+  })
+
+  it('MateriaisCriticosCard: mostra estado vazio sem críticos', () => {
+    const store = usePlanejamentoStore()
+    store.buscarAlertas = vi.fn()
+    store.carregandoAlertas = false
+    store.alertas = { criticos: [], atencao: [] }
+    const wrapper = mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Nenhum material crítico')
+  })
+
+  it('MateriaisCriticosCard: exibe materiais críticos com dias e fornecedor', () => {
+    const store = usePlanejamentoStore()
+    store.buscarAlertas = vi.fn()
+    store.carregandoAlertas = false
+    store.alertas = {
+      criticos: [{ material: 'Sensor', dias_para_pedir: 15, lead_time_min: 2, fornecedor: 'Fornecedor A', dias_cobertura: 17 }],
+      atencao: [],
+    }
+    const wrapper = mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Sensor')
+    expect(wrapper.text()).toContain('Estoque para 17 dias')
+    expect(wrapper.text()).toContain('pedir em 15 dias')
+    expect(wrapper.text()).toContain('Fornecedor A')
+  })
+
+  it('MateriaisCriticosCard: exibe "Pedido urgente" para dias_para_pedir <= 0', () => {
+    const store = usePlanejamentoStore()
+    store.buscarAlertas = vi.fn()
+    store.carregandoAlertas = false
+    store.alertas = {
+      criticos: [{ material: 'LED', dias_para_pedir: -2, lead_time_min: 5, fornecedor: 'F1', dias_cobertura: 0 }],
+      atencao: [],
+    }
+    const wrapper = mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Pedido urgente')
+  })
+
+  it('MateriaisCriticosCard: chama buscarAlertas no mount', () => {
+    const store = usePlanejamentoStore()
+    store.buscarAlertas = vi.fn()
+    mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
+    expect(store.buscarAlertas).toHaveBeenCalled()
+  })
+
+  it('MateriaisCriticosCard: exibe badge com criticoMax do store', () => {
+    const store = usePlanejamentoStore()
+    store.buscarAlertas = vi.fn()
+    store.carregandoAlertas = false
+    store.alertas = { criticos: [], atencao: [] }
+    store.criticoMax = 90
+    const wrapper = mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('0–90 dias')
+  })
+
+  it('MateriaisCriticosCard: input chama setCriticoMax ao mudar', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarAlertas = vi.fn()
+    store.setCriticoMax = vi.fn()
+    store.carregandoAlertas = false
+    store.alertas = { criticos: [], atencao: [] }
+    const wrapper = mount(MateriaisCriticosCard, { global: { stubs: globalStubs } })
+    const input = wrapper.find('input[type="number"]')
+    await input.setValue('90')
+    await input.trigger('change')
+    expect(store.setCriticoMax).toHaveBeenCalledWith(90)
+  })
+
+  it('MateriaisAtencaoCard: mostra estado carregando', () => {
+    const store = usePlanejamentoStore()
+    store.carregandoAlertas = true
+    const wrapper = mount(MateriaisAtencaoCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Carregando')
+    expect(wrapper.find('.v-progress-circular-stub').exists()).toBe(true)
+  })
+
+  it('MateriaisAtencaoCard: mostra estado vazio sem atenção', () => {
+    const store = usePlanejamentoStore()
+    store.carregandoAlertas = false
+    store.alertas = { criticos: [], atencao: [] }
+    const wrapper = mount(MateriaisAtencaoCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Nenhum material em atenção')
+  })
+
+  it('MateriaisAtencaoCard: exibe materiais em atenção com dias e fornecedor', () => {
+    const store = usePlanejamentoStore()
+    store.carregandoAlertas = false
+    store.alertas = {
+      criticos: [],
+      atencao: [{ material: 'Resistor', dias_para_pedir: 40, lead_time_min: 10, fornecedor: 'Fornecedor B', dias_cobertura: 50 }],
+    }
+    const wrapper = mount(MateriaisAtencaoCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Resistor')
+    expect(wrapper.text()).toContain('Estoque para 50 dias')
+    expect(wrapper.text()).toContain('pedir em 40 dias')
+    expect(wrapper.text()).toContain('Fornecedor B')
+  })
+
+  it('MateriaisAtencaoCard: usa "dia" no singular quando dias_para_pedir é 1', () => {
+    const store = usePlanejamentoStore()
+    store.carregandoAlertas = false
+    store.alertas = {
+      criticos: [],
+      atencao: [{ material: 'X', dias_para_pedir: 1, lead_time_min: 30, fornecedor: 'F', dias_cobertura: 31 }],
+    }
+    const wrapper = mount(MateriaisAtencaoCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('pedir em 1 dia')
+    expect(wrapper.text()).toContain('Estoque para 31 dias')
+  })
+
+  it('MateriaisAtencaoCard: badge exibe range correto baseado no store', () => {
+    const store = usePlanejamentoStore()
+    store.carregandoAlertas = false
+    store.alertas = { criticos: [], atencao: [] }
+    store.criticoMax = 90
+    store.atencaoMax = 180
+    const wrapper = mount(MateriaisAtencaoCard, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('91–180 dias')
+  })
+
+  it('MateriaisAtencaoCard: input chama setAtencaoMax ao mudar', async () => {
+    const store = usePlanejamentoStore()
+    store.setAtencaoMax = vi.fn()
+    store.carregandoAlertas = false
+    store.alertas = { criticos: [], atencao: [] }
+    const wrapper = mount(MateriaisAtencaoCard, { global: { stubs: globalStubs } })
+    const input = wrapper.find('input[type="number"]')
+    await input.setValue('120')
+    await input.trigger('change')
+    expect(store.setAtencaoMax).toHaveBeenCalledWith(120)
   })
 })

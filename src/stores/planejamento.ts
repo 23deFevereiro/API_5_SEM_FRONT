@@ -18,13 +18,30 @@ export type LeadTimePonto = {
   data_pedido: string
 }
 
+export type AlertaMaterial = {
+  material: string
+  dias_para_pedir: number
+  lead_time_min: number
+  fornecedor: string
+  dias_cobertura: number
+}
+
+export type AlertasMateriais = {
+  criticos: AlertaMaterial[]
+  atencao: AlertaMaterial[]
+}
+
 export const usePlanejamentoStore = defineStore('planejamento', {
   state: () => ({
     materiais: [] as MaterialCompra[],
     materialSelecionado: null as MaterialCompra | null,
     leadTimeData: [] as LeadTimePonto[],
+    alertas: { criticos: [] as AlertaMaterial[], atencao: [] as AlertaMaterial[] },
+    criticoMax: 30,
+    atencaoMax: 60,
     carregandoMateriais: false,
     carregandoLeadTime: false,
+    carregandoAlertas: false,
   }),
 
   actions: {
@@ -55,6 +72,29 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     limpar () {
       this.materialSelecionado = null
       this.leadTimeData = []
+    },
+
+    async buscarAlertas () {
+      this.carregandoAlertas = true
+      try {
+        const response = await axios.get(apiUrl('/api/compras/alertas/'), {
+          params: { critico_max: this.criticoMax, atencao_max: this.atencaoMax },
+        })
+        this.alertas = response.data
+      } finally {
+        this.carregandoAlertas = false
+      }
+    },
+
+    setCriticoMax (valor: number) {
+      this.criticoMax = Math.max(1, valor)
+      this.atencaoMax = this.criticoMax + 30
+      this.buscarAlertas()
+    },
+
+    setAtencaoMax (valor: number) {
+      this.atencaoMax = Math.max(this.criticoMax + 1, valor)
+      this.buscarAlertas()
     },
   },
 })

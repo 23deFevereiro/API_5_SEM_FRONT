@@ -157,8 +157,6 @@ describe('BurnupChart — ciclo de vida', () => {
     await nextTick()
     const chamadasAntes = ChartCtor.mock.calls.length
     await wrapper.setProps({ dados: dadosMock })
-    // o watch tem um await nextTick() interno antes de chamar buildChart;
-    // por isso precisamos de dois ticks para a chamada do Chart materializar
     await nextTick()
     await nextTick()
     expect(ChartCtor.mock.calls.length).toBeGreaterThan(chamadasAntes)
@@ -182,8 +180,8 @@ describe('BurnupChart — realce do programa selecionado', () => {
     await nextTick()
     chartInstanceMock.update.mockClear()
     chartInstanceMock.data.datasets = [
-      { label: 'PROG-1' } as { label: string },
-      { label: 'PROG-2' } as { label: string },
+      { label: 'PROG-1' },
+      { label: 'PROG-2' },
     ]
     await wrapper.setProps({ codigosSelecionados: ['PROG-1'] })
     await nextTick()
@@ -197,7 +195,6 @@ describe('BurnupChart — extração e formatação', () => {
     montar({ dados: dadosMock, extratorValor: extrator })
     await nextTick()
     await nextTick()
-    // total de pontos no mock é 3 (Alpha jan, Beta jan, Alpha fev)
     expect(extrator).toHaveBeenCalledTimes(3)
   })
 })

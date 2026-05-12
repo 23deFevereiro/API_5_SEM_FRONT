@@ -1,5 +1,9 @@
 <template>
   <div class="main-card">
+    <div class="main-card__alertas">
+      <MateriaisCriticosCard />
+      <MateriaisAtencaoCard />
+    </div>
     <div class="main-card__inner">
       <MaterialSelector />
     </div>
@@ -11,6 +15,8 @@
 
 <script lang="ts" setup>
   import LeadTimeChart from '@/components/LeadTimeChart.vue'
+  import MateriaisAtencaoCard from '@/components/MateriaisAtencaoCard.vue'
+  import MateriaisCriticosCard from '@/components/MateriaisCriticosCard.vue'
   import MaterialSelector from '@/components/MaterialSelector.vue'
 </script>
 
@@ -24,6 +30,11 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.main-card__alertas {
+  display: flex;
+  gap: 16px;
 }
 
 .main-card__inner {
@@ -40,6 +51,10 @@
 }
 
 @media (max-width: 768px) {
+  .main-card__alertas {
+    flex-direction: column;
+  }
+
   .main-card__inner {
     flex-direction: column;
   }

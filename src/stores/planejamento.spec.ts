@@ -165,3 +165,106 @@ describe('Integração: selecionarMaterial', () => {
     expect(store.leadTimeData).toEqual(leadTimeMock)
   })
 })
+
+const alertasMock = {
+  criticos: [
+    { material: 'Sensor', dias_para_pedir: 3, lead_time_min: 2, fornecedor: 'F1', dias_cobertura: 5 },
+  ],
+  atencao: [
+    { material: 'Resistor', dias_para_pedir: 40, lead_time_min: 10, fornecedor: 'F2', dias_cobertura: 50 },
+  ],
+}
+
+describe('Unitário: estado inicial — alertas', () => {
+  it('inicia com alertas vazios', () => {
+    const store = usePlanejamentoStore()
+    expect(store.alertas).toEqual({ criticos: [], atencao: [] })
+  })
+
+  it('inicia com carregandoAlertas false', () => {
+    const store = usePlanejamentoStore()
+    expect(store.carregandoAlertas).toBe(false)
+  })
+
+  it('inicia com criticoMax 30', () => {
+    const store = usePlanejamentoStore()
+    expect(store.criticoMax).toBe(30)
+  })
+
+  it('inicia com atencaoMax 60', () => {
+    const store = usePlanejamentoStore()
+    expect(store.atencaoMax).toBe(60)
+  })
+})
+
+describe('Integração: buscarAlertas', () => {
+  it('busca alertas da API e armazena no state', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas()
+    expect(store.alertas).toEqual(alertasMock)
+  })
+
+  it('chama a url correta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas()
+    expect(vi.mocked(axios.get).mock.calls[0][0]).toContain('/api/compras/alertas/')
+  })
+
+  it('envia critico_max e atencao_max como params', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    store.criticoMax = 90
+    store.atencaoMax = 180
+    await store.buscarAlertas()
+    const callArgs = vi.mocked(axios.get).mock.calls[0]
+    expect(callArgs[1]).toEqual({ params: { critico_max: 90, atencao_max: 180 } })
+  })
+
+  it('setCriticoMax atualiza criticoMax e chama buscarAlertas', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    store.setCriticoMax(90)
+    expect(store.criticoMax).toBe(90)
+    expect(vi.mocked(axios.get)).toHaveBeenCalled()
+  })
+
+  it('setCriticoMax ajusta atencaoMax para criticoMax + 30', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    store.setCriticoMax(50)
+    expect(store.criticoMax).toBe(50)
+    expect(store.atencaoMax).toBe(80)
+  })
+
+  it('setAtencaoMax atualiza atencaoMax e chama buscarAlertas', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    store.setAtencaoMax(120)
+    expect(store.atencaoMax).toBe(120)
+    expect(vi.mocked(axios.get)).toHaveBeenCalled()
+  })
+
+  it('setAtencaoMax não permite valor menor ou igual a criticoMax', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    store.criticoMax = 30
+    store.setAtencaoMax(10)
+    expect(store.atencaoMax).toBe(31)
+  })
+
+  it('desliga carregandoAlertas após sucesso', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: alertasMock })
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas()
+    expect(store.carregandoAlertas).toBe(false)
+  })
+
+  it('desliga carregandoAlertas após erro', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('fail'))
+    const store = usePlanejamentoStore()
+    await store.buscarAlertas().catch(() => {})
+    expect(store.carregandoAlertas).toBe(false)
+  })
+})
