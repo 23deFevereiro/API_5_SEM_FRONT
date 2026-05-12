@@ -36,7 +36,7 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     materiais: [] as MaterialCompra[],
     materialSelecionado: null as MaterialCompra | null,
     leadTimeData: [] as LeadTimePonto[],
-    alertas: { criticos: [], atencao: [] } as AlertasMateriais,
+    alertas: { criticos: [] as AlertaMaterial[], atencao: [] as AlertaMaterial[] },
     criticoMax: 30,
     atencaoMax: 60,
     carregandoMateriais: false,

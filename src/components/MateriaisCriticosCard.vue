@@ -97,7 +97,7 @@
 
 .alerta-card__badge--critico {
   background: #FEE2E2;
-  color: #DC2626;
+  color: #991B1B;
 }
 
 .alerta-card__empty {

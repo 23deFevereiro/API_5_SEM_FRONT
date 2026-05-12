@@ -180,8 +180,8 @@ describe('BurnupChart — realce do programa selecionado', () => {
     await nextTick()
     chartInstanceMock.update.mockClear()
     chartInstanceMock.data.datasets = [
-      { label: 'PROG-1' } as { label: string },
-      { label: 'PROG-2' } as { label: string },
+      { label: 'PROG-1' },
+      { label: 'PROG-2' },
     ]
     await wrapper.setProps({ codigosSelecionados: ['PROG-1'] })
     await nextTick()
