@@ -146,19 +146,6 @@
   border-bottom: 1px solid #E5E7EB;
 }
 
-.table-row {
-  border-bottom: 1px solid #F3F4F6;
-  transition: background 0.15s;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.table-row:hover {
-  background: #F9FAFB;
-}
-
 .funcionarios-table td {
   padding: 10px 12px;
   font-size: 13px;

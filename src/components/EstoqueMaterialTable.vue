@@ -155,24 +155,8 @@
   width: 100%;
 }
 
-.content-area {
-  min-height: 260px;
-  display: flex;
-  flex-direction: column;
-}
-
-.content-area .empty-state {
-  flex: 1;
-  justify-content: center;
-}
-
 .table-wrapper {
   flex: 1;
-}
-
-.table-wrapper--loading {
-  opacity: 0.5;
-  pointer-events: none;
 }
 
 .estoque-table {
@@ -195,36 +179,6 @@
   letter-spacing: 0.04em;
   white-space: nowrap;
   border-bottom: 1px solid #E5E7EB;
-}
-
-.col-sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.col-sortable:hover {
-  background: #F3F4F6;
-  color: #374151;
-}
-
-.sort-icon {
-  display: inline-block;
-  margin-left: 4px;
-  font-size: 11px;
-  opacity: 0.6;
-}
-
-.table-row {
-  border-bottom: 1px solid #F3F4F6;
-  transition: background 0.15s;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.table-row:hover {
-  background: #F9FAFB;
 }
 
 .estoque-table td {

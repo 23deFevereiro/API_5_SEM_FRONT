@@ -48,15 +48,31 @@ export type AlertasMateriais = {
   atencao: AlertaMaterial[]
 }
 
+interface PlanejamentoState {
+  materiais: MaterialCompra[]
+  materialSelecionado: MaterialCompra | null
+  leadTimeData: LeadTimePonto[]
+  alertas: AlertasMateriais
+  tabelaEstoque: TabelaEstoque
+  tabelaSortBy: string
+  tabelaSortDir: 'asc' | 'desc'
+  criticoMax: number
+  atencaoMax: number
+  carregandoMateriais: boolean
+  carregandoLeadTime: boolean
+  carregandoAlertas: boolean
+  carregandoTabela: boolean
+}
+
 export const usePlanejamentoStore = defineStore('planejamento', {
-  state: () => ({
-    materiais: [] as MaterialCompra[],
-    materialSelecionado: null as MaterialCompra | null,
-    leadTimeData: [] as LeadTimePonto[],
-    alertas: { criticos: [] as AlertaMaterial[], atencao: [] as AlertaMaterial[] },
-    tabelaEstoque: { count: 0, page: 1, page_size: 5, total_pages: 0, results: [] as EstoqueItem[] } as TabelaEstoque,
-    tabelaSortBy: 'status' as string,
-    tabelaSortDir: 'asc' as 'asc' | 'desc',
+  state: (): PlanejamentoState => ({
+    materiais: [],
+    materialSelecionado: null,
+    leadTimeData: [],
+    alertas: { criticos: [], atencao: [] },
+    tabelaEstoque: { count: 0, page: 1, page_size: 5, total_pages: 0, results: [] },
+    tabelaSortBy: 'status',
+    tabelaSortDir: 'asc',
     criticoMax: 30,
     atencaoMax: 60,
     carregandoMateriais: false,
