@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import ProjetosTable from './ProjetosTable.vue'
 import { useProgramaStore } from '@/stores/programa'
+import ProjetosTable from './ProjetosTable.vue'
 
 const VTooltipStub = {
   props: ['contentClass', 'location'],

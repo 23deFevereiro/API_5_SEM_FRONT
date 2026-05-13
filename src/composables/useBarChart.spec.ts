@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { defineComponent, nextTick, ref } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, nextTick, ref } from 'vue'
+
+import { useBarChart } from '@/composables/useBarChart'
 
 const { ChartCtor, chartInstances } = vi.hoisted(() => {
   const chartInstances: Array<{ destroy: ReturnType<typeof vi.fn>, config: any }> = []
@@ -21,8 +23,6 @@ vi.mock('chart.js', () => ({
   LinearScale: {},
   Tooltip: {},
 }))
-
-import { useBarChart } from '@/composables/useBarChart'
 
 type Entry = { label: string, value: number }
 

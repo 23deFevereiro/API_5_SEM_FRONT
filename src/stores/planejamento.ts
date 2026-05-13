@@ -97,7 +97,9 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     },
 
     async buscarMateriais () {
-      if (this.materiais.length > 0) return
+      if (this.materiais.length > 0) {
+        return
+      }
       this.carregandoMateriais = true
       try {
         const response = await axios.get(apiUrl('/api/compras/materiais/'))
@@ -110,7 +112,9 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     async selecionarMaterial (material: MaterialCompra | null) {
       this.materialSelecionado = material
       this.leadTimeData = []
-      if (!material) return
+      if (!material) {
+        return
+      }
       this.carregandoLeadTime = true
       try {
         const response = await axios.get(apiUrl(`/api/compras/lead-time/?material_id=${material.id}`))
