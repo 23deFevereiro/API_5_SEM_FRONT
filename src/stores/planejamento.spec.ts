@@ -268,3 +268,102 @@ describe('Integração: buscarAlertas', () => {
     expect(store.carregandoAlertas).toBe(false)
   })
 })
+
+const tabelaMock = {
+  count: 2,
+  page: 1,
+  page_size: 5,
+  total_pages: 1,
+  results: [
+    { material: 'Sensor', projeto: 'Projeto A', estoque_atual: 5, consumo_previsto: 1, dias_ate_acabar: 5, status: 'Urgente' },
+    { material: 'Resistor', projeto: 'Projeto B', estoque_atual: 50, consumo_previsto: 0.5, dias_ate_acabar: 100, status: 'Ok' },
+  ],
+}
+
+describe('Unitário: estado inicial — tabelaEstoque', () => {
+  it('inicia com tabelaEstoque vazia', () => {
+    const store = usePlanejamentoStore()
+    expect(store.tabelaEstoque.count).toBe(0)
+    expect(store.tabelaEstoque.results).toEqual([])
+  })
+
+  it('inicia com carregandoTabela false', () => {
+    const store = usePlanejamentoStore()
+    expect(store.carregandoTabela).toBe(false)
+  })
+})
+
+describe('Integração: buscarTabelaEstoque', () => {
+  it('busca tabela da API e armazena no state', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    await store.buscarTabelaEstoque(1)
+    expect(store.tabelaEstoque).toEqual(tabelaMock)
+  })
+
+  it('chama a url correta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    await store.buscarTabelaEstoque(1)
+    expect(vi.mocked(axios.get).mock.calls[0][0]).toContain('/api/compras/estoque-tabela/')
+  })
+
+  it('envia critico_max, atencao_max e page como params', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    store.criticoMax = 45
+    store.atencaoMax = 90
+    await store.buscarTabelaEstoque(2)
+    const callArgs = vi.mocked(axios.get).mock.calls[0]
+    expect(callArgs[1]).toEqual({ params: { critico_max: 45, atencao_max: 90, page: 2, sort_by: 'status', sort_dir: 'asc' } })
+  })
+
+  it('desliga carregandoTabela após sucesso', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    await store.buscarTabelaEstoque(1)
+    expect(store.carregandoTabela).toBe(false)
+  })
+
+  it('desliga carregandoTabela após erro', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('fail'))
+    const store = usePlanejamentoStore()
+    await store.buscarTabelaEstoque(1).catch(() => {})
+    expect(store.carregandoTabela).toBe(false)
+  })
+
+  it('setCriticoMax também chama buscarTabelaEstoque', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.buscarAlertas = vi.fn()
+    store.setCriticoMax(50)
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(1)
+  })
+
+  it('setAtencaoMax também chama buscarTabelaEstoque', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.buscarAlertas = vi.fn()
+    store.setAtencaoMax(100)
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(1)
+  })
+
+  it('envia material_id quando material está selecionado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 5, codigo_material: 'M005', descricao: 'Sensor' }
+    await store.buscarTabelaEstoque(1)
+    const callArgs = vi.mocked(axios.get).mock.calls[0]
+    expect(callArgs[1]).toEqual({ params: { critico_max: 30, atencao_max: 60, page: 1, material_id: 5, sort_by: 'status', sort_dir: 'asc' } })
+  })
+
+  it('não envia material_id quando nenhum material está selecionado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaMock })
+    const store = usePlanejamentoStore()
+    await store.buscarTabelaEstoque(1)
+    const callArgs = vi.mocked(axios.get).mock.calls[0]
+    expect(callArgs[1]).toEqual({ params: { critico_max: 30, atencao_max: 60, page: 1, sort_by: 'status', sort_dir: 'asc' } })
+  })
+})
