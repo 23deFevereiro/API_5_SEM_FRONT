@@ -88,7 +88,7 @@ describe('Unitário: selecionarPrograma', () => {
       .mockResolvedValueOnce({ data: {
         total_projetos: 0, horas_estimadas: 0, horas_realizadas: 0,
         custo_estimado: 0, custo_real: 0,
-      }})
+      } })
       .mockResolvedValueOnce({ data: { total: 0, status: [] } })
       .mockResolvedValueOnce({ data: tabelaProjetosMock })
       .mockResolvedValueOnce({ data: [] })

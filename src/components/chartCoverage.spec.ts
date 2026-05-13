@@ -2,6 +2,9 @@ import { mount, shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { usePlanejamentoStore } from '@/stores/planejamento'
+import { useProgramaStore } from '@/stores/programa'
+import { useProjetoStore } from '@/stores/projeto'
 import BurnupHorasChart from './BurnupHorasChart.vue'
 import CustoTempoChart from './CustoTempoChart.vue'
 import HorasFuncionarioChart from './HorasFuncionarioChart.vue'
@@ -9,9 +12,6 @@ import LeadTimeChart from './LeadTimeChart.vue'
 import ProgramaBurnupHorasChart from './ProgramaBurnupHorasChart.vue'
 import ProgramaDonutChart from './ProgramaDonutChart.vue'
 import ProjetosBarChart from './ProjetosBarChart.vue'
-import { usePlanejamentoStore } from '@/stores/planejamento'
-import { useProgramaStore } from '@/stores/programa'
-import { useProjetoStore } from '@/stores/projeto'
 
 const { ChartCtor, chartInstances } = vi.hoisted(() => {
   const chartInstances: Array<{
@@ -55,7 +55,7 @@ const vuetifyStubs = {
 }
 
 const globalStubs = {
-  BurnupChart: {
+  'BurnupChart': {
     props: ['aoMontar', 'bgHeader', 'carregando', 'corHeader', 'corLoading', 'dados', 'extratorValor', 'formatarValor', 'iconeHeader', 'iconeVazio', 'programaSelecionado', 'textoVazio', 'titulo', 'tituloEixoY'],
     template: '<div class="burnup-chart-stub" />',
   },

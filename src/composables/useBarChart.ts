@@ -26,7 +26,7 @@ export function useBarChart (
       const dataset = data.datasets[0]
       const meta = chart.getDatasetMeta(0)
 
-      meta.data.forEach((bar, index) => {
+      for (const [index, bar] of meta.data.entries()) {
         const value = (dataset.data[index] as number) ?? 0
         const { x, y, width } = bar.getProps(['x', 'y', 'width'], true)
 
@@ -56,12 +56,14 @@ export function useBarChart (
           ctx.fillText(`${value.toFixed(1)}h`, x, y - 4)
           ctx.restore()
         }
-      })
+      }
     },
   }
 
   function build () {
-    if (!canvasRef.value) return
+    if (!canvasRef.value) {
+      return
+    }
 
     if (chartInstance) {
       chartInstance.destroy()
@@ -110,7 +112,7 @@ export function useBarChart (
               minRotation: 45,
               callback (val) {
                 const label = (this as { getLabelForValue: (v: unknown) => string }).getLabelForValue(val)
-                return label.length > 14 ? `${label.substring(0, 13)}…` : label
+                return label.length > 14 ? `${label.slice(0, 13)}…` : label
               },
             },
           },

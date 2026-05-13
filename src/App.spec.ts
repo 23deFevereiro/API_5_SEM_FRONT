@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import App from './App.vue'
 import { useProjetoStore } from '@/stores/projeto'
+import App from './App.vue'
 
 const { appState } = vi.hoisted(() => ({
   appState: {

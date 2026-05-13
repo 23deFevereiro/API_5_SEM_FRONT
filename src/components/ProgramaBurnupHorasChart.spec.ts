@@ -2,8 +2,8 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import ProgramaBurnupHorasChart from './ProgramaBurnupHorasChart.vue'
 import { useProgramaStore } from '@/stores/programa'
+import ProgramaBurnupHorasChart from './ProgramaBurnupHorasChart.vue'
 
 vi.mock('chart.js', () => {
   const chartInstanceMock = {

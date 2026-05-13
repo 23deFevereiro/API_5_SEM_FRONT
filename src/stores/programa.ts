@@ -174,8 +174,12 @@ export const useProgramaStore = defineStore('programa', {
     },
 
     async buscarTabelaProjetos (programaId: number, page = 1, sortBy?: string, sortDir?: 'asc' | 'desc') {
-      if (sortBy !== undefined) this.tabelaSortBy = sortBy
-      if (sortDir !== undefined) this.tabelaSortDir = sortDir
+      if (sortBy !== undefined) {
+        this.tabelaSortBy = sortBy
+      }
+      if (sortDir !== undefined) {
+        this.tabelaSortDir = sortDir
+      }
       this.carregandoTabela = true
       try {
         const params = new URLSearchParams({
