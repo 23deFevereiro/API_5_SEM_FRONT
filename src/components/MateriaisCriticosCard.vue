@@ -26,7 +26,7 @@
 
     <ul v-else class="alerta-card__list">
       <li
-        v-for="item in store.alertas.criticos"
+        v-for="item in store.alertas.criticos.slice(0, 5)"
         :key="item.material"
         class="alerta-card__item"
       >
@@ -44,7 +44,12 @@
           <span v-else>
             pedir em {{ item.dias_para_pedir }} {{ item.dias_para_pedir === 1 ? 'dia' : 'dias' }}
           </span>
-          com {{ item.fornecedor }}
+          com
+          <span v-if="item.fornecedor === '-'" class="alerta-card__sem-historico">
+            <v-icon color="#9CA3AF" size="12">mdi-help-circle-outline</v-icon>
+            fornecedor desconhecido
+          </span>
+          <span v-else>{{ item.fornecedor }}</span>
         </span>
       </li>
     </ul>
@@ -136,6 +141,14 @@
 .alerta-card__urgente {
   color: #DC2626;
   font-weight: 700;
+}
+
+.alerta-card__sem-historico {
+  color: #9CA3AF;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .alerta-card__cobertura {
