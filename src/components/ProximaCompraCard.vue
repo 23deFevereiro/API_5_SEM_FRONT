@@ -30,16 +30,18 @@
       <span>{{ store.sugestaoProximaCompra?.mensagem || 'Nenhum material precisa de compra no momento' }}</span>
     </div>
 
-    <ul v-else-if="aberto" class="proxima-compra-card__list">
-      <li
-        v-for="item in materiais"
-        :key="item.material_id"
-        class="proxima-compra-card__item"
-      >
-        <strong>{{ item.material }}</strong>
-        <span>{{ item.fornecedor_sugerido }}</span>
-      </li>
-    </ul>
+    <div v-else-if="aberto" class="proxima-compra-card__dropdown">
+      <ul class="proxima-compra-card__list">
+        <li
+          v-for="item in materiais"
+          :key="item.material_id"
+          class="proxima-compra-card__item"
+        >
+          <strong>{{ item.material }}</strong>
+          <span>{{ item.fornecedor_sugerido }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -70,18 +72,6 @@
 </script>
 
 <style scoped>
-.proxima-compra-card {
-  width: 340px;
-  min-height: 150px;
-  border-radius: 12px;
-  border: 1px solid #BFDBFE;
-  background: #EFF6FF;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .proxima-compra-card__header {
   display: flex;
   align-items: flex-start;
@@ -114,15 +104,39 @@
   font-size: 13px;
   min-height: 48px;
 }
+.proxima-compra-card {
+  position: relative;
+  overflow: visible;
+  width: 340px;
+  min-height: 150px;
+  border-radius: 12px;
+  border: 1px solid #BFDBFE;
+  background: #EFF6FF;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.proxima-compra-card__dropdown {
+  position: absolute;
+  top: 52px;
+  right: 16px;
+  width: 260px;
+  z-index: 20;
+  background: #FFFFFF;
+  border: 1px solid #DBEAFE;
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+  max-height: 220px;
+  overflow-y: auto;
+  transform-origin: top right;
+}
 
 .proxima-compra-card__list {
   list-style: none;
   margin: 0;
   padding: 0;
-  background: #FFFFFF;
-  border-radius: 8px;
-  border: 1px solid #DBEAFE;
-  overflow: hidden;
 }
 
 .proxima-compra-card__item {
@@ -133,6 +147,11 @@
   font-size: 13px;
   color: #374151;
   border-bottom: 1px solid #E5E7EB;
+  background: #FFFFFF;
+}
+
+.proxima-compra-card__item:hover {
+  background: #F3F4F6;
 }
 
 .proxima-compra-card__item:last-child {
