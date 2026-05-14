@@ -7,6 +7,7 @@
     <div class="main-card__inner">
       <MaterialSelector />
     </div>
+    <EstoqueMaterialTable />
     <div class="main-card__charts">
       <LeadTimeChart />
     </div>
@@ -14,6 +15,7 @@
 </template>
 
 <script lang="ts" setup>
+  import EstoqueMaterialTable from '@/components/EstoqueMaterialTable.vue'
   import LeadTimeChart from '@/components/LeadTimeChart.vue'
   import MateriaisAtencaoCard from '@/components/MateriaisAtencaoCard.vue'
   import MateriaisCriticosCard from '@/components/MateriaisCriticosCard.vue'

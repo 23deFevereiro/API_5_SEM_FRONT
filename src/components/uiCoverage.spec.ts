@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, nextTick } from 'vue'
 import CustoCard from './CustoCard.vue'
+import EstoqueMaterialTable from './EstoqueMaterialTable.vue'
 import FiltroPeriodoBotao from './FiltroPeriodoBotao.vue'
 import FuncionarioFilterSelector from './FuncionarioFilterSelector.vue'
 import FuncionariosTable from './FuncionariosTable.vue'
@@ -581,5 +582,254 @@ describe('UI coverage components', () => {
     await input.setValue('120')
     await input.trigger('change')
     expect(store.setAtencaoMax).toHaveBeenCalledWith(120)
+  })
+
+  it('EstoqueMaterialTable: mostra estado carregando', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = true
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Carregando')
+    expect(wrapper.find('.v-progress-circular-stub').exists()).toBe(true)
+  })
+
+  it('EstoqueMaterialTable: mostra estado vazio sem dados', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = { count: 0, page: 1, page_size: 5, total_pages: 0, results: [] }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Nenhum material com dados de consumo')
+  })
+
+  it('EstoqueMaterialTable: exibe itens com todas as colunas', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 1,
+      page: 1,
+      page_size: 5,
+      total_pages: 1,
+      results: [{ material: 'Sensor', projeto: 'Proj Alpha', estoque_atual: 10, consumo_previsto: 0.5, dias_ate_acabar: 20, status: 'Ok' }],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Sensor')
+    expect(wrapper.text()).toContain('Proj Alpha')
+    expect(wrapper.text()).toContain('10')
+    expect(wrapper.text()).toContain('0.5/dia')
+    expect(wrapper.text()).toContain('20')
+    expect(wrapper.text()).toContain('Ok')
+  })
+
+  it('EstoqueMaterialTable: exibe badge Urgente para status Urgente', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 1,
+      page: 1,
+      page_size: 5,
+      total_pages: 1,
+      results: [{ material: 'LED', projeto: 'Proj X', estoque_atual: 2, consumo_previsto: 1, dias_ate_acabar: 2, status: 'Urgente' }],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Urgente')
+    expect(wrapper.find('.status-badge--urgente').exists()).toBe(true)
+  })
+
+  it('EstoqueMaterialTable: exibe badge Atenção para status Atenção', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 1,
+      page: 1,
+      page_size: 5,
+      total_pages: 1,
+      results: [{ material: 'Resistor', projeto: 'Proj Y', estoque_atual: 50, consumo_previsto: 1, dias_ate_acabar: 50, status: 'Atenção' }],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('Atenção')
+    expect(wrapper.find('.status-badge--atencao').exists()).toBe(true)
+  })
+
+  it('EstoqueMaterialTable: chama buscarTabelaEstoque no mount', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(1)
+  })
+
+  it('EstoqueMaterialTable: botão Próxima chama buscarTabelaEstoque com próxima página', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 8,
+      page: 1,
+      page_size: 5,
+      total_pages: 2,
+      results: [
+        { material: 'M1', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+        { material: 'M2', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+        { material: 'M3', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+        { material: 'M4', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+        { material: 'M5', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+      ],
+    }
+    store.buscarTabelaEstoque = vi.fn()
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    const buttons = wrapper.findAll('button')
+    await buttons[1].trigger('click')
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(2)
+  })
+
+  it('EstoqueMaterialTable: botão Anterior chama buscarTabelaEstoque com página anterior', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 8,
+      page: 2,
+      page_size: 5,
+      total_pages: 2,
+      results: [
+        { material: 'M6', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+      ],
+    }
+    store.buscarTabelaEstoque = vi.fn()
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    const buttons = wrapper.findAll('button')
+    await buttons[0].trigger('click')
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(1)
+  })
+
+  it('EstoqueMaterialTable: mostra table-wrapper--loading ao paginar com dados existentes', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = true
+    store.tabelaEstoque = {
+      count: 8,
+      page: 1,
+      page_size: 5,
+      total_pages: 2,
+      results: [{ material: 'M1', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' }],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(wrapper.find('.table-wrapper--loading').exists()).toBe(true)
+    expect(wrapper.find('table').exists()).toBe(true)
+  })
+
+  it('EstoqueMaterialTable: ordena por Material (asc) ao clicar no cabeçalho', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 2,
+      page: 1,
+      page_size: 5,
+      total_pages: 1,
+      results: [
+        { material: 'Zircônio', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+        { material: 'Alumínio', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+      ],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    await wrapper.findAll('th')[0].trigger('click')
+    expect(store.tabelaSortBy).toBe('material')
+    expect(store.tabelaSortDir).toBe('asc')
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(1)
+  })
+
+  it('EstoqueMaterialTable: inverte ordenação ao clicar novamente no mesmo cabeçalho', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 2,
+      page: 1,
+      page_size: 5,
+      total_pages: 1,
+      results: [
+        { material: 'Zircônio', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+        { material: 'Alumínio', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' },
+      ],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    await wrapper.findAll('th')[0].trigger('click') // asc
+    await wrapper.findAll('th')[0].trigger('click') // desc
+    expect(store.tabelaSortBy).toBe('material')
+    expect(store.tabelaSortDir).toBe('desc')
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledTimes(3) // mount + 2 cliques
+  })
+
+  it('EstoqueMaterialTable: ordena por Status (asc) coloca Urgente antes de Ok', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaSortBy = 'material' // outro campo para garantir primeiro clique como asc
+    store.tabelaEstoque = {
+      count: 2,
+      page: 1,
+      page_size: 5,
+      total_pages: 1,
+      results: [
+        { material: 'B', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 50, status: 'Ok' },
+        { material: 'A', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 5, status: 'Urgente' },
+      ],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    await wrapper.findAll('th')[5].trigger('click')
+    expect(store.tabelaSortBy).toBe('status')
+    expect(store.tabelaSortDir).toBe('asc')
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(1)
+  })
+
+  it('EstoqueMaterialTable: ordena por Dias até acabar (asc)', async () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 2,
+      page: 1,
+      page_size: 5,
+      total_pages: 1,
+      results: [
+        { material: 'A', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 100, status: 'Ok' },
+        { material: 'B', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 5, status: 'Ok' },
+      ],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    await wrapper.findAll('th')[4].trigger('click')
+    expect(store.tabelaSortBy).toBe('dias_ate_acabar')
+    expect(store.tabelaSortDir).toBe('asc')
+    expect(store.buscarTabelaEstoque).toHaveBeenCalledWith(1)
+  })
+
+  it('EstoqueMaterialTable: recarrega ao mudar material selecionado', async () => {
+    const store = usePlanejamentoStore()
+    const mockBuscar = vi.fn()
+    store.buscarTabelaEstoque = mockBuscar
+    mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    mockBuscar.mockClear()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Sensor' }
+    await nextTick()
+    expect(mockBuscar).toHaveBeenCalledWith(1)
+  })
+
+  it('EstoqueMaterialTable: exibe contagem de itens no cabeçalho', () => {
+    const store = usePlanejamentoStore()
+    store.buscarTabelaEstoque = vi.fn()
+    store.carregandoTabela = false
+    store.tabelaEstoque = {
+      count: 7,
+      page: 1,
+      page_size: 5,
+      total_pages: 2,
+      results: [{ material: 'X', projeto: 'P', estoque_atual: 1, consumo_previsto: 1, dias_ate_acabar: 1, status: 'Ok' }],
+    }
+    const wrapper = mount(EstoqueMaterialTable, { global: { stubs: globalStubs } })
+    expect(wrapper.text()).toContain('7 itens')
   })
 })

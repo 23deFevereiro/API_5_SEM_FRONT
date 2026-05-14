@@ -19,27 +19,36 @@
       <span>Carregando...</span>
     </div>
 
-    <div v-else-if="store.alertas.atencao.length === 0" class="alerta-card__empty">
+    <div v-else-if="displayItems.length === 0" class="alerta-card__empty">
       <v-icon color="#9CA3AF" size="32">mdi-check-circle-outline</v-icon>
       <span>Nenhum material em atenção</span>
     </div>
 
     <ul v-else class="alerta-card__list">
       <li
-        v-for="item in store.alertas.atencao"
+        v-for="item in displayItems"
         :key="item.material"
         class="alerta-card__item"
       >
-        <v-icon color="#D97706" size="14">mdi-circle-small</v-icon>
+        <v-icon
+          :color="item.dias_para_pedir <= store.criticoMax ? '#DC2626' : '#D97706'"
+          size="14"
+        >mdi-circle-small</v-icon>
         <span class="alerta-card__item-text">
           <strong>{{ item.material }}</strong>
+          <span v-if="item.dias_para_pedir <= store.criticoMax" class="alerta-card__overflow-badge">Crítico</span>
           <br>
           <span class="alerta-card__cobertura">
             Estoque para {{ item.dias_cobertura }} {{ item.dias_cobertura === 1 ? 'dia' : 'dias' }}
           </span>
           · pedir em
           {{ item.dias_para_pedir }} {{ item.dias_para_pedir === 1 ? 'dia' : 'dias' }}
-          com {{ item.fornecedor }}
+          com
+          <span v-if="item.fornecedor === '-'" class="alerta-card__sem-historico">
+            <v-icon color="#9CA3AF" size="12">mdi-help-circle-outline</v-icon>
+            fornecedor desconhecido
+          </span>
+          <span v-else>{{ item.fornecedor }}</span>
         </span>
       </li>
     </ul>
@@ -47,9 +56,14 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { usePlanejamentoStore } from '@/stores/planejamento'
 
   const store = usePlanejamentoStore()
+
+  const displayItems = computed(() =>
+    [...store.alertas.criticos.slice(5), ...store.alertas.atencao].slice(0, 5),
+  )
 </script>
 
 <style scoped>
@@ -126,6 +140,25 @@
 .alerta-card__cobertura {
   color: #6B7280;
   font-size: 12px;
+}
+
+.alerta-card__sem-historico {
+  color: #9CA3AF;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.alerta-card__overflow-badge {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #991B1B;
+  background: #FEE2E2;
+  padding: 1px 5px;
+  border-radius: 99px;
+  vertical-align: middle;
 }
 
 .alerta-card__input {

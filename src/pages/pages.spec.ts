@@ -25,6 +25,7 @@ const globalStubs = {
   FuncionarioFilterSelector: { props: ['disabled'], template: '<div class="funcionario-filter-stub" :data-disabled="disabled" />' },
   FuncionariosTable: { template: '<div class="funcionarios-table-stub" />' },
   HorasFuncionarioChart: { template: '<div class="horas-funcionario-chart-stub" />' },
+  EstoqueMaterialTable: { template: '<div class="estoque-material-table-stub" />' },
   LeadTimeChart: { template: '<div class="lead-time-chart-stub" />' },
   MateriaisAtencaoCard: { template: '<div class="materiais-atencao-card-stub" />' },
   MateriaisCriticosCard: { template: '<div class="materiais-criticos-card-stub" />' },

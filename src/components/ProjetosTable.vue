@@ -222,17 +222,6 @@
 </script>
 
 <style scoped>
-.content-area {
-  min-height: 520px;
-  display: flex;
-  flex-direction: column;
-}
-
-.content-area .empty-state {
-  flex: 1;
-  justify-content: center;
-}
-
 .table-wrapper {
   flex: 1;
 }
@@ -264,19 +253,6 @@
   letter-spacing: 0.04em;
   white-space: nowrap;
   border-bottom: 1px solid #E5E7EB;
-}
-
-.table-row {
-  border-bottom: 1px solid #F3F4F6;
-  transition: background 0.15s;
-}
-
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.table-row:hover {
-  background: #F9FAFB;
 }
 
 .projetos-table td {
@@ -369,15 +345,6 @@
   text-align: right;
 }
 
-.table-wrapper--loading {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.table-scroll {
-  overflow-x: auto;
-}
-
 .acao-badge {
   display: inline-flex;
   align-items: center;
@@ -444,22 +411,6 @@
 
 .acao-azul :deep(.v-icon) {
   color: #6366F1;
-}
-
-.col-sortable {
-  cursor: pointer;
-  user-select: none;
-}
-
-.col-sortable:hover {
-  color: #374151;
-}
-
-.sort-icon {
-  display: inline-block;
-  margin-left: 4px;
-  font-size: 11px;
-  opacity: 0.6;
 }
 
 .col-nome { min-width: 160px; }

@@ -18,6 +18,23 @@ export type LeadTimePonto = {
   data_pedido: string
 }
 
+export type EstoqueItem = {
+  material: string
+  projeto: string
+  estoque_atual: number
+  consumo_previsto: number
+  dias_ate_acabar: number
+  status: 'Urgente' | 'Atenção' | 'Ok'
+}
+
+export type TabelaEstoque = {
+  count: number
+  page: number
+  page_size: number
+  total_pages: number
+  results: EstoqueItem[]
+}
+
 export type AlertaMaterial = {
   material: string
   dias_para_pedir: number
@@ -31,17 +48,37 @@ export type AlertasMateriais = {
   atencao: AlertaMaterial[]
 }
 
+interface PlanejamentoState {
+  materiais: MaterialCompra[]
+  materialSelecionado: MaterialCompra | null
+  leadTimeData: LeadTimePonto[]
+  alertas: AlertasMateriais
+  tabelaEstoque: TabelaEstoque
+  tabelaSortBy: string
+  tabelaSortDir: 'asc' | 'desc'
+  criticoMax: number
+  atencaoMax: number
+  carregandoMateriais: boolean
+  carregandoLeadTime: boolean
+  carregandoAlertas: boolean
+  carregandoTabela: boolean
+}
+
 export const usePlanejamentoStore = defineStore('planejamento', {
-  state: () => ({
-    materiais: [] as MaterialCompra[],
-    materialSelecionado: null as MaterialCompra | null,
-    leadTimeData: [] as LeadTimePonto[],
-    alertas: { criticos: [] as AlertaMaterial[], atencao: [] as AlertaMaterial[] },
+  state: (): PlanejamentoState => ({
+    materiais: [],
+    materialSelecionado: null,
+    leadTimeData: [],
+    alertas: { criticos: [], atencao: [] },
+    tabelaEstoque: { count: 0, page: 1, page_size: 5, total_pages: 0, results: [] },
+    tabelaSortBy: 'status',
+    tabelaSortDir: 'asc',
     criticoMax: 30,
     atencaoMax: 60,
     carregandoMateriais: false,
     carregandoLeadTime: false,
     carregandoAlertas: false,
+    carregandoTabela: false,
   }),
 
   actions: {
@@ -86,15 +123,37 @@ export const usePlanejamentoStore = defineStore('planejamento', {
       }
     },
 
+    async buscarTabelaEstoque (page: number = 1) {
+      this.carregandoTabela = true
+      try {
+        const params: Record<string, string | number> = {
+          critico_max: this.criticoMax,
+          atencao_max: this.atencaoMax,
+          page,
+          sort_by: this.tabelaSortBy,
+          sort_dir: this.tabelaSortDir,
+        }
+        if (this.materialSelecionado) {
+          params.material_id = this.materialSelecionado.id
+        }
+        const response = await axios.get(apiUrl('/api/compras/estoque-tabela/'), { params })
+        this.tabelaEstoque = response.data
+      } finally {
+        this.carregandoTabela = false
+      }
+    },
+
     setCriticoMax (valor: number) {
       this.criticoMax = Math.max(1, valor)
       this.atencaoMax = this.criticoMax + 30
       this.buscarAlertas()
+      this.buscarTabelaEstoque(1)
     },
 
     setAtencaoMax (valor: number) {
       this.atencaoMax = Math.max(this.criticoMax + 1, valor)
       this.buscarAlertas()
+      this.buscarTabelaEstoque(1)
     },
   },
 })
