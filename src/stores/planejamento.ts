@@ -62,19 +62,23 @@ interface PlanejamentoState {
   carregandoLeadTime: boolean
   carregandoAlertas: boolean
   carregandoTabela: boolean
+  sugestaoProximaCompra: SugestaoProximaCompra | null
+  carregandoSugestaoCompra: boolean
 }
 
 export const usePlanejamentoStore = defineStore('planejamento', {
   state: (): PlanejamentoState => ({
+    sugestaoProximaCompra: null as SugestaoProximaCompra | null,
     materiais: [],
     materialSelecionado: null,
     leadTimeData: [],
-    alertas: { criticos: [], atencao: [] },
+    alertas: { criticos: [] as AlertaMaterial[], atencao: [] as AlertaMaterial[] },
     tabelaEstoque: { count: 0, page: 1, page_size: 5, total_pages: 0, results: [] },
     tabelaSortBy: 'status',
     tabelaSortDir: 'asc',
     criticoMax: 30,
     atencaoMax: 60,
+    carregandoSugestaoCompra: false,
     carregandoMateriais: false,
     carregandoLeadTime: false,
     carregandoAlertas: false,
@@ -82,6 +86,16 @@ export const usePlanejamentoStore = defineStore('planejamento', {
   }),
 
   actions: {
+    async buscarSugestaoProximaCompra () {
+      this.carregandoSugestaoCompra = true
+      try {
+        const response = await axios.get(apiUrl('/api/compras/sugestao-proxima-compra/'))
+        this.sugestaoProximaCompra = response.data
+      } finally {
+        this.carregandoSugestaoCompra = false
+      }
+    },
+
     async buscarMateriais () {
       if (this.materiais.length > 0) return
       this.carregandoMateriais = true
@@ -123,7 +137,7 @@ export const usePlanejamentoStore = defineStore('planejamento', {
       }
     },
 
-    async buscarTabelaEstoque (page: number = 1) {
+    async buscarTabelaEstoque (page = 1) {
       this.carregandoTabela = true
       try {
         const params: Record<string, string | number> = {
@@ -157,3 +171,20 @@ export const usePlanejamentoStore = defineStore('planejamento', {
     },
   },
 })
+
+export type MaterialProximaCompra = {
+  material_id: number
+  material: string
+  fornecedor_sugerido: string
+  dias_cobertura: number
+  lead_time: number
+  data_limite_compra: string
+  comprar_imediatamente: boolean
+}
+
+export type SugestaoProximaCompra = {
+  data_sugerida: string | null
+  comprar_imediatamente: boolean
+  materiais: MaterialProximaCompra[]
+  mensagem?: string
+}

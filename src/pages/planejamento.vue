@@ -3,6 +3,7 @@
     <div class="main-card__alertas">
       <MateriaisCriticosCard />
       <MateriaisAtencaoCard />
+      <ProximaCompraCard />
     </div>
     <div class="main-card__inner">
       <MaterialSelector />
@@ -20,6 +21,7 @@
   import MateriaisAtencaoCard from '@/components/MateriaisAtencaoCard.vue'
   import MateriaisCriticosCard from '@/components/MateriaisCriticosCard.vue'
   import MaterialSelector from '@/components/MaterialSelector.vue'
+  import ProximaCompraCard from '@/components/ProximaCompraCard.vue'
 </script>
 
 <style scoped>
@@ -37,6 +39,7 @@
 .main-card__alertas {
   display: flex;
   gap: 16px;
+  align-items: stretch;
 }
 
 .main-card__inner {
