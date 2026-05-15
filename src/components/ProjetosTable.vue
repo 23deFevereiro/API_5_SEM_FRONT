@@ -44,10 +44,10 @@
                 <th class="col-horas">Horas Real.</th>
                 <th class="col-tarefas">Tarefas Conc. (%)</th>
                 <th class="col-desvio">Desvio (h)</th>
-                <th class="col-data">Data Última Atividade</th>
-                <th class="col-dias">Dias desde Última Atividade</th>
-                <th class="col-acao col-sortable" @click="ordenar('acao')">
-                  Ação <span class="sort-icon">{{ sortIcon('acao') }}</span>
+                <th class="col-data">Última Atividade</th>
+                <th class="col-dias">Dias Inativo</th>
+                <th class="col-situacao col-sortable" @click="ordenar('situacao')">
+                  Situação <span class="sort-icon">{{ sortIcon('situacao') }}</span>
                 </th>
               </tr>
             </thead>
@@ -93,26 +93,15 @@
                 </td>
                 <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
                 <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
-                <td class="col-acao">
-                  <div class="acao-badge" :class="acaoBadgeClass(projeto.acao)">
-                    <template v-if="projeto.acao.startsWith('check')">
-                      <v-icon size="16">mdi-check-circle</v-icon>
+                <td class="col-situacao">
+                  <v-tooltip content-class="tooltip-sem-horas" location="top">
+                    <template #activator="{ props: tooltipProps }">
+                      <span v-bind="tooltipProps" class="situacao-badge" :class="situacaoBadgeClass(projeto.situacao)">
+                        <v-icon :color="situacaoColor(projeto.situacao)" size="20">{{ situacaoIcon(projeto.situacao) }}</v-icon>
+                      </span>
                     </template>
-                    <template v-else-if="projeto.acao === 'suspenso'">
-                      <span>—</span>
-                    </template>
-                    <template v-else-if="projeto.acao === 'corrigir-status'">
-                      <span class="acao-dot" />
-                      <span>Corrigir status</span>
-                    </template>
-                    <template v-else-if="projeto.acao === 'outro'">
-                      <v-icon size="16">mdi-help-circle-outline</v-icon>
-                    </template>
-                    <template v-else>
-                      <span class="acao-dot" />
-                      <span>Priorizar</span>
-                    </template>
-                  </div>
+                    {{ situacaoLabel(projeto.situacao) }}
+                  </v-tooltip>
                 </td>
               </tr>
             </tbody>
@@ -143,6 +132,14 @@
               Próxima
             </button>
           </div>
+        </div>
+
+        <div class="situacao-legenda">
+          <span class="legenda-titulo">Legenda — Situação:</span>
+          <span v-for="item in legendaSituacao" :key="item.situacao" class="legenda-item">
+            <v-icon :color="item.color" size="14">{{ item.icon }}</v-icon>
+            <span>{{ item.label }}</span>
+          </span>
         </div>
       </div>
     </div>
@@ -191,6 +188,35 @@
     return store.tabelaSortDir === 'asc' ? '↑' : '↓'
   }
 
+  const SITUACAO_CONFIG: Record<string, { icon: string, color: string, bgClass: string, label: string }> = {
+    'priorizar-vermelho': { icon: 'mdi-alert-circle', color: '#B91C1C', bgClass: 'situacao-vermelho', label: 'Em andamento, fora do prazo' },
+    'priorizar-verde': { icon: 'mdi-clock-outline', color: '#15803D', bgClass: 'situacao-verde', label: 'Em andamento, dentro do prazo' },
+    'corrigir-status': { icon: 'mdi-pencil-circle-outline', color: '#C2410C', bgClass: 'situacao-laranja', label: 'Status desatualizado' },
+    'check-vermelho': { icon: 'mdi-check-circle', color: '#B91C1C', bgClass: 'situacao-vermelho', label: 'Concluído fora do prazo' },
+    'check-amarelo': { icon: 'mdi-check-circle', color: '#B45309', bgClass: 'situacao-amarelo', label: 'Concluído, parte fora do prazo' },
+    'check-verde': { icon: 'mdi-check-circle', color: '#15803D', bgClass: 'situacao-verde', label: 'Concluído no prazo' },
+    'suspenso': { icon: 'mdi-pause-circle-outline', color: '#6B7280', bgClass: 'situacao-neutro', label: 'Suspenso' },
+    'outro': { icon: 'mdi-help-circle-outline', color: '#3730A3', bgClass: 'situacao-azul', label: 'Situação indeterminada' },
+  }
+
+  const legendaSituacao = Object.entries(SITUACAO_CONFIG).map(([situacao, cfg]) => ({ situacao, ...cfg }))
+
+  function situacaoIcon (situacao: string): string {
+    return SITUACAO_CONFIG[situacao]?.icon ?? 'mdi-help-circle-outline'
+  }
+
+  function situacaoColor (situacao: string): string {
+    return SITUACAO_CONFIG[situacao]?.color ?? '#3730A3'
+  }
+
+  function situacaoBadgeClass (situacao: string): string {
+    return SITUACAO_CONFIG[situacao]?.bgClass ?? 'situacao-azul'
+  }
+
+  function situacaoLabel (situacao: string): string {
+    return SITUACAO_CONFIG[situacao]?.label ?? 'Situação indeterminada'
+  }
+
   function statusClass (status: string): string {
     const map: Record<string, string> = {
       'Planejamento': 'status-planejamento',
@@ -204,20 +230,6 @@
   function formatarData (iso: string): string {
     const [year, month, day] = iso.split('-')
     return `${day}/${month}/${year}`
-  }
-
-  function acaoBadgeClass (acao: string): string {
-    const map: Record<string, string> = {
-      'check-verde': 'acao-verde',
-      'check-amarelo': 'acao-amarelo',
-      'check-vermelho': 'acao-vermelho',
-      'priorizar-verde': 'acao-verde',
-      'priorizar-vermelho': 'acao-vermelho',
-      'corrigir-status': 'acao-laranja',
-      'suspenso': 'acao-neutro',
-      'outro': 'acao-azul',
-    }
-    return map[acao] ?? 'acao-azul'
   }
 </script>
 
@@ -345,72 +357,47 @@
   text-align: right;
 }
 
-.acao-badge {
+.situacao-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: default;
+}
+
+.situacao-verde    { background: #ECFDF5; }
+.situacao-amarelo  { background: #FFFBEB; }
+.situacao-laranja  { background: #FFF7ED; }
+.situacao-vermelho { background: #FEF2F2; }
+.situacao-neutro   { background: #F3F4F6; }
+.situacao-azul     { background: #EEF2FF; }
+
+.situacao-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  padding: 10px 12px;
+  border-top: 1px solid #E5E7EB;
+  background: #F9FAFB;
+  border-radius: 0 0 8px 8px;
+  font-size: 11px;
+  color: #6B7280;
+}
+
+.legenda-titulo {
   font-weight: 600;
+  color: #374151;
   white-space: nowrap;
 }
 
-.acao-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.acao-verde {
-  background: #ECFDF5;
-  color: #15803D;
-}
-
-.acao-verde .acao-dot {
-  background: #22C55E;
-}
-
-.acao-amarelo {
-  background: #FFFBEB;
-  color: #B45309;
-}
-
-.acao-amarelo .acao-dot {
-  background: #F59E0B;
-}
-
-.acao-laranja {
-  background: #FFF7ED;
-  color: #C2410C;
-}
-
-.acao-laranja .acao-dot {
-  background: #F97316;
-}
-
-.acao-vermelho {
-  background: #FEF2F2;
-  color: #B91C1C;
-}
-
-.acao-vermelho .acao-dot {
-  background: #EF4444;
-}
-
-.acao-neutro {
-  background: #F3F4F6;
-  color: #4B5563;
-}
-
-.acao-azul {
-  background: #EEF2FF;
-  color: #3730A3;
-}
-
-.acao-azul :deep(.v-icon) {
-  color: #6366F1;
+.legenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .col-nome { min-width: 160px; }
@@ -421,7 +408,7 @@
 .col-desvio { min-width: 90px; font-weight: 600; }
 .col-data { min-width: 130px; }
 .col-dias { min-width: 130px; }
-.col-acao { min-width: 160px; }
+.col-situacao { min-width: 80px; text-align: center; }
 
 :deep(.tooltip-sem-horas) {
   background: #1F2937 !important;

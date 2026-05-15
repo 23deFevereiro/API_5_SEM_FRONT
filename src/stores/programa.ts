@@ -66,7 +66,7 @@ export type TabelaProjeto = {
   data_ultima_atividade: string | null
   dias_desde_ultima_atividade: number | null
   sem_horas_registradas: boolean
-  acao: string
+  situacao: string
 }
 
 export type TabelaProjetosPaginada = {

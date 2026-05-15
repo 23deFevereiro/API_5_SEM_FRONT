@@ -28,7 +28,7 @@ function projetoBase (overrides: Record<string, unknown> = {}) {
     data_ultima_atividade: '2025-01-15' as string | null,
     dias_desde_ultima_atividade: 5 as number | null,
     sem_horas_registradas: false,
-    acao: 'check-verde',
+    situacao: 'check-verde',
     ...overrides,
   }
 }
@@ -39,8 +39,8 @@ const tabelaProjetosMock = {
   page_size: 10,
   total_pages: 2,
   results: [
-    projetoBase({ nome_projeto: 'Projeto K', responsavel: 'Maria', status: 'Planejamento', acao: 'check-verde' }),
-    projetoBase({ nome_projeto: 'Projeto L', responsavel: 'João', status: 'Concluído', acao: 'check-verde' }),
+    projetoBase({ nome_projeto: 'Projeto K', responsavel: 'Maria', status: 'Planejamento', situacao: 'check-verde' }),
+    projetoBase({ nome_projeto: 'Projeto L', responsavel: 'João', status: 'Concluído', situacao: 'check-verde' }),
   ],
 }
 
@@ -177,59 +177,70 @@ describe('ProjetosTable — badge de status', () => {
   })
 })
 
-describe('ProjetosTable — badge de ação', () => {
+describe('ProjetosTable — badge de situação', () => {
   it.each([
-    ['check-verde', 'acao-verde'],
-    ['check-amarelo', 'acao-amarelo'],
-    ['check-vermelho', 'acao-vermelho'],
-    ['priorizar-verde', 'acao-verde'],
-    ['priorizar-vermelho', 'acao-vermelho'],
-    ['corrigir-status', 'acao-laranja'],
-    ['suspenso', 'acao-neutro'],
-    ['outro', 'acao-azul'],
-  ])('acao="%s" aplica classe "%s"', (acao, expectedClass) => {
+    ['check-verde', 'situacao-verde'],
+    ['check-amarelo', 'situacao-amarelo'],
+    ['check-vermelho', 'situacao-vermelho'],
+    ['priorizar-verde', 'situacao-verde'],
+    ['priorizar-vermelho', 'situacao-vermelho'],
+    ['corrigir-status', 'situacao-laranja'],
+    ['suspenso', 'situacao-neutro'],
+    ['outro', 'situacao-azul'],
+  ])('situacao="%s" aplica classe "%s"', (situacao, expectedClass) => {
     const store = useProgramaStore()
     store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
-    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ acao })] }
+    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ situacao })] }
 
     const wrapper = montar()
     expect(wrapper.html()).toContain(expectedClass)
   })
 
-  it('exibe "Priorizar" para acao priorizar-vermelho', () => {
+  it('exibe ícone de alerta para situacao priorizar-vermelho', () => {
     const store = useProgramaStore()
     store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
-    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ acao: 'priorizar-vermelho' })] }
+    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ situacao: 'priorizar-vermelho' })] }
 
     const wrapper = montar()
-    expect(wrapper.text()).toContain('Priorizar')
+    expect(wrapper.html()).toContain('mdi-alert-circle')
   })
 
-  it('exibe "Corrigir status" para acao corrigir-status', () => {
+  it('exibe ícone de lápis para situacao corrigir-status', () => {
     const store = useProgramaStore()
     store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
-    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ acao: 'corrigir-status' })] }
+    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ situacao: 'corrigir-status' })] }
 
     const wrapper = montar()
-    expect(wrapper.text()).toContain('Corrigir status')
+    expect(wrapper.html()).toContain('mdi-pencil-circle-outline')
   })
 
-  it('exibe ícone de check para acao check-amarelo', () => {
+  it('exibe ícone de check para situacao check-amarelo', () => {
     const store = useProgramaStore()
     store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
-    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ acao: 'check-amarelo' })] }
+    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ situacao: 'check-amarelo' })] }
 
     const wrapper = montar()
     expect(wrapper.html()).toContain('mdi-check-circle')
   })
 
-  it('exibe ícone de interrogação para acao outro', () => {
+  it('exibe ícone de interrogação para situacao outro', () => {
     const store = useProgramaStore()
     store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
-    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ acao: 'outro' })] }
+    store.tabelaProjetos = { ...tabelaProjetosMock, results: [projetoBase({ situacao: 'outro' })] }
 
     const wrapper = montar()
     expect(wrapper.html()).toContain('mdi-help-circle-outline')
+  })
+
+  it('exibe legenda com todos os itens de situacao', () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
+    store.tabelaProjetos = tabelaProjetosMock
+
+    const wrapper = montar()
+    expect(wrapper.text()).toContain('Legenda')
+    expect(wrapper.text()).toContain('Concluído no prazo')
+    expect(wrapper.text()).toContain('Em andamento, fora do prazo')
   })
 })
 
@@ -296,7 +307,7 @@ describe('ProjetosTable — ordenação', () => {
     const store = useProgramaStore()
     store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
     store.tabelaProjetos = tabelaProjetosMock
-    store.tabelaSortBy = 'acao'
+    store.tabelaSortBy = 'situacao'
     store.tabelaSortDir = 'desc'
 
     const wrapper = montar()
@@ -342,7 +353,7 @@ describe('ProjetosTable — campos adicionais', () => {
     expect(wrapper.find('.v-tooltip-stub').exists()).toBe(true)
   })
 
-  it('não exibe tooltip quando sem_horas_registradas é false', () => {
+  it('não exibe tooltip de horas quando sem_horas_registradas é false', () => {
     const store = useProgramaStore()
     store.programaSelecionado = { id: 1, codigo_programa: 'P-1', nome_programa: 'Programa Alpha' }
     store.tabelaProjetos = {
@@ -351,7 +362,7 @@ describe('ProjetosTable — campos adicionais', () => {
     }
 
     const wrapper = montar()
-    expect(wrapper.find('.v-tooltip-stub').exists()).toBe(false)
+    expect(wrapper.find('.tarefas-progress .v-tooltip-stub').exists()).toBe(false)
   })
 
   it('exibe "—" para responsável quando é string vazia', () => {

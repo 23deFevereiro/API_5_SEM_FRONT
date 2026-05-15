@@ -285,10 +285,10 @@ describe('Integração: tabela de projetos paginada', () => {
   it('atualiza tabelaSortBy e tabelaSortDir quando passados explicitamente', async () => {
     vi.mocked(axios.get).mockResolvedValueOnce({ data: tabelaProjetosMock })
     const store = useProgramaStore()
-    await store.buscarTabelaProjetos(1, 1, 'acao', 'desc')
-    expect(store.tabelaSortBy).toBe('acao')
+    await store.buscarTabelaProjetos(1, 1, 'situacao', 'desc')
+    expect(store.tabelaSortBy).toBe('situacao')
     expect(store.tabelaSortDir).toBe('desc')
-    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('sort_by=acao'))
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('sort_by=situacao'))
     expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('sort_dir=desc'))
   })
 
