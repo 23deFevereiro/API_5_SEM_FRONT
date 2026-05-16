@@ -8,16 +8,6 @@
         </h3>
       </div>
 
-      <v-btn
-        v-if="materiais.length > 0"
-        class="proxima-compra-card__button"
-        density="comfortable"
-        icon
-        variant="text"
-        @click="aberto = !aberto"
-      >
-        <v-icon>{{ aberto ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-      </v-btn>
     </div>
 
     <div v-if="store.carregandoSugestaoCompra" class="proxima-compra-card__empty">
@@ -30,27 +20,61 @@
       <span>{{ store.sugestaoProximaCompra?.mensagem || 'Nenhum material precisa de compra no momento' }}</span>
     </div>
 
-    <div v-else-if="aberto" class="proxima-compra-card__dropdown">
-      <ul class="proxima-compra-card__list">
-        <li
-          v-for="item in materiais"
-          :key="item.material_id"
-          class="proxima-compra-card__item"
-        >
+    <ul v-else class="proxima-compra-card__list">
+      <li
+        v-for="item in materiais.slice(0, 5)"
+        :key="item.material_id"
+        class="proxima-compra-card__item"
+      >
+        <v-icon color="#2563EB" size="14">mdi-circle-small</v-icon>
+
+        <span class="proxima-compra-card__item-text">
           <strong>{{ item.material }}</strong>
-          <span>{{ item.fornecedor_sugerido }}</span>
-        </li>
-      </ul>
-    </div>
+          <br>
+
+          <span class="proxima-compra-card__cobertura">
+            Estoque para {{ item.dias_cobertura }}
+            {{ item.dias_cobertura === 1 ? 'dia' : 'dias' }}
+          </span>
+
+          ·
+
+          <span
+            v-if="item.comprar_imediatamente"
+            class="proxima-compra-card__urgente"
+          >
+            comprar imediatamente
+          </span>
+
+          <span v-else>
+            comprar até {{ formatarData(item.data_limite_compra) }}
+          </span>
+
+          com
+
+          <span
+            v-if="item.fornecedor_sugerido === 'Fornecedor não definido' || item.fornecedor_sugerido === '-'"
+            class="proxima-compra-card__sem-historico"
+          >
+            <v-icon color="#9CA3AF" size="12">
+              mdi-help-circle-outline
+            </v-icon>
+
+            fornecedor desconhecido
+          </span>
+
+          <span v-else>{{ item.fornecedor_sugerido }}</span>
+        </span>
+      </li>
+    </ul>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, onMounted } from 'vue'
   import { usePlanejamentoStore } from '@/stores/planejamento'
 
   const store = usePlanejamentoStore()
-  const aberto = ref(false)
 
   const materiais = computed(() => store.sugestaoProximaCompra?.materiais || [])
 
@@ -65,6 +89,11 @@
     const [ano, mes, dia] = sugestao.data_sugerida.split('-')
     return `${dia}/${mes}/${ano}`
   })
+
+  function formatarData (data: string) {
+    const [ano, mes, dia] = data.split('-')
+    return `${dia}/${mes}/${ano}`
+  }
 
   onMounted(() => {
     store.buscarSugestaoProximaCompra()
@@ -92,10 +121,6 @@
   font-weight: 700;
 }
 
-.proxima-compra-card__button {
-  color: #1D4ED8;
-}
-
 .proxima-compra-card__empty {
   display: flex;
   align-items: center;
@@ -118,54 +143,44 @@
   gap: 12px;
 }
 
-.proxima-compra-card__dropdown {
-  position: absolute;
-  top: 52px;
-  right: 16px;
-  width: 260px;
-  z-index: 20;
-  background: #FFFFFF;
-  border: 1px solid #DBEAFE;
-  border-radius: 8px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
-  max-height: 220px;
-  overflow-y: auto;
-  transform-origin: top right;
-}
-
 .proxima-compra-card__list {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .proxima-compra-card__item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
+  align-items: flex-start;
+  gap: 4px;
   font-size: 13px;
   color: #374151;
-  border-bottom: 1px solid #E5E7EB;
-  background: #FFFFFF;
+  line-height: 1.4;
 }
 
-.proxima-compra-card__item:hover {
-  background: #F3F4F6;
+.proxima-compra-card__item-text {
+  flex: 1;
 }
 
-.proxima-compra-card__item:last-child {
-  border-bottom: none;
+.proxima-compra-card__urgente {
+  color: #2563EB;
+  font-weight: 700;
 }
 
-.proxima-compra-card__item span {
+.proxima-compra-card__sem-historico {
+  color: #9CA3AF;
+  font-style: italic;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.proxima-compra-card__cobertura {
   color: #6B7280;
   font-size: 12px;
 }
 
-@media (max-width: 768px) {
-  .proxima-compra-card {
-    width: 100%;
-  }
-}
 </style>
