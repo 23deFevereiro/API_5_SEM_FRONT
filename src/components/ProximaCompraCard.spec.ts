@@ -109,4 +109,43 @@ describe('ProximaCompraCard', () => {
 
     expect(wrapper.text()).toContain('Capacitor')
   })
+
+  it('renderiza mensagem sem compra necessária', () => {
+    const store = usePlanejamentoStore()
+
+    store.sugestaoProximaCompra = {
+      data_sugerida: null,
+      comprar_imediatamente: false,
+      materiais: [],
+      mensagem: 'Nenhum material precisa de compra no momento',
+    }
+
+    const wrapper = mountCard()
+
+    expect(wrapper.text()).toContain('Sem compra necessária')
+  })
+
+  it('renderiza fornecedor desconhecido', () => {
+    const store = usePlanejamentoStore()
+
+    store.sugestaoProximaCompra = {
+      data_sugerida: '2025-06-01',
+      comprar_imediatamente: false,
+      materiais: [
+        {
+          material_id: 1,
+          material: 'Capacitor',
+          fornecedor_sugerido: '-',
+          dias_cobertura: 20,
+          lead_time: 5,
+          data_limite_compra: '2025-05-28',
+          comprar_imediatamente: false,
+        },
+      ],
+    }
+
+    const wrapper = mountCard()
+
+    expect(wrapper.text()).toContain('fornecedor desconhecido')
+  })
 })
