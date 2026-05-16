@@ -39,6 +39,7 @@ const globalStubs = {
   ProgramaSelector: { template: '<div class="programa-selector-stub" />' },
   ProjetoSelector: { template: '<div class="projeto-selector-stub" />' },
   ProjetosTable: { template: '<div class="projetos-table-stub" />' },
+  ProximaCompraCard: { template: '<div class="proxima-compra-card-stub" />' },
   'v-btn': { props: ['to'], template: '<button class="v-btn-stub">{{ to }}<slot /></button>' },
   'v-icon': { template: '<i class="v-icon-stub"><slot /></i>' },
 }
@@ -102,7 +103,7 @@ describe('pages coverage', () => {
   })
 
   it('renderiza as páginas de planejamento e não encontrado', () => {
-    const planejamentoWrapper = mount(PlanejamentoPage, {
+    const planejamentoWrapper = shallowMount(PlanejamentoPage, {
       global: {
         stubs: globalStubs,
       },
