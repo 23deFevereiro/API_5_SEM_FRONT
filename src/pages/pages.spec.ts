@@ -105,7 +105,10 @@ describe('pages coverage', () => {
   it('renderiza as páginas de planejamento e não encontrado', () => {
     const planejamentoWrapper = shallowMount(PlanejamentoPage, {
       global: {
-        stubs: globalStubs,
+        stubs: {
+          ...globalStubs,
+          EstoqueMaterialTable: { template: '<div class="estoque-material-table-stub" />' },
+        },
       },
     })
     const notFoundWrapper = mount(NotFoundPage, {
