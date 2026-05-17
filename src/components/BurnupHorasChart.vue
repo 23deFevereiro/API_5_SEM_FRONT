@@ -38,12 +38,28 @@
   const pivotado = computed(() => {
     if (store.burnupHoras.length === 0) return []
     const mesesSet = new Set(store.burnupHoras.flatMap(p => p.serie.map(pt => pt.mes)))
-    // eslint-disable-next-line unicorn/no-array-sort
-    const meses = [...mesesSet].sort((a: string, b: string) => {
+    const compararMes = (a: string, b: string) => {
       const [ma, ya] = a.split('/').map(Number)
       const [mb, yb] = b.split('/').map(Number)
+
       return ya === yb ? ma - mb : ya - yb
-    })
+    }
+
+    const meses = [...mesesSet].reduce<string[]>((ordenados, mesAtual) => {
+      const indice = ordenados.findIndex(
+        mesExistente => compararMes(mesAtual, mesExistente) < 0,
+      )
+
+      if (indice === -1) {
+        return [...ordenados, mesAtual]
+      }
+
+      return [
+        ...ordenados.slice(0, indice),
+        mesAtual,
+        ...ordenados.slice(indice),
+      ]
+    }, [])
     return meses.map((mes: string) => ({
       date_str: mes,
       values: store.burnupHoras
