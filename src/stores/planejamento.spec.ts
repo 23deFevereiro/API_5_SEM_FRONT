@@ -367,3 +367,74 @@ describe('Integração: buscarTabelaEstoque', () => {
     expect(callArgs[1]).toEqual({ params: { critico_max: 30, atencao_max: 60, page: 1, sort_by: 'status', sort_dir: 'asc' } })
   })
 })
+
+const sugestaoMock = {
+  data_sugerida: '2025-06-01',
+  comprar_imediatamente: false,
+  materiais: [
+    {
+      material_id: 1,
+      material: 'Capacitor',
+      fornecedor_sugerido: 'Fornecedor Alpha',
+      dias_cobertura: 20,
+      lead_time: 5,
+      data_limite_compra: '2025-05-28',
+      comprar_imediatamente: false,
+    },
+  ],
+}
+
+describe('Integração: buscarSugestaoProximaCompra', () => {
+  it('busca sugestão da API e armazena no state', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: sugestaoMock })
+
+    const store = usePlanejamentoStore()
+
+    await store.buscarSugestaoProximaCompra()
+
+    expect(store.sugestaoProximaCompra).toEqual(sugestaoMock)
+  })
+
+  it('chama a url correta', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: sugestaoMock })
+
+    const store = usePlanejamentoStore()
+
+    await store.buscarSugestaoProximaCompra()
+
+    expect(vi.mocked(axios.get).mock.calls[0][0])
+      .toContain('/api/compras/sugestao-proxima-compra/')
+  })
+
+  it('ativa carregandoSugestaoCompra durante a busca', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: sugestaoMock })
+
+    const store = usePlanejamentoStore()
+
+    const promise = store.buscarSugestaoProximaCompra()
+
+    expect(store.carregandoSugestaoCompra).toBe(true)
+
+    await promise
+  })
+
+  it('desliga carregandoSugestaoCompra após sucesso', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: sugestaoMock })
+
+    const store = usePlanejamentoStore()
+
+    await store.buscarSugestaoProximaCompra()
+
+    expect(store.carregandoSugestaoCompra).toBe(false)
+  })
+
+  it('desliga carregandoSugestaoCompra após erro', async () => {
+    vi.mocked(axios.get).mockRejectedValueOnce(new Error('fail'))
+
+    const store = usePlanejamentoStore()
+
+    await store.buscarSugestaoProximaCompra().catch(() => {})
+
+    expect(store.carregandoSugestaoCompra).toBe(false)
+  })
+})
