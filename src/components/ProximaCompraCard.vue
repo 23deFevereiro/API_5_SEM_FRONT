@@ -22,7 +22,7 @@
 
     <ul v-else class="proxima-compra-card__list">
       <li
-        v-for="item in materiais.slice(0, 5)"
+        v-for="item in materiais"
         :key="item.material_id"
         class="proxima-compra-card__item"
       >
@@ -150,6 +150,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .proxima-compra-card__item {
