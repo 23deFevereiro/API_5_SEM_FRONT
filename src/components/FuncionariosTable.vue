@@ -5,6 +5,7 @@
         <v-icon color="#F59E0B" size="16">mdi-account-group-outline</v-icon>
         <span>Funcionários</span>
       </div>
+
       <span v-if="store.funcionarios" class="section-count">
         {{ store.funcionarios.count }} {{ store.funcionarios.count === 1 ? 'pessoa' : 'pessoas' }}
       </span>
@@ -30,6 +31,7 @@
               <th class="col-projetos">Projetos que participa</th>
             </tr>
           </thead>
+
           <tbody>
             <tr
               v-for="(funcionario, i) in store.funcionarios.results"
@@ -42,9 +44,11 @@
                   {{ funcionario.funcionario }}
                 </div>
               </td>
+
               <td class="col-horas">
                 <span class="horas-badge">{{ funcionario.total_horas.toFixed(1) }}h</span>
               </td>
+
               <td class="col-projetos">
                 <div class="projetos-lista">
                   <span
@@ -65,6 +69,7 @@
         <span class="pagination-summary">
           Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ store.funcionarios.count }}
         </span>
+
         <div class="pagination-controls">
           <button
             class="pagination-button"
@@ -74,7 +79,9 @@
           >
             Anterior
           </button>
+
           <span class="pagination-page">Página {{ store.funcionarios.page }} de {{ store.funcionarios.total_pages }}</span>
+
           <button
             class="pagination-button"
             :disabled="store.funcionarios.page >= store.funcionarios.total_pages"

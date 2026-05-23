@@ -5,6 +5,7 @@
         <v-icon color="#F59E0B" size="16">mdi-package-variant-closed</v-icon>
         <span>Materiais</span>
       </div>
+
       <span v-if="store.materiais" class="section-count">
         {{ store.materiais.count }} {{ store.materiais.count === 1 ? 'item' : 'itens' }}
       </span>
@@ -30,6 +31,7 @@
               <th class="col-qtd">Quantidade</th>
             </tr>
           </thead>
+
           <tbody>
             <tr
               v-for="(material, i) in store.materiais.results"
@@ -42,7 +44,9 @@
                   {{ material.nome_material }}
                 </div>
               </td>
+
               <td class="col-custo">{{ formatarMoeda(material.custo_total_estimado) }}</td>
+
               <td class="col-qtd">
                 <span class="qtd-badge">{{ material.quantidade }}</span>
               </td>
@@ -55,6 +59,7 @@
         <span class="pagination-summary">
           Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ store.materiais.count }}
         </span>
+
         <div class="pagination-controls">
           <button
             class="pagination-button"
@@ -64,7 +69,9 @@
           >
             Anterior
           </button>
+
           <span class="pagination-page">Página {{ store.materiais.page }} de {{ store.materiais.total_pages }}</span>
+
           <button
             class="pagination-button"
             :disabled="store.materiais.page >= store.materiais.total_pages"

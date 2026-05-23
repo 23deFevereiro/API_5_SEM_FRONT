@@ -13,6 +13,7 @@
     <v-dialog v-model="aberto" max-width="420">
       <v-card>
         <v-card-title>Filtrar por período</v-card-title>
+
         <v-card-text>
           <div class="campos">
             <v-text-field
@@ -23,6 +24,7 @@
               type="date"
               variant="outlined"
             />
+
             <v-text-field
               v-model="fim"
               density="comfortable"
@@ -32,8 +34,10 @@
               variant="outlined"
             />
           </div>
+
           <div v-if="erro" class="erro">{{ erro }}</div>
         </v-card-text>
+
         <v-card-actions>
           <v-btn :disabled="!periodoAtivo" variant="text" @click="limpar">Limpar</v-btn>
           <v-spacer />

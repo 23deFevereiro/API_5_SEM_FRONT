@@ -2,14 +2,17 @@
   <div class="main-card">
     <ProgramaBurnupHorasChart />
     <ProgramaBurnupCustoChart />
+
     <div class="main-card__inner">
       <ProgramaSelector />
       <ProgramaCards />
     </div>
+
     <div class="main-card__charts">
       <ProjetosBarChart />
       <ProgramaDonutChart />
     </div>
+
     <div class="main-card__bottom">
       <ProjetosTable />
     </div>

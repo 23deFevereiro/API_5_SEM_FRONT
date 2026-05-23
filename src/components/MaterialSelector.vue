@@ -1,6 +1,7 @@
 <template>
   <div class="material-selector">
     <div class="selector-label">Material</div>
+
     <v-autocomplete
       v-model="materialSelecionado"
       class="material-autocomplete"
@@ -17,6 +18,7 @@
       @click="carregarTodos"
       @update:model-value="selecionarMaterial"
     />
+
     <div class="selector-hint">
       <v-icon color="#6B7280" size="14">mdi-information-outline</v-icon>
       Selecione um material para visualizar o lead time por fornecedor

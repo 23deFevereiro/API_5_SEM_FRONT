@@ -5,10 +5,13 @@
       <MateriaisAtencaoCard />
       <ProximaCompraCard />
     </div>
+
     <div class="main-card__inner">
       <MaterialSelector />
     </div>
+
     <EstoqueMaterialTable />
+
     <div class="main-card__charts">
       <LeadTimeChart />
     </div>
