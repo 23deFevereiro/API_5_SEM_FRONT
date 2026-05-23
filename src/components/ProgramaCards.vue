@@ -5,16 +5,21 @@
         <div class="card-icon" style="background: #DBEAFE;">
           <v-icon color="#3B82F6" size="16">mdi-currency-usd</v-icon>
         </div>
+
         <span class="card-label">Custos do Programa</span>
       </div>
+
       <div class="card-row">
         <span class="card-sublabel">Estimado</span>
+
         <span class="card-value" :class="{ 'card-value--empty': !store.resumo }">
           {{ store.resumo ? formatarMoeda(store.resumo.custo_estimado) : '--' }}
         </span>
       </div>
+
       <div class="card-row">
         <span class="card-sublabel">Realizado</span>
+
         <span class="card-value" :class="{ 'card-value--empty': !store.resumo }">
           {{ store.resumo ? formatarMoeda(store.resumo.custo_real) : '--' }}
         </span>
@@ -26,16 +31,21 @@
         <div class="card-icon" style="background: #D1FAE5;">
           <v-icon color="#10B981" size="16">mdi-clock-outline</v-icon>
         </div>
+
         <span class="card-label">Horas do Programa</span>
       </div>
+
       <div class="card-row">
         <span class="card-sublabel">Estimadas</span>
+
         <span class="card-value" :class="{ 'card-value--empty': !store.resumo }">
           {{ store.resumo ? store.resumo.horas_estimadas.toFixed(1) + 'h' : '--' }}
         </span>
       </div>
+
       <div class="card-row">
         <span class="card-sublabel">Realizadas</span>
+
         <span class="card-value" :class="{ 'card-value--empty': !store.resumo }">
           {{ store.resumo ? store.resumo.horas_realizadas.toFixed(1) + 'h' : '--' }}
         </span>
@@ -47,8 +57,10 @@
         <div class="card-icon" style="background: #EDE9FE;">
           <v-icon color="#7C3AED" size="16">mdi-folder-multiple-outline</v-icon>
         </div>
+
         <span class="card-label">Quantidade de Projetos</span>
       </div>
+
       <div class="card-value card-value--large" :class="{ 'card-value--empty': !store.resumo }">
         {{ store.resumo ? store.resumo.total_projetos : '--' }}
       </div>

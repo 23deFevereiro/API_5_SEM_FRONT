@@ -4,6 +4,7 @@
       <v-icon color="#D97706" size="16">mdi-alert</v-icon>
       <span class="alerta-card__title">Materiais em Atenção</span>
       <span class="alerta-card__badge alerta-card__badge--atencao">{{ store.criticoMax + 1 }}–{{ store.atencaoMax }} dias</span>
+
       <input
         class="alerta-card__input"
         :min="store.criticoMax + 2"
@@ -34,10 +35,12 @@
           :color="item.dias_para_pedir <= store.criticoMax ? '#DC2626' : '#D97706'"
           size="14"
         >mdi-circle-small</v-icon>
+
         <span class="alerta-card__item-text">
           <strong>{{ item.material }}</strong>
           <span v-if="item.dias_para_pedir <= store.criticoMax" class="alerta-card__overflow-badge">Crítico</span>
           <br>
+
           <span class="alerta-card__cobertura">
             Estoque para {{ item.dias_cobertura }} {{ item.dias_cobertura === 1 ? 'dia' : 'dias' }}
           </span>
@@ -48,6 +51,7 @@
             <v-icon color="#9CA3AF" size="12">mdi-help-circle-outline</v-icon>
             fornecedor desconhecido
           </span>
+
           <span v-else>{{ item.fornecedor }}</span>
         </span>
       </li>

@@ -3,6 +3,7 @@
     <div class="proxima-compra-card__header">
       <div>
         <span class="proxima-compra-card__label">Próxima compra recomendada</span>
+
         <h3 class="proxima-compra-card__date">
           {{ dataExibida }}
         </h3>

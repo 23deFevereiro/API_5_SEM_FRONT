@@ -5,6 +5,7 @@
         <v-icon color="#6366F1" size="16">mdi-table-eye</v-icon>
         <span>Estoque de Materiais</span>
       </div>
+
       <span v-if="store.tabelaEstoque.count > 0" class="section-count">
         {{ store.tabelaEstoque.count }} {{ store.tabelaEstoque.count === 1 ? 'item' : 'itens' }}
       </span>
@@ -29,19 +30,24 @@
                 <th class="col-material col-sortable" @click="toggleSort('material')">
                   Material <span class="sort-icon">{{ sortIcon('material') }}</span>
                 </th>
+
                 <th class="col-projeto col-sortable" @click="toggleSort('projeto')">
                   Projeto <span class="sort-icon">{{ sortIcon('projeto') }}</span>
                 </th>
+
                 <th class="col-estoque">Estoque atual</th>
                 <th class="col-consumo">Consumo previsto</th>
+
                 <th class="col-dias col-sortable" @click="toggleSort('dias_ate_acabar')">
                   Dias até acabar <span class="sort-icon">{{ sortIcon('dias_ate_acabar') }}</span>
                 </th>
+
                 <th class="col-status col-sortable" @click="toggleSort('status')">
                   Status <span class="sort-icon">{{ sortIcon('status') }}</span>
                 </th>
               </tr>
             </thead>
+
             <tbody>
               <tr
                 v-for="(item, i) in sortedResults"
@@ -53,6 +59,7 @@
                 <td class="col-estoque">{{ item.estoque_atual }}</td>
                 <td class="col-consumo">{{ item.consumo_previsto }}/dia</td>
                 <td class="col-dias">{{ item.dias_ate_acabar }}</td>
+
                 <td class="col-status">
                   <span :class="['status-badge', `status-badge--${statusClass(item.status)}`]">
                     {{ item.status }}
@@ -67,6 +74,7 @@
           <span class="pagination-summary">
             Mostrando {{ primeiroItem }}-{{ ultimoItem }} de {{ store.tabelaEstoque.count }}
           </span>
+
           <div class="pagination-controls">
             <button
               class="pagination-button"
@@ -76,9 +84,11 @@
             >
               Anterior
             </button>
+
             <span class="pagination-page">
               Página {{ store.tabelaEstoque.page }} de {{ store.tabelaEstoque.total_pages }}
             </span>
+
             <button
               class="pagination-button"
               :disabled="store.tabelaEstoque.page >= store.tabelaEstoque.total_pages || store.carregandoTabela"

@@ -4,6 +4,7 @@
       <v-icon color="#DC2626" size="16">mdi-alert-circle</v-icon>
       <span class="alerta-card__title">Materiais Críticos</span>
       <span class="alerta-card__badge alerta-card__badge--critico">0–{{ store.criticoMax }} dias</span>
+
       <input
         class="alerta-card__input"
         min="1"
@@ -31,9 +32,11 @@
         class="alerta-card__item"
       >
         <v-icon color="#DC2626" size="14">mdi-circle-small</v-icon>
+
         <span class="alerta-card__item-text">
           <strong>{{ item.material }}</strong>
           <br>
+
           <span class="alerta-card__cobertura">
             Estoque para {{ item.dias_cobertura }} {{ item.dias_cobertura === 1 ? 'dia' : 'dias' }}
           </span>
@@ -41,6 +44,7 @@
           <span v-if="item.dias_para_pedir <= 10" class="alerta-card__urgente">
             Pedido urgente
           </span>
+
           <span v-else>
             pedir em {{ item.dias_para_pedir }} {{ item.dias_para_pedir === 1 ? 'dia' : 'dias' }}
           </span>
@@ -49,6 +53,7 @@
             <v-icon color="#9CA3AF" size="12">mdi-help-circle-outline</v-icon>
             fornecedor desconhecido
           </span>
+
           <span v-else>{{ item.fornecedor }}</span>
         </span>
       </li>
