@@ -5,6 +5,7 @@
         <v-icon color="#2563EB" size="16">mdi-chart-scatter-plot</v-icon>
         <span>Lead Time por Fornecedor</span>
       </div>
+
       <div class="legend">
         <span class="legend-item legend-item--green">Entregue</span>
         <span class="legend-item legend-item--yellow">Aberto</span>

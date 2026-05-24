@@ -113,7 +113,9 @@ export const useProjetoStore = defineStore('projeto', {
     },
 
     async buscarBurnupHoras (programaId: number | null = null) {
-      if (this.burnupHoras.length === 0) this.carregandoBurnup = true
+      if (this.burnupHoras.length === 0) {
+        this.carregandoBurnup = true
+      }
       try {
         const qs = programaId ? `?programa_id=${programaId}` : ''
 

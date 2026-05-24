@@ -5,6 +5,7 @@
         <v-icon color="#6366F1" size="16">mdi-table-large</v-icon>
         <span>Projetos do Programa</span>
       </div>
+
       <span v-if="totalProjetos > 0" class="section-count">
         {{ totalProjetos }} {{ totalProjetos === 1 ? 'projeto' : 'projetos' }}
       </span>
@@ -34,23 +35,28 @@
                 <th class="col-nome col-sortable" @click="ordenar('nome_projeto')">
                   Nome do Projeto <span class="sort-icon">{{ sortIcon('nome_projeto') }}</span>
                 </th>
+
                 <th class="col-responsavel col-sortable" @click="ordenar('responsavel')">
                   Responsável <span class="sort-icon">{{ sortIcon('responsavel') }}</span>
                 </th>
+
                 <th class="col-status col-sortable" @click="ordenar('status')">
                   Status <span class="sort-icon">{{ sortIcon('status') }}</span>
                 </th>
+
                 <th class="col-horas">Horas Est.</th>
                 <th class="col-horas">Horas Real.</th>
                 <th class="col-tarefas">Tarefas Conc. (%)</th>
                 <th class="col-desvio">Desvio (h)</th>
                 <th class="col-data">Última Atividade</th>
                 <th class="col-dias">Dias Inativo</th>
+
                 <th class="col-situacao col-sortable" @click="ordenar('situacao')">
                   Situação <span class="sort-icon">{{ sortIcon('situacao') }}</span>
                 </th>
               </tr>
             </thead>
+
             <tbody>
               <tr
                 v-for="(projeto, i) in projetos"
@@ -63,14 +69,18 @@
                     {{ projeto.nome_projeto }}
                   </div>
                 </td>
+
                 <td class="col-responsavel">{{ projeto.responsavel || '—' }}</td>
+
                 <td class="col-status">
                   <span class="status-badge" :class="statusClass(projeto.status)">
                     {{ projeto.status || '—' }}
                   </span>
                 </td>
+
                 <td class="col-horas">{{ projeto.horas_estimadas.toFixed(1) }}h</td>
                 <td class="col-horas">{{ projeto.horas_realizadas.toFixed(1) }}h</td>
+
                 <td class="col-tarefas">
                   <div class="tarefas-progress">
                     <div class="progress-bar">
@@ -79,7 +89,9 @@
                         :style="{ width: projeto.percentual_tarefas_concluidas + '%' }"
                       />
                     </div>
+
                     <span class="progress-label">{{ projeto.percentual_tarefas_concluidas }}%</span>
+
                     <v-tooltip v-if="projeto.sem_horas_registradas" content-class="tooltip-sem-horas" location="top">
                       <template #activator="{ props: tooltipProps }">
                         <v-icon v-bind="tooltipProps" color="#F59E0B" size="14">mdi-alert-circle-outline</v-icon>
@@ -88,11 +100,14 @@
                     </v-tooltip>
                   </div>
                 </td>
+
                 <td class="col-desvio">
                   {{ projeto.desvio_horas > 0 ? '+' : '' }}{{ projeto.desvio_horas.toFixed(1) }}h
                 </td>
+
                 <td class="col-data">{{ projeto.data_ultima_atividade ? formatarData(projeto.data_ultima_atividade) : '—' }}</td>
                 <td class="col-dias">{{ projeto.dias_desde_ultima_atividade !== null ? projeto.dias_desde_ultima_atividade + 'd' : '—' }}</td>
+
                 <td class="col-situacao">
                   <v-tooltip content-class="tooltip-sem-horas" location="top">
                     <template #activator="{ props: tooltipProps }">
@@ -122,7 +137,9 @@
             >
               Anterior
             </button>
+
             <span class="pagination-page">Página {{ paginaAtual }} de {{ totalPaginas }}</span>
+
             <button
               class="pagination-button"
               :disabled="store.carregandoTabela || paginaAtual >= totalPaginas"
@@ -136,6 +153,7 @@
 
         <div class="situacao-legenda">
           <span class="legenda-titulo">Legenda — Situação:</span>
+
           <span v-for="item in legendaSituacao" :key="item.situacao" class="legenda-item">
             <v-icon :color="item.color" size="14">{{ item.icon }}</v-icon>
             <span>{{ item.label }}</span>

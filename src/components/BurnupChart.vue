@@ -4,6 +4,7 @@
       <div class="card-icon" :style="{ background: bgHeader }">
         <v-icon :color="corHeader" size="16">{{ iconeHeader }}</v-icon>
       </div>
+
       <span class="section-title">{{ titulo }}</span>
     </div>
 

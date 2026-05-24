@@ -27,6 +27,7 @@
         <div v-else class="donut-card__content">
           <div class="donut-card__chart-wrapper">
             <canvas ref="canvasRef" />
+
             <div class="donut-card__center">
               <span class="donut-card__total-number">{{ store.distribuicaoStatus.total }}</span>
               <span class="donut-card__total-label">projetos</span>
@@ -41,6 +42,7 @@
             >
               <span class="legend-dot" :style="{ background: item.cor }" />
               <span class="legend-status">{{ item.status }}</span>
+
               <span class="legend-values">
                 {{ item.quantidade }} <span class="legend-percent">({{ item.percentual }}%)</span>
               </span>

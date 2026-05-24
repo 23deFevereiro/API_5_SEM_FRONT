@@ -1,22 +1,27 @@
 <template>
   <div class="main-card">
     <ProgramaSelector />
+
     <div class="charts-row">
       <BurnupHorasChart />
       <CustoTempoChart />
     </div>
+
     <div class="main-card__inner">
       <ProjetoSelector />
       <CustoCard />
     </div>
+
     <div class="filtros-secundarios">
       <FiltroPeriodoBotao :disabled="!projetoSelecionado" />
       <FuncionarioFilterSelector :disabled="!projetoSelecionado" />
       <MaterialFilterSelector :disabled="!projetoSelecionado" />
+
       <span v-if="!projetoSelecionado" class="filtros-hint">
         Selecione um projeto para habilitar os filtros
       </span>
     </div>
+
     <MateriaisTable />
     <HorasFuncionarioChart />
     <FuncionariosTable />

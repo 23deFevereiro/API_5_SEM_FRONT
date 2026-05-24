@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { defineComponent, nextTick, ref } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, nextTick, ref } from 'vue'
+
+import { useBarChart } from '@/composables/useBarChart'
 
 const { ChartCtor, chartInstances } = vi.hoisted(() => {
   const chartInstances: Array<{ destroy: ReturnType<typeof vi.fn>, config: any }> = []
@@ -21,8 +23,6 @@ vi.mock('chart.js', () => ({
   LinearScale: {},
   Tooltip: {},
 }))
-
-import { useBarChart } from '@/composables/useBarChart'
 
 type Entry = { label: string, value: number }
 
@@ -192,6 +192,50 @@ describe('useBarChart — eixos', () => {
     await nextTick()
     const { config } = chartInstances[0]
     expect(config.data.labels).toEqual(['Projeto Alpha', 'Projeto Beta'])
+  })
+
+  it('encurta labels longas no eixo x', async () => {
+    const source = ref<Entry[]>([
+      { label: 'Projeto extremamente grande', value: 5 },
+    ])
+
+    mount(makeComp(source))
+    await nextTick()
+
+    const { config } = chartInstances[0]
+
+    const callback = config.options.scales.x.ticks.callback
+
+    const result = callback.call(
+      {
+        getLabelForValue: () => 'Projeto extremamente grande',
+      },
+      0,
+    )
+
+    expect(result).toBe('Projeto extre…')
+  })
+
+  it('mantém labels curtas sem alteração no eixo x', async () => {
+    const source = ref<Entry[]>([
+      { label: 'Curto', value: 5 },
+    ])
+
+    mount(makeComp(source))
+    await nextTick()
+
+    const { config } = chartInstances[0]
+
+    const callback = config.options.scales.x.ticks.callback
+
+    const result = callback.call(
+      {
+        getLabelForValue: () => 'Curto',
+      },
+      0,
+    )
+
+    expect(result).toBe('Curto')
   })
 })
 

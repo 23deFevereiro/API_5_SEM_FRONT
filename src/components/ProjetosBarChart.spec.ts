@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import ProjetosBarChart from './ProjetosBarChart.vue'
 import { useProgramaStore } from '@/stores/programa'
+import ProjetosBarChart from './ProjetosBarChart.vue'
 
 vi.mock('chart.js', () => ({
   BarController: {},

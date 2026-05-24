@@ -1,10 +1,10 @@
-import axios from 'axios'
 import { mount } from '@vue/test-utils'
+import axios from 'axios'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createVuetify } from 'vuetify'
-import ProximaCompraCard from './ProximaCompraCard.vue'
 import { usePlanejamentoStore } from '@/stores/planejamento'
+import ProximaCompraCard from './ProximaCompraCard.vue'
 
 vi.mock('axios')
 
