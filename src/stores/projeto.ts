@@ -113,7 +113,9 @@ export const useProjetoStore = defineStore('projeto', {
     },
 
     async buscarBurnupHoras (programaId: number | null = null) {
-      this.carregandoBurnup = true
+      if (this.burnupHoras.length === 0) {
+        this.carregandoBurnup = true
+      }
       try {
         const qs = programaId ? `?programa_id=${programaId}` : ''
 
@@ -145,8 +147,8 @@ export const useProjetoStore = defineStore('projeto', {
     async aplicarFiltroPorPrograma (programaId: number | null) {
       await Promise.all([
         this.buscarProjetos('', programaId),
-        this.buscarOverview(programaId),
-        this.buscarBurnupHoras(programaId),
+        this.buscarOverview(),
+        this.buscarBurnupHoras(),
       ])
       if (
         this.projetoSelecionado
@@ -158,7 +160,6 @@ export const useProjetoStore = defineStore('projeto', {
 
     async selecionarProjeto (projeto: Projeto) {
       this.projetoSelecionado = projeto
-      // Acordado: per\u00edodo persiste entre projetos; funcion\u00e1rio/material resetam.
       this.filtroFuncionario = null
       this.filtroMaterial = null
       this.carregando = true

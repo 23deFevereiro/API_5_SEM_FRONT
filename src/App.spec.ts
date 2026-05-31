@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import App from './App.vue'
 import { useProjetoStore } from '@/stores/projeto'
+import App from './App.vue'
 
 const { appState } = vi.hoisted(() => ({
   appState: {
@@ -97,7 +97,6 @@ describe('App', () => {
     const navIcon = wrapper.find('.v-app-bar-nav-icon-stub')
     expect(navIcon.exists()).toBe(true)
     await navIcon.trigger('click')
-    // No error thrown and component still renders correctly
     expect(wrapper.find('.v-navigation-drawer-stub').exists()).toBe(true)
   })
 

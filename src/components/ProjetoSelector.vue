@@ -1,6 +1,7 @@
 <template>
   <div class="projeto-selector">
     <div class="selector-label">Projeto</div>
+
     <v-autocomplete
       v-model="projetoSelecionado"
       class="projeto-autocomplete"
@@ -18,6 +19,7 @@
       @update:model-value="selecionarProjeto"
       @update:search="buscarProjetos"
     />
+
     <div class="selector-hint">
       <v-icon color="#6B7280" size="14">mdi-information-outline</v-icon>
       Selecione um projeto para visualizar os dados

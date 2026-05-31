@@ -1,13 +1,13 @@
 import { mount, shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import IndexPage from './index.vue'
+import { useAppStore } from '@/stores/app'
+import { useProjetoStore } from '@/stores/projeto'
 import NotFoundPage from './[...path].vue'
+import IndexPage from './index.vue'
 import PlanejamentoPage from './planejamento.vue'
 import ProgramasPage from './programas.vue'
 import ProjetosPage from './projetos.vue'
-import { useAppStore } from '@/stores/app'
-import { useProjetoStore } from '@/stores/projeto'
 
 const { replaceSpy } = vi.hoisted(() => ({
   replaceSpy: vi.fn(),
@@ -18,22 +18,28 @@ vi.mock('vue-router', () => ({
 }))
 
 const globalStubs = {
-  BurnupHorasChart: { template: '<div class="burnup-horas-chart-stub" />' },
-  CustoCard: { template: '<div class="custo-card-stub" />' },
-  CustoTempoChart: { template: '<div class="custo-tempo-chart-stub" />' },
-  FiltroPeriodoBotao: { props: ['disabled'], template: '<div class="filtro-periodo-stub" :data-disabled="disabled" />' },
-  FuncionarioFilterSelector: { props: ['disabled'], template: '<div class="funcionario-filter-stub" :data-disabled="disabled" />' },
-  FuncionariosTable: { template: '<div class="funcionarios-table-stub" />' },
-  HorasFuncionarioChart: { template: '<div class="horas-funcionario-chart-stub" />' },
-  MaterialFilterSelector: { props: ['disabled'], template: '<div class="material-filter-stub" :data-disabled="disabled" />' },
-  MateriaisTable: { template: '<div class="materiais-table-stub" />' },
-  ProgramaBurnupCustoChart: { template: '<div class="programa-burnup-custo-chart-stub" />' },
-  ProgramaBurnupHorasChart: { template: '<div class="programa-burnup-horas-chart-stub" />' },
-  ProgramaCards: { template: '<div class="programa-cards-stub" />' },
-  ProgramaDonutChart: { template: '<div class="programa-donut-chart-stub" />' },
-  ProgramaSelector: { template: '<div class="programa-selector-stub" />' },
-  ProjetoSelector: { template: '<div class="projeto-selector-stub" />' },
-  ProjetosTable: { template: '<div class="projetos-table-stub" />' },
+  'BurnupHorasChart': { template: '<div class="burnup-horas-chart-stub" />' },
+  'CustoCard': { template: '<div class="custo-card-stub" />' },
+  'CustoTempoChart': { template: '<div class="custo-tempo-chart-stub" />' },
+  'FiltroPeriodoBotao': { props: ['disabled'], template: '<div class="filtro-periodo-stub" :data-disabled="disabled" />' },
+  'FuncionarioFilterSelector': { props: ['disabled'], template: '<div class="funcionario-filter-stub" :data-disabled="disabled" />' },
+  'FuncionariosTable': { template: '<div class="funcionarios-table-stub" />' },
+  'HorasFuncionarioChart': { template: '<div class="horas-funcionario-chart-stub" />' },
+  'EstoqueMaterialTable': { template: '<div class="estoque-material-table-stub" />' },
+  'LeadTimeChart': { template: '<div class="lead-time-chart-stub" />' },
+  'MateriaisAtencaoCard': { template: '<div class="materiais-atencao-card-stub" />' },
+  'MateriaisCriticosCard': { template: '<div class="materiais-criticos-card-stub" />' },
+  'MaterialFilterSelector': { props: ['disabled'], template: '<div class="material-filter-stub" :data-disabled="disabled" />' },
+  'MaterialSelector': { template: '<div class="material-selector-stub" />' },
+  'MateriaisTable': { template: '<div class="materiais-table-stub" />' },
+  'ProgramaBurnupCustoChart': { template: '<div class="programa-burnup-custo-chart-stub" />' },
+  'ProgramaBurnupHorasChart': { template: '<div class="programa-burnup-horas-chart-stub" />' },
+  'ProgramaCards': { template: '<div class="programa-cards-stub" />' },
+  'ProgramaDonutChart': { template: '<div class="programa-donut-chart-stub" />' },
+  'ProgramaSelector': { template: '<div class="programa-selector-stub" />' },
+  'ProjetoSelector': { template: '<div class="projeto-selector-stub" />' },
+  'ProjetosTable': { template: '<div class="projetos-table-stub" />' },
+  'ProximaCompraCard': { template: '<div class="proxima-compra-card-stub" />' },
   'v-btn': { props: ['to'], template: '<button class="v-btn-stub">{{ to }}<slot /></button>' },
   'v-icon': { template: '<i class="v-icon-stub"><slot /></i>' },
 }
@@ -97,9 +103,12 @@ describe('pages coverage', () => {
   })
 
   it('renderiza as páginas de planejamento e não encontrado', () => {
-    const planejamentoWrapper = mount(PlanejamentoPage, {
+    const planejamentoWrapper = shallowMount(PlanejamentoPage, {
       global: {
-        stubs: globalStubs,
+        stubs: {
+          ...globalStubs,
+          EstoqueMaterialTable: { template: '<div class="estoque-material-table-stub" />' },
+        },
       },
     })
     const notFoundWrapper = mount(NotFoundPage, {
@@ -108,7 +117,7 @@ describe('pages coverage', () => {
       },
     })
 
-    expect(planejamentoWrapper.text()).toContain('Em breve')
+    expect(planejamentoWrapper.find('.main-card').exists()).toBe(true)
     expect(notFoundWrapper.text()).toContain('404')
     expect(notFoundWrapper.text()).toContain('Página não encontrada')
     expect(notFoundWrapper.text()).toContain('/programas')

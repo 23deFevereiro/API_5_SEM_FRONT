@@ -3,6 +3,7 @@
     <v-icon color="#9CA3AF" size="80">mdi-alert-circle-outline</v-icon>
     <h2 class="not-found__code">404</h2>
     <p class="not-found__text">Página não encontrada</p>
+
     <v-btn
       class="mt-4"
       color="primary"

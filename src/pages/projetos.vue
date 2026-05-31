@@ -1,22 +1,27 @@
 <template>
   <div class="main-card">
     <ProgramaSelector />
+
     <div class="charts-row">
-      <CustoTempoChart />
       <BurnupHorasChart />
+      <CustoTempoChart />
     </div>
+
     <div class="main-card__inner">
       <ProjetoSelector />
       <CustoCard />
     </div>
+
     <div class="filtros-secundarios">
       <FiltroPeriodoBotao :disabled="!projetoSelecionado" />
       <FuncionarioFilterSelector :disabled="!projetoSelecionado" />
       <MaterialFilterSelector :disabled="!projetoSelecionado" />
+
       <span v-if="!projetoSelecionado" class="filtros-hint">
         Selecione um projeto para habilitar os filtros
       </span>
     </div>
+
     <MateriaisTable />
     <HorasFuncionarioChart />
     <FuncionariosTable />
@@ -26,6 +31,7 @@
 <script lang="ts" setup>
   import { storeToRefs } from 'pinia'
   import { onMounted } from 'vue'
+  import BurnupHorasChart from '@/components/BurnupHorasChart.vue'
   import CustoCard from '@/components/CustoCard.vue'
   import CustoTempoChart from '@/components/CustoTempoChart.vue'
   import FiltroPeriodoBotao from '@/components/FiltroPeriodoBotao.vue'
@@ -37,7 +43,6 @@
   import ProgramaSelector from '@/components/ProgramaSelector.vue'
   import ProjetoSelector from '@/components/ProjetoSelector.vue'
   import { useProjetoStore } from '@/stores/projeto'
-  import BurnupHorasChart from '@/components/BurnupHorasChart.vue'
 
   const store = useProjetoStore()
   const { projetoSelecionado } = storeToRefs(store)
@@ -54,6 +59,9 @@
   padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .main-card__inner {
@@ -69,7 +77,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 16px;
-  margin-top: 16px;
   padding: 12px 16px;
   background: #F9FAFB;
   border-radius: 10px;
@@ -95,11 +102,10 @@
   }
 }
 .charts-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   width: 100%;
-  margin-bottom: 24px;
 }
 
 @media (max-width: 768px) {

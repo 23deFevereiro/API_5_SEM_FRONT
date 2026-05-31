@@ -5,8 +5,10 @@
         <div class="card-icon">
           <v-icon color="#F59E0B" size="16">mdi-cash-multiple</v-icon>
         </div>
+
         <span class="card-label">Custo Total do Projeto</span>
       </div>
+
       <div class="card-value" :class="{ 'card-value--empty': !store.resumo }">
         {{ store.resumo ? formatarMoeda(store.resumo.custo_total) : '--' }}
       </div>
@@ -17,8 +19,10 @@
         <div class="card-icon">
           <v-icon color="#6B7280" size="16">mdi-clock-outline</v-icon>
         </div>
+
         <span class="card-label">Tempo Total do Projeto</span>
       </div>
+
       <div class="card-value" :class="{ 'card-value--empty': !store.resumo }">
         {{ store.resumo ? store.resumo.tempo_total.toFixed(1) + 'h' : '--' }}
       </div>

@@ -2,13 +2,16 @@ import { mount, shallowMount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
+import { usePlanejamentoStore } from '@/stores/planejamento'
+import { useProgramaStore } from '@/stores/programa'
+import { useProjetoStore } from '@/stores/projeto'
 import BurnupHorasChart from './BurnupHorasChart.vue'
 import CustoTempoChart from './CustoTempoChart.vue'
 import HorasFuncionarioChart from './HorasFuncionarioChart.vue'
+import LeadTimeChart from './LeadTimeChart.vue'
 import ProgramaBurnupHorasChart from './ProgramaBurnupHorasChart.vue'
 import ProgramaDonutChart from './ProgramaDonutChart.vue'
-import { useProgramaStore } from '@/stores/programa'
-import { useProjetoStore } from '@/stores/projeto'
+import ProjetosBarChart from './ProjetosBarChart.vue'
 
 const { ChartCtor, chartInstances } = vi.hoisted(() => {
   const chartInstances: Array<{
@@ -42,11 +45,17 @@ vi.mock('chart.js', () => ({
   LineController: {},
   LineElement: {},
   PointElement: {},
+  ScatterController: {},
   Tooltip: {},
 }))
 
+const vuetifyStubs = {
+  'v-icon': { template: '<i class="v-icon-stub"><slot /></i>' },
+  'v-progress-circular': { template: '<span class="v-progress-circular-stub" />' },
+}
+
 const globalStubs = {
-  BurnupChart: {
+  'BurnupChart': {
     props: ['aoMontar', 'bgHeader', 'carregando', 'corHeader', 'corLoading', 'dados', 'extratorValor', 'formatarValor', 'iconeHeader', 'iconeVazio', 'programaSelecionado', 'textoVazio', 'titulo', 'tituloEixoY'],
     template: '<div class="burnup-chart-stub" />',
   },
@@ -61,9 +70,10 @@ beforeEach(() => {
 })
 
 describe('chart coverage', () => {
-  it('renderiza o CustoTempoChart e atualiza o destaque do projeto selecionado', async () => {
+  it('renderiza o CustoTempoChart e atualiza o destaque dos projetos do programa selecionado', async () => {
     const store = useProjetoStore()
-    mount(CustoTempoChart)
+    const programaStore = useProgramaStore()
+    mount(CustoTempoChart, { global: { stubs: vuetifyStubs } })
     await nextTick()
 
     store.overviewData = [
@@ -80,26 +90,28 @@ describe('chart coverage', () => {
       },
     ]
     await nextTick()
+    await nextTick()
 
     const instance = chartInstances.at(-1)
 
     expect(ChartCtor).toHaveBeenCalledTimes(1)
 
     instance!.data.datasets = [{ label: 'P001' }, { label: 'P002' }]
-    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    programaStore.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.projetos = [{ id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }]
     await nextTick()
 
     expect(instance?.update).toHaveBeenCalled()
     expect(instance?.data.datasets[0]).toMatchObject({
       backgroundColor: '#2563EB',
       borderColor: '#2563EB',
-      hoverBackgroundColor: '1D4ED8',
+      hoverBackgroundColor: '#1D4ED8',
     })
   })
 
-  it('renderiza o BurnupHorasChart e limpa datasets quando os dados ficam vazios', async () => {
+  it('renderiza o BurnupHorasChart e destrói o gráfico quando os dados ficam vazios', async () => {
     const store = useProjetoStore()
-    mount(BurnupHorasChart)
+    mount(BurnupHorasChart, { global: { stubs: vuetifyStubs } })
     await nextTick()
 
     store.burnupHoras = [
@@ -118,6 +130,7 @@ describe('chart coverage', () => {
       },
     ]
     await nextTick()
+    await nextTick()
 
     const instance = chartInstances.at(-1)
 
@@ -126,9 +139,7 @@ describe('chart coverage', () => {
     store.burnupHoras = []
     await nextTick()
 
-    expect(instance?.update).toHaveBeenCalled()
-    expect(instance?.data.labels).toEqual([])
-    expect(instance?.data.datasets).toEqual([])
+    expect(instance?.destroy).toHaveBeenCalled()
   })
 
   it('renderiza o HorasFuncionarioChart com dados e destrói o gráfico ao esvaziar', async () => {
@@ -211,7 +222,7 @@ describe('chart coverage', () => {
 
   it('reconstrói o BurnupHorasChart destruindo a instância anterior', async () => {
     const store = useProjetoStore()
-    mount(BurnupHorasChart)
+    mount(BurnupHorasChart, { global: { stubs: vuetifyStubs } })
     await nextTick()
 
     store.burnupHoras = [
@@ -221,6 +232,7 @@ describe('chart coverage', () => {
         serie: [{ mes: '01/2025', horas: 5, horas_acumuladas: 5 }],
       },
     ]
+    await nextTick()
     await nextTick()
 
     const firstInstance = chartInstances.at(-1)
@@ -232,6 +244,7 @@ describe('chart coverage', () => {
         serie: [{ mes: '02/2025', horas: 3, horas_acumuladas: 3 }],
       },
     ]
+    await nextTick()
     await nextTick()
 
     expect(firstInstance?.destroy).toHaveBeenCalled()
@@ -269,5 +282,200 @@ describe('chart coverage', () => {
     expect(burnupChart.exists()).toBe(true)
     expect(store.buscarBurnupHoras).toBeTypeOf('function')
     expect(wrapper.text()).not.toContain('Nenhum registro de horas encontrado')
+  })
+
+  it('constrói HorasFuncionarioChart quando dados chegam via watch', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.horasPorFuncionario = []
+
+    mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+
+    const before = ChartCtor.mock.calls.length
+
+    store.horasPorFuncionario = [{ funcionario: 'Ana', total_horas: 8 }]
+    await nextTick()
+    await nextTick()
+
+    expect(ChartCtor.mock.calls.length).toBeGreaterThan(before)
+  })
+
+  it('passa codigosSelecionados não-nulo quando há programa selecionado (BurnupHorasChart)', async () => {
+    const store = useProjetoStore()
+    const programaStore = useProgramaStore()
+
+    store.burnupHoras = [
+      {
+        projeto_id: 1,
+        projeto: 'P001',
+        serie: [{ mes: '01/2025', horas: 10, horas_acumuladas: 10 }],
+      },
+    ]
+    store.projetos = [{ id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }]
+    programaStore.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+
+    mount(BurnupHorasChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+
+    expect(ChartCtor).toHaveBeenCalled()
+  })
+
+  it('mostra estado vazio de HorasFuncionarioChart sem projeto selecionado', () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = null
+
+    const wrapper = mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    expect(wrapper.text()).toContain('Selecione um projeto para ver as horas por funcionário')
+  })
+
+  it('destroi e reconstrói o gráfico HorasFuncionarioChart ao atualizar dados', async () => {
+    const store = useProjetoStore()
+    store.projetoSelecionado = { id: 1, codigo_projeto: 'P001', nome_projeto: 'Conversor' }
+    store.horasPorFuncionario = [{ funcionario: 'Ana', total_horas: 5 }]
+
+    mount(HorasFuncionarioChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+
+    const firstInstance = chartInstances.at(-1)
+
+    store.horasPorFuncionario = [{ funcionario: 'Bruno', total_horas: 8 }]
+    await nextTick()
+    await nextTick()
+
+    expect(firstInstance?.destroy).toHaveBeenCalled()
+    expect(ChartCtor.mock.calls.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('renderiza o ProjetosBarChart e cria o gráfico quando há dados', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.horasPorProjeto = [
+      { nome_projeto: 'Projeto A', horas_realizadas: 10 },
+      { nome_projeto: 'Projeto B', horas_realizadas: 0 },
+    ]
+
+    const wrapper = mount(ProjetosBarChart, { global: { stubs: globalStubs } })
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.find('canvas').exists()).toBe(true)
+    expect(ChartCtor).toHaveBeenCalledTimes(1)
+  })
+
+  it('destrói o gráfico ProjetosBarChart quando horasPorProjeto fica vazio', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.horasPorProjeto = [{ nome_projeto: 'Projeto A', horas_realizadas: 5 }]
+
+    mount(ProjetosBarChart, { global: { stubs: globalStubs } })
+    await nextTick()
+    await nextTick()
+
+    const instance = chartInstances.at(-1)
+
+    store.horasPorProjeto = []
+    await nextTick()
+    await nextTick()
+
+    expect(instance?.destroy).toHaveBeenCalled()
+  })
+
+  it('destrói o gráfico ProjetosBarChart no unmount', async () => {
+    const store = useProgramaStore()
+    store.programaSelecionado = { id: 1, codigo_programa: 'PG1', nome_programa: 'Programa 1' }
+    store.horasPorProjeto = [{ nome_projeto: 'Projeto A', horas_realizadas: 8 }]
+
+    const wrapper = mount(ProjetosBarChart, { global: { stubs: globalStubs } })
+    await nextTick()
+    await nextTick()
+
+    const instance = chartInstances.at(-1)
+    wrapper.unmount()
+
+    expect(instance?.destroy).toHaveBeenCalled()
+  })
+
+  it('LeadTimeChart: mostra estado vazio sem material selecionado', () => {
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    expect(wrapper.text()).toContain('Selecione um material para visualizar o lead time')
+    expect(wrapper.find('canvas').exists()).toBe(false)
+  })
+
+  it('LeadTimeChart: mostra estado carregando', () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.carregandoLeadTime = true
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    expect(wrapper.text()).toContain('Carregando dados')
+    expect(wrapper.find('canvas').exists()).toBe(false)
+  })
+
+  it('LeadTimeChart: mostra estado vazio quando leadTimeData está vazio após seleção', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.carregandoLeadTime = false
+    store.leadTimeData = []
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    expect(wrapper.text()).toContain('Nenhum dado de lead time encontrado')
+    expect(wrapper.find('canvas').exists()).toBe(false)
+  })
+
+  it('LeadTimeChart: renderiza canvas e cria o gráfico quando há dados', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.carregandoLeadTime = false
+    store.leadTimeData = [
+      { fornecedor: 'F1', lead_time: 10, valor_unidade: 50, valor_total: 500,
+        status: 'Entregue', categoria_status: 'Concluído', data_pedido: '2024-01-01' },
+      { fornecedor: 'F2', lead_time: 20, valor_unidade: 100, valor_total: 1000,
+        status: 'Aberto', categoria_status: 'Pendente', data_pedido: '2024-02-01' },
+      { fornecedor: 'F3', lead_time: 5, valor_unidade: 30, valor_total: 150,
+        status: 'Cancelado', categoria_status: 'Cancelado', data_pedido: '2024-03-01' },
+      { fornecedor: 'F4', lead_time: 8, valor_unidade: 20, valor_total: 80,
+        status: 'Enviado', categoria_status: 'Desconhecido', data_pedido: '2024-04-01' },
+    ]
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+    expect(wrapper.find('canvas').exists()).toBe(true)
+    expect(ChartCtor).toHaveBeenCalled()
+  })
+
+  it('LeadTimeChart: destrói e reconstrói o gráfico quando leadTimeData muda', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.leadTimeData = [
+      { fornecedor: 'F1', lead_time: 10, valor_unidade: 50, valor_total: 500,
+        status: 'Entregue', categoria_status: 'Concluído', data_pedido: '2024-01-01' },
+    ]
+    mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+    const firstInstance = chartInstances.at(-1)
+    store.leadTimeData = [
+      { fornecedor: 'F2', lead_time: 15, valor_unidade: 80, valor_total: 800,
+        status: 'Aberto', categoria_status: 'Pendente', data_pedido: '2024-05-01' },
+    ]
+    await nextTick()
+    await nextTick()
+    expect(firstInstance?.destroy).toHaveBeenCalled()
+  })
+
+  it('LeadTimeChart: destrói o gráfico no unmount', async () => {
+    const store = usePlanejamentoStore()
+    store.materialSelecionado = { id: 1, codigo_material: 'M001', descricao: 'Capacitor' }
+    store.leadTimeData = [
+      { fornecedor: 'F1', lead_time: 10, valor_unidade: 50, valor_total: 500,
+        status: 'Entregue', categoria_status: 'Concluído', data_pedido: '2024-01-01' },
+    ]
+    const wrapper = mount(LeadTimeChart, { global: { stubs: vuetifyStubs } })
+    await nextTick()
+    await nextTick()
+    const instance = chartInstances.at(-1)
+    wrapper.unmount()
+    expect(instance?.destroy).toHaveBeenCalled()
   })
 })

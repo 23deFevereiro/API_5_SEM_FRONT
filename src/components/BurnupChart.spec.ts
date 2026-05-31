@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import BurnupChart from './BurnupChart.vue'
-import type { Programa } from '@/stores/programa'
 
 const { ChartCtor, chartInstanceMock } = vi.hoisted(() => {
   const chartInstanceMock = {
@@ -53,7 +52,7 @@ function montar (overrides: Partial<Record<string, unknown>> = {}) {
     global: { stubs: globalStubs },
     props: {
       dados: null,
-      programaSelecionado: null,
+      codigosSelecionados: null,
       carregando: false,
       titulo: 'Teste',
       iconeHeader: 'mdi-chart-line',
@@ -63,6 +62,7 @@ function montar (overrides: Partial<Record<string, unknown>> = {}) {
       iconeVazio: 'mdi-chart-line',
       textoVazio: 'Sem dados',
       tituloEixoY: 'Valor',
+      extratorChave: (p: Ponto) => p.codigo_programa,
       extratorValor: (p: Ponto) => p.valor,
       formatarValor: (v: number) => `${v}`,
       ...overrides,
@@ -157,8 +157,6 @@ describe('BurnupChart — ciclo de vida', () => {
     await nextTick()
     const chamadasAntes = ChartCtor.mock.calls.length
     await wrapper.setProps({ dados: dadosMock })
-    // o watch tem um await nextTick() interno antes de chamar buildChart;
-    // por isso precisamos de dois ticks para a chamada do Chart materializar
     await nextTick()
     await nextTick()
     expect(ChartCtor.mock.calls.length).toBeGreaterThan(chamadasAntes)
@@ -176,17 +174,16 @@ describe('BurnupChart — ciclo de vida', () => {
 })
 
 describe('BurnupChart — realce do programa selecionado', () => {
-  it('chama update do Chart quando programaSelecionado muda', async () => {
+  it('chama update do Chart quando codigosSelecionados muda', async () => {
     const wrapper = montar({ dados: dadosMock })
     await nextTick()
     await nextTick()
     chartInstanceMock.update.mockClear()
     chartInstanceMock.data.datasets = [
-      { label: 'PROG-1' } as { label: string },
-      { label: 'PROG-2' } as { label: string },
+      { label: 'PROG-1' },
+      { label: 'PROG-2' },
     ]
-    const programa: Programa = { id: 1, codigo_programa: 'PROG-1', nome_programa: 'Alpha' }
-    await wrapper.setProps({ programaSelecionado: programa })
+    await wrapper.setProps({ codigosSelecionados: ['PROG-1'] })
     await nextTick()
     expect(chartInstanceMock.update).toHaveBeenCalled()
   })
@@ -198,7 +195,6 @@ describe('BurnupChart — extração e formatação', () => {
     montar({ dados: dadosMock, extratorValor: extrator })
     await nextTick()
     await nextTick()
-    // total de pontos no mock é 3 (Alpha jan, Beta jan, Alpha fev)
     expect(extrator).toHaveBeenCalledTimes(3)
   })
 })

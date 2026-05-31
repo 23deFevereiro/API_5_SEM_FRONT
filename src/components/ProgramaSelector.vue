@@ -1,6 +1,7 @@
 <template>
   <div class="programa-selector">
     <div class="selector-label">Programa</div>
+
     <v-autocomplete
       v-model="programaSelecionado"
       class="programa-autocomplete"
@@ -18,6 +19,7 @@
       @update:model-value="selecionarPrograma"
       @update:search="buscarProgramas"
     />
+
     <div class="selector-hint">
       <v-icon color="#6B7280" size="14">mdi-information-outline</v-icon>
       Selecione um programa para visualizar os dados
@@ -70,7 +72,6 @@
   flex-direction: column;
   gap: 8px;
   min-width: 280px;
-  margin-bottom: 16px;
 }
 
 .selector-label {

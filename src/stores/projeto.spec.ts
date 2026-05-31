@@ -45,8 +45,6 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-// ─── UNITÁRIOS ───────────────────────────────────────────────────────────────
-
 describe('Unitário: limpar', () => {
   it('limpa o projeto selecionado', () => {
     const store = useProjetoStore()
@@ -98,8 +96,6 @@ describe('Unitário: estado inicial', () => {
     expect(store.horasPorFuncionario).toEqual([])
   })
 })
-
-// ─── INTEGRAÇÃO ──────────────────────────────────────────────────────────────
 
 describe('Integração: buscarProjetos', () => {
   it('popula o estado com projetos retornados pela API', async () => {
@@ -159,9 +155,6 @@ function mockarRespostasDoFiltro (
 }
 
 describe('Integração: aplicarFiltroPorPrograma', () => {
-  // aplicarFiltroPorPrograma dispara 2 GETs em paralelo via Promise.all (projetos e overview, nessa ordem).
-  // Este helper centraliza o setup dos dois mocks pra evitar duplicação entre os testes.
-
   it('busca projetos passando o programa_id recebido', async () => {
     mockarRespostasDoFiltro()
     const store = useProjetoStore()
@@ -170,12 +163,12 @@ describe('Integração: aplicarFiltroPorPrograma', () => {
     expect(urls.some(u => u.includes('/api/projetos/') && u.includes('programa_id=5'))).toBe(true)
   })
 
-  it('busca overview passando o programa_id recebido', async () => {
+  it('busca overview sem programa_id (exibe todos os projetos no grafico)', async () => {
     mockarRespostasDoFiltro()
     const store = useProjetoStore()
     await store.aplicarFiltroPorPrograma(5)
     const urls = vi.mocked(axios.get).mock.calls.map(c => c[0])
-    expect(urls.some(u => u.includes('/api/projetos-overview') && u.includes('programa_id=5'))).toBe(true)
+    expect(urls.some(u => u.includes('/api/projetos-overview') && !u.includes('programa_id'))).toBe(true)
   })
 
   it('atualiza overviewData com o retorno filtrado', async () => {
@@ -330,8 +323,6 @@ describe('Integração: selecionarProjeto', () => {
   })
 })
 
-// ─── FILTROS SECUNDÁRIOS (período, funcionário, material) ─────────────────
-
 describe('Integração: filtro de período na URL', () => {
   it('buscarMateriais inclui data_inicio e data_fim quando setados', async () => {
     vi.mocked(axios.get).mockResolvedValueOnce({ data: materiaisMock })
@@ -410,7 +401,6 @@ describe('Integração: aplicarPeriodo', () => {
     expect(urls.some(u => u.includes('/materiais/'))).toBe(true)
     expect(urls.some(u => u.includes('/horas-por-funcionario/'))).toBe(true)
     expect(urls.some(u => u.includes('/funcionarios/'))).toBe(true)
-    // resumo \u00e9 agregado absoluto do projeto, n\u00e3o muda com per\u00edodo
     expect(urls.some(u => u.includes('/resumo/'))).toBe(false)
   })
 })
@@ -494,5 +484,30 @@ describe('init', () => {
     store.init()
     expect(spyOverview).toHaveBeenCalledTimes(1)
     expect(spyBurnup).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Integração: buscarBurnupHoras — guard de carregando', () => {
+  it('não ativa carregandoBurnup quando burnupHoras já possui dados', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    store.burnupHoras = [{ projeto_id: 1, projeto: 'P001', serie: [] }]
+    await store.buscarBurnupHoras()
+    expect(store.carregandoBurnup).toBe(false)
+  })
+
+  it('ativa carregandoBurnup apenas quando burnupHoras está vazio', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [{ projeto_id: 1, projeto: 'P001', serie: [] }] })
+    const store = useProjetoStore()
+    expect(store.burnupHoras.length).toBe(0)
+    await store.buscarBurnupHoras()
+    expect(store.burnupHoras).toHaveLength(1)
+  })
+
+  it('inclui query string quando programaId é passado', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: [] })
+    const store = useProjetoStore()
+    await store.buscarBurnupHoras(42)
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('programa_id=42'))
   })
 })

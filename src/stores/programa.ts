@@ -63,6 +63,10 @@ export type TabelaProjeto = {
   percentual_tarefas_concluidas: number
   desvio_horas: number
   percentual_desvio: number
+  data_ultima_atividade: string | null
+  dias_desde_ultima_atividade: number | null
+  sem_horas_registradas: boolean
+  situacao: string
 }
 
 export type TabelaProjetosPaginada = {
@@ -71,6 +75,11 @@ export type TabelaProjetosPaginada = {
   page_size: number
   total_pages: number
   results: TabelaProjeto[]
+}
+
+export type HorasProjeto = {
+  nome_projeto: string
+  horas_realizadas: number
 }
 
 export const useProgramaStore = defineStore('programa', {
@@ -87,6 +96,10 @@ export const useProgramaStore = defineStore('programa', {
     carregandoBurnupCusto: false,
     tabelaProjetos: null as TabelaProjetosPaginada | null,
     carregandoTabela: false,
+    tabelaSortBy: 'nome_projeto',
+    tabelaSortDir: 'asc',
+    horasPorProjeto: [] as HorasProjeto[],
+    carregandoHorasProjeto: false,
   }),
 
   getters: {
@@ -112,6 +125,7 @@ export const useProgramaStore = defineStore('programa', {
       this.resumo = null
       this.distribuicaoStatus = null
       this.tabelaProjetos = null
+      this.horasPorProjeto = []
 
       if (!programa) {
         return
@@ -126,6 +140,8 @@ export const useProgramaStore = defineStore('programa', {
           axios.get(apiUrl(`/api/programas/${programa.id}/distribuicao-status/`)),
           this.buscarTabelaProjetos(programa.id),
         ])
+
+        await this.buscarHorasPorProjeto(programa.id)
 
         this.resumo = {
           total_projetos: Number(resumoRes.data.total_projetos),
@@ -147,10 +163,31 @@ export const useProgramaStore = defineStore('programa', {
       }
     },
 
-    async buscarTabelaProjetos (programaId: number, page = 1) {
+    async buscarHorasPorProjeto (programaId: number) {
+      this.carregandoHorasProjeto = true
+      try {
+        const response = await axios.get(apiUrl(`/api/programas/${programaId}/horas-por-projeto/`))
+        this.horasPorProjeto = response.data
+      } finally {
+        this.carregandoHorasProjeto = false
+      }
+    },
+
+    async buscarTabelaProjetos (programaId: number, page = 1, sortBy?: string, sortDir?: 'asc' | 'desc') {
+      if (sortBy !== undefined) {
+        this.tabelaSortBy = sortBy
+      }
+      if (sortDir !== undefined) {
+        this.tabelaSortDir = sortDir
+      }
       this.carregandoTabela = true
       try {
-        const response = await axios.get(apiUrl(`/api/programas/${programaId}/tabela-projetos/?page=${page}`))
+        const params = new URLSearchParams({
+          page: String(page),
+          sort_by: this.tabelaSortBy,
+          sort_dir: this.tabelaSortDir,
+        })
+        const response = await axios.get(apiUrl(`/api/programas/${programaId}/tabela-projetos/?${params}`))
         this.tabelaProjetos = response.data
         return response.data as TabelaProjetosPaginada
       } finally {

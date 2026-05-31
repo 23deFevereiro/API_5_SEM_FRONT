@@ -16,6 +16,7 @@
       <div class="sidebar-header">
         <v-icon v-if="!rail || mobile" class="mr-2" color="white" size="28">mdi-chart-box-outline</v-icon>
         <span v-if="!rail || mobile" class="sidebar-title">Lunae</span>
+
         <v-btn
           v-if="!mobile"
           color="white"
@@ -51,6 +52,7 @@
         height="3"
         indeterminate
       />
+
       <div class="page-shell">
         <h1 v-if="!mobile" class="page-title">{{ currentPageTitle }}</h1>
         <router-view />
@@ -129,7 +131,8 @@
 
 .page-shell {
   padding: 24px 32px;
-  max-width: 1200px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .page-title {

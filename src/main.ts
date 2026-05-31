@@ -4,6 +4,7 @@ import { registerPlugins } from '@/plugins'
 
 import App from './App.vue'
 
+import '@/styles/settings.scss'
 import 'unfonts.css'
 
 const app = createApp(App)

@@ -7,7 +7,6 @@ import os
 
 ALLOWED_TYPES = ["feat", "fix", "docs", "chore", "refactor", "test", "style", "ci", "perf"]
 
-# tipo/descricao-com-hifen (opcionalmente com número de card: feat/42-descricao)
 BRANCH_PATTERN = re.compile(
     r"^(?P<type>[a-z]+)/(?P<desc>[a-z0-9][a-z0-9\-]*)$"
 )

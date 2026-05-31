@@ -1,9 +1,10 @@
 <template>
   <div class="burnup-section">
-    <div class="section-header">
+    <div class="header">
       <div class="card-icon" :style="{ background: bgHeader }">
         <v-icon :color="corHeader" size="16">{{ iconeHeader }}</v-icon>
       </div>
+
       <span class="section-title">{{ titulo }}</span>
     </div>
 
@@ -18,13 +19,13 @@
     </div>
 
     <div v-else class="chart-wrapper">
+      <div ref="legendRef" class="chart-legend" />
       <canvas ref="canvasRef" />
     </div>
   </div>
 </template>
 
-<script setup lang="ts" generic="T extends { codigo_programa: string, nome_programa: string }">
-  import type { Programa } from '@/stores/programa'
+<script setup lang="ts" generic="T">
   import {
     CategoryScale,
     Chart,
@@ -43,7 +44,8 @@
 
   const props = defineProps<{
     dados: Grupo[] | null
-    programaSelecionado: Programa | null
+    codigosSelecionados: string[] | null
+    extratorChave: (ponto: T) => string
     carregando: boolean
     titulo: string
     iconeHeader: string
@@ -63,12 +65,35 @@
   const COR_REALCE_HOVER = '#1D4ED8'
 
   const canvasRef = ref<HTMLCanvasElement | null>(null)
+  const legendRef = ref<HTMLDivElement | null>(null)
   const chartInstance = shallowRef<Chart | null>(null)
 
   function destruirGrafico () {
     if (chartInstance.value) {
       chartInstance.value.destroy()
       chartInstance.value = null
+    }
+    if (legendRef.value) legendRef.value.innerHTML = ''
+  }
+
+  function buildLegend () {
+    if (!legendRef.value || !chartInstance.value) return
+    legendRef.value.innerHTML = ''
+    legendRef.value.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px 16px;padding:8px 0 4px;'
+
+    for (const ds of chartInstance.value.data.datasets) {
+      const item = document.createElement('div')
+      item.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;font-family:inherit;'
+
+      const box = document.createElement('span')
+      box.style.cssText = `display:inline-block;width:20px;height:8px;border-radius:2px;flex-shrink:0;background:${ds.borderColor as string};`
+
+      const label = document.createElement('span')
+      label.textContent = ds.label ?? ''
+
+      item.append(box)
+      item.append(label)
+      legendRef.value.append(item)
     }
   }
 
@@ -81,14 +106,15 @@
 
     for (const [monthIndex, month] of raw.entries()) {
       for (const v of month.values) {
-        if (!programas[v.codigo_programa]) {
-          programas[v.codigo_programa] = {
-            label: v.codigo_programa,
+        const chave = props.extratorChave(v)
+        if (!programas[chave]) {
+          programas[chave] = {
+            label: chave,
             data: Array.from({ length: raw.length }).fill(null) as (number | null)[],
             spanGaps: true,
           }
         }
-        programas[v.codigo_programa].data[monthIndex] = props.extratorValor(v)
+        programas[chave].data[monthIndex] = props.extratorValor(v)
       }
     }
 
@@ -110,7 +136,7 @@
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { position: 'top' },
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: ctx => `${ctx.dataset.label}: ${props.formatarValor(Number(ctx.parsed.y ?? 0))}`,
@@ -129,19 +155,22 @@
     })
 
     aplicarRealce()
+    buildLegend()
   }
 
   function aplicarRealce () {
     if (!chartInstance.value) return
-    const codigoSelecionado = props.programaSelecionado?.codigo_programa
+    const selecionados = props.codigosSelecionados
+    const temSelecao = !!selecionados && selecionados.length > 0
     for (const dataset of chartInstance.value.data.datasets) {
-      const realcado = !!codigoSelecionado && dataset.label === codigoSelecionado
+      const realcado = temSelecao && selecionados!.includes(dataset.label as string)
       dataset.borderColor = realcado ? COR_REALCE : COR_NEUTRA
       dataset.backgroundColor = realcado ? COR_REALCE : COR_NEUTRA
       dataset.borderWidth = realcado ? 3 : 1
       ;(dataset as { hoverBackgroundColor?: string }).hoverBackgroundColor = realcado ? COR_REALCE_HOVER : COR_NEUTRA
     }
     chartInstance.value.update()
+    buildLegend()
   }
 
   watch(() => props.dados, async novo => {
@@ -153,7 +182,7 @@
     buildChart(novo)
   })
 
-  watch(() => props.programaSelecionado, () => {
+  watch(() => props.codigosSelecionados, () => {
     aplicarRealce()
   })
 
@@ -183,7 +212,7 @@
   flex-direction: column;
 }
 
-.section-header {
+.header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -209,7 +238,22 @@
 
 .chart-wrapper {
   padding: 12px 16px 20px;
-  height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-wrapper canvas {
+  display: block;
+  height: 300px !important;
+  width: 100%;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 0 24px;
 }
 
 .empty-state {
@@ -221,5 +265,8 @@
   padding: 48px 16px;
   font-size: 13px;
   color: #9CA3AF;
+  background: none;
+  border: none;
+  border-radius: 0;
 }
 </style>
